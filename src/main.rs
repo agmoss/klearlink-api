@@ -85,9 +85,13 @@ async fn view_consumer_credit(consumer_credit_id_dto: &str, _auth: ApiKeyAuth) -
 
     let mut connection = establish_connection_pg();
 
-    match consumer_credit.filter(consumer_credit_id.eq(&consumer_credit_id_dto)).first::<ConsumerCredit>(&mut connection) {
+    match consumer_credit
+        .filter(consumer_credit_id.eq(&consumer_credit_id_dto))
+        .first::<ConsumerCredit>(&mut connection)
+    {
         Ok(record) => Ok(Json(record)),
-        Err(_) => Err(Status::NotFound),
+        Err(diesel::result::Error::NotFound) => Err(Status::NotFound),
+        Err(_) => Err(Status::InternalServerError),
     }
 }
 
