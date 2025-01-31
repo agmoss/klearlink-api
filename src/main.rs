@@ -37,18 +37,18 @@ fn convert_record_to_consumer_credit(
     let dto: ConsumerCreditDto = record.clone().into();
     models::ConsumerCredit {
         consumer_credit_id: consumer_credit_id_dto.to_string(),
-        first_name: dto.first_name,
-        last_name: dto.last_name,
-        email: dto.email,
-        date_of_birth: dto.date_of_birth,
-        address: dto.address,
-        phone_number: dto.phone_number,
-        consumer_state: dto.consumer_state,
-        institution_names: dto.institution_names,
+        first_name: dto.first_name.clone(),
+        last_name: dto.last_name.clone(),
+        email: dto.email.clone(),
+        date_of_birth: dto.date_of_birth.clone(),
+        address: dto.address.clone(),
+        phone_number: dto.phone_number.clone(),
+        consumer_state: dto.consumer_state.clone(),
+        institution_names: dto.institution_names.clone(),
         amount: dto.amount,
-        credit_type: dto.credit_type,
-        application_datetime: dto.application_datetime,
-        credit_state: dto.credit_state,
+        credit_type: dto.credit_type.clone(),
+        application_datetime: dto.application_datetime.clone(),
+        credit_state: dto.credit_state.clone(),
     }
 }
 
