@@ -7,7 +7,9 @@ use models::ConsumerCreditRecord;
 use rocket::http::Status;
 use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
-use rocket::{get, launch, post, put, routes};
+use rocket::{get, launch, post, put, routes, Request};
+use rocket::request::FromRequest;
+use crate::auth::{ApiKey, Username};
 use std::env;
 
 #[cfg(test)]
@@ -27,6 +29,8 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 async fn submit_consumer_credit(
     id: String,
     record: Json<ConsumerCreditRecord>,
+    _api_key: ApiKey,
+    _username: Username,
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_facts::dsl::*;
     use crate::schema::credit_facts::dsl::*;
@@ -70,21 +74,34 @@ async fn submit_consumer_credit(
 }
 
 #[post("/consumer-credit/<id>", data = "<record>")]
-async fn update_consumer_credit(id: String, record: Json<ConsumerCreditRecord>) -> Status {
+async fn update_consumer_credit(
+    id: String,
+    record: Json<ConsumerCreditRecord>,
+    _api_key: ApiKey,
+    _username: Username,
+) -> Status {
     // Implement logic to update an existing consumer credit record
     // Return 200 OK or 404 Not Found
     Status::Ok
 }
 
 #[get("/consumer-credit/<id>")]
-async fn view_consumer_credit(id: String) -> Status {
+async fn view_consumer_credit(
+    id: String,
+    _api_key: ApiKey,
+    _username: Username,
+) -> Status {
     // Implement logic to retrieve a consumer credit record
     // Return 200 OK or 404 Not Found
     Status::Ok
 }
 
 #[get("/consumer-credit/<id>/consumer-match")]
-async fn view_consumer_match(id: String) -> Status {
+async fn view_consumer_match(
+    id: String,
+    _api_key: ApiKey,
+    _username: Username,
+) -> Status {
     // Implement logic to calculate and return consumer match
     // Return 200 OK or 404 Not Found
     Status::Ok

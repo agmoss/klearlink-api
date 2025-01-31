@@ -32,7 +32,7 @@ mod tests {
             .put("/consumer-credit/1")
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
-            .body(dummy_payload.to_string()) // Send the JSON payload as body
+            .body(dummy_payload.to_string())
             .dispatch();
         assert_eq!(response.status(), Status::Created);
     }

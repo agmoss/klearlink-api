@@ -20,6 +20,9 @@ pub struct ConsumerFacts {
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = credit_facts)]
 pub struct CreditFacts {
+    pub originated_datetime: Option<String>,
+    pub payment_due_date: Option<String>,
+    pub payment_amount_due: Option<f64>,
     pub amount: f64,
     pub credit_type: String,
     pub application_datetime: String,
