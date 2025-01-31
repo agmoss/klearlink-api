@@ -13,6 +13,7 @@ mod auth;
 mod dto;
 
 use dto::{ConsumerCreditDto, ConsumerCreditRecord};
+use models::ConsumerCredit;
 
 use auth::{ApiKeyAuth, AuthStore};
 use std::env;
@@ -30,25 +31,24 @@ pub fn establish_connection_pg() -> PgConnection {
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
-fn convert_record_to_consumer_credit(
-    consumer_credit_id_dto: &str,
-    record: &ConsumerCreditRecord,
-) -> models::ConsumerCredit {
-    let dto: ConsumerCreditDto = record.clone().into();
-    models::ConsumerCredit {
-        consumer_credit_id: consumer_credit_id_dto.to_string(),
-        first_name: dto.first_name.clone(),
-        last_name: dto.last_name.clone(),
-        email: dto.email.clone(),
-        date_of_birth: dto.date_of_birth.clone(),
-        address: dto.address.clone(),
-        phone_number: dto.phone_number.clone(),
-        consumer_state: dto.consumer_state.clone(),
-        institution_names: dto.institution_names.clone(),
-        amount: dto.amount,
-        credit_type: dto.credit_type.clone(),
-        application_datetime: dto.application_datetime.clone(),
-        credit_state: dto.credit_state.clone(),
+impl ConsumerCreditRecord {
+    fn to_consumer_credit(&self, consumer_credit_id_dto: &str) -> ConsumerCredit {
+        let dto: ConsumerCreditDto = self.clone().into();
+        ConsumerCredit {
+            consumer_credit_id: consumer_credit_id_dto.to_string(),
+            first_name: dto.first_name.clone(),
+            last_name: dto.last_name.clone(),
+            email: dto.email.clone(),
+            date_of_birth: dto.date_of_birth.clone(),
+            address: dto.address.clone(),
+            phone_number: dto.phone_number.clone(),
+            consumer_state: dto.consumer_state.clone(),
+            institution_names: dto.institution_names.clone(),
+            amount: dto.amount,
+            credit_type: dto.credit_type.clone(),
+            application_datetime: dto.application_datetime.clone(),
+            credit_state: dto.credit_state.clone(),
+        }
     }
 }
 
@@ -62,7 +62,7 @@ async fn submit_consumer_credit(
 
     let mut connection = establish_connection_pg();
 
-    let new_consumer_facts = convert_record_to_consumer_credit(consumer_credit_id_dto, &record);
+    let new_consumer_facts = record.to_consumer_credit(consumer_credit_id_dto);
 
     diesel::insert_into(consumer_credit)
         .values(&new_consumer_facts)
@@ -85,7 +85,7 @@ async fn update_consumer_credit(
     let target_consumer_credit =
         consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto));
 
-    let updated_consumer_facts = convert_record_to_consumer_credit(consumer_credit_id_dto, &record);
+    let updated_consumer_facts = record.to_consumer_credit(consumer_credit_id_dto);
 
     let consumer_update_result = diesel::update(target_consumer_credit)
         .set((
