@@ -12,7 +12,7 @@ mod auth;
 
 mod dto;
 
-use dto::ConsumerCreditDto;
+use dto::{ConsumerCreditDto, ConsumerCreditRecord};
 use dto::ConsumerCreditRecord;
 
 use auth::{ApiKeyAuth, AuthStore};
@@ -31,6 +31,28 @@ pub fn establish_connection_pg() -> PgConnection {
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
+fn convert_record_to_consumer_credit(
+    consumer_credit_id_dto: &str,
+    record: &ConsumerCreditRecord,
+) -> models::ConsumerCredit {
+    let dto: ConsumerCreditDto = record.clone().into();
+    models::ConsumerCredit {
+        consumer_credit_id: consumer_credit_id_dto.to_string(),
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        email: dto.email,
+        date_of_birth: dto.date_of_birth,
+        address: dto.address,
+        phone_number: dto.phone_number,
+        consumer_state: dto.consumer_state,
+        institution_names: dto.institution_names,
+        amount: dto.amount,
+        credit_type: dto.credit_type,
+        application_datetime: dto.application_datetime,
+        credit_state: dto.credit_state,
+    }
+}
+
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
@@ -39,28 +61,9 @@ async fn submit_consumer_credit(
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    use models::ConsumerCredit;
-
     let mut connection = establish_connection_pg();
 
-    let dto: ConsumerCreditDto = record.clone().into_inner().into();
-
-    // Insert new consumer facts
-    let new_consumer_facts = ConsumerCredit {
-        consumer_credit_id: consumer_credit_id_dto.to_string(),
-        first_name: dto.first_name.clone(),
-        last_name: dto.last_name.clone(),
-        email: dto.email.clone(),
-        date_of_birth: dto.date_of_birth.clone(),
-        address: dto.address.clone(),
-        phone_number: dto.phone_number.clone(),
-        consumer_state: dto.consumer_state.clone(),
-        institution_names: dto.institution_names.clone(),
-        amount: dto.amount,
-        credit_type: dto.credit_type.clone(),
-        application_datetime: dto.application_datetime.clone(),
-        credit_state: dto.credit_state.clone(),
-    };
+    let new_consumer_facts = convert_record_to_consumer_credit(consumer_credit_id_dto, &record);
 
     diesel::insert_into(consumer_credit)
         .values(&new_consumer_facts)
@@ -78,27 +81,13 @@ async fn update_consumer_credit(
 ) -> Status {
     use crate::schema::consumer_credit::dsl::*;
 
-    let dto: ConsumerCreditDto = record.clone().into_inner().into();
 
     let mut connection = establish_connection_pg();
 
     let target_consumer_credit =
         consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto));
 
-    let updated_consumer_facts = ConsumerCreditDto {
-        first_name: dto.first_name.clone(),
-        last_name: dto.last_name.clone(),
-        email: dto.email.clone(),
-        date_of_birth: dto.date_of_birth.clone(),
-        address: dto.address.clone(),
-        phone_number: dto.phone_number.clone(),
-        consumer_state: dto.consumer_state.clone(),
-        institution_names: dto.institution_names.clone(),
-        amount: dto.amount,
-        credit_type: dto.credit_type.clone(),
-        application_datetime: dto.application_datetime.clone(),
-        credit_state: dto.credit_state.clone(),
-    };
+    let updated_consumer_facts = convert_record_to_consumer_credit(consumer_credit_id_dto, &record);
 
     let consumer_update_result = diesel::update(target_consumer_credit)
         .set((
