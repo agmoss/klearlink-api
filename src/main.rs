@@ -13,7 +13,6 @@ mod auth;
 mod dto;
 
 use dto::{ConsumerCreditDto, ConsumerCreditRecord};
-use dto::ConsumerCreditRecord;
 
 use auth::{ApiKeyAuth, AuthStore};
 use std::env;
