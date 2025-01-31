@@ -80,7 +80,10 @@ async fn update_consumer_credit(
 }
 
 #[get("/consumer-credit/<consumer_credit_id_dto>")]
-async fn view_consumer_credit(consumer_credit_id_dto: &str, _auth: ApiKeyAuth) -> Result<Json<ConsumerCredit>, Status> {
+async fn view_consumer_credit(
+    consumer_credit_id_dto: &str,
+    _auth: ApiKeyAuth,
+) -> Result<Json<ConsumerCredit>, Status> {
     use crate::schema::consumer_credit::dsl::*;
 
     let mut connection = establish_connection_pg();
