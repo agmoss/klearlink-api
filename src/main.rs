@@ -5,11 +5,14 @@ use diesel::prelude::*;
 use dotenvy::dotenv;
 use models::ConsumerCreditRecord;
 use rocket::http::Status;
+use rocket::request::FromRequest;
 use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
 use rocket::{get, launch, post, put, routes, Request};
-use rocket::request::FromRequest;
-use crate::auth::{ApiKey, Username};
+
+mod auth; // Import the `auth.rs` module
+
+use auth::{ApiKeyAuth, AuthStore};
 use std::env;
 
 #[cfg(test)]
@@ -29,8 +32,7 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 async fn submit_consumer_credit(
     id: String,
     record: Json<ConsumerCreditRecord>,
-    _api_key: ApiKey,
-    _username: Username,
+    _auth: ApiKeyAuth,
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_facts::dsl::*;
     use crate::schema::credit_facts::dsl::*;
@@ -77,8 +79,7 @@ async fn submit_consumer_credit(
 async fn update_consumer_credit(
     id: String,
     record: Json<ConsumerCreditRecord>,
-    _api_key: ApiKey,
-    _username: Username,
+    _auth: ApiKeyAuth,
 ) -> Status {
     // Implement logic to update an existing consumer credit record
     // Return 200 OK or 404 Not Found
@@ -86,22 +87,14 @@ async fn update_consumer_credit(
 }
 
 #[get("/consumer-credit/<id>")]
-async fn view_consumer_credit(
-    id: String,
-    _api_key: ApiKey,
-    _username: Username,
-) -> Status {
+async fn view_consumer_credit(id: String, _auth: ApiKeyAuth) -> Status {
     // Implement logic to retrieve a consumer credit record
     // Return 200 OK or 404 Not Found
     Status::Ok
 }
 
 #[get("/consumer-credit/<id>/consumer-match")]
-async fn view_consumer_match(
-    id: String,
-    _api_key: ApiKey,
-    _username: Username,
-) -> Status {
+async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
     // Implement logic to calculate and return consumer match
     // Return 200 OK or 404 Not Found
     Status::Ok
@@ -109,7 +102,7 @@ async fn view_consumer_match(
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount(
+    rocket::build().manage(AuthStore::new()).mount(
         "/",
         routes![
             submit_consumer_credit,
