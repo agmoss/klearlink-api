@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::models::ConsumerCredit;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConsumerCreditDto {
     pub first_name: String,
@@ -57,6 +59,27 @@ impl From<ConsumerCreditRecord> for ConsumerCreditDto {
             credit_type: record.credit_facts.credit_type,
             application_datetime: record.credit_facts.application_datetime,
             credit_state: record.credit_facts.credit_state,
+        }
+    }
+}
+
+impl ConsumerCreditRecord {
+    pub fn to_consumer_credit(&self, consumer_credit_id_dto: &str) -> ConsumerCredit {
+        let dto: ConsumerCreditDto = self.clone().into();
+        ConsumerCredit {
+            consumer_credit_id: consumer_credit_id_dto.to_string(),
+            first_name: dto.first_name.clone(),
+            last_name: dto.last_name.clone(),
+            email: dto.email.clone(),
+            date_of_birth: dto.date_of_birth.clone(),
+            address: dto.address.clone(),
+            phone_number: dto.phone_number.clone(),
+            consumer_state: dto.consumer_state.clone(),
+            institution_names: dto.institution_names.clone(),
+            amount: dto.amount,
+            credit_type: dto.credit_type.clone(),
+            application_datetime: dto.application_datetime.clone(),
+            credit_state: dto.credit_state.clone(),
         }
     }
 }
