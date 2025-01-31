@@ -20,7 +20,7 @@ impl AuthStore {
 
     pub fn validate(&self, username: &str, api_key: &str) -> bool {
         let users = self.users.lock().unwrap();
-        users.get(username).map_or(false, |key| key == api_key)
+        users.get(username).is_some_and(|key| key == api_key)
     }
 }
 

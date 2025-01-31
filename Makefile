@@ -15,6 +15,9 @@ migrations-down:
 format: 
 	cargo fmt
 
+lint:
+	cargo clippy
+
 test:
 	cargo test
 

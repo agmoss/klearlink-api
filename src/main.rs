@@ -1,16 +1,19 @@
 pub mod models;
 pub mod schema;
 
-use diesel::prelude::*;
+use diesel::{prelude::*};
 use dotenvy::dotenv;
-use models::ConsumerCreditRecord;
 use rocket::http::Status;
-use rocket::request::FromRequest;
 use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
-use rocket::{get, launch, post, put, routes, Request};
+use rocket::{get, launch, post, put, routes};
 
-mod auth; // Import the `auth.rs` module
+mod auth;
+
+mod dto;
+
+use dto::ConsumerCreditDto;
+use dto::ConsumerCreditRecord;
 
 use auth::{ApiKeyAuth, AuthStore};
 use std::env;
@@ -28,101 +31,84 @@ pub fn establish_connection_pg() -> PgConnection {
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
-#[put("/consumer-credit/<id>", data = "<record>")]
+#[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn submit_consumer_credit(
-    id: String,
+    consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditRecord>,
     _auth: ApiKeyAuth,
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
-    use crate::schema::consumer_facts::dsl::*;
-    use crate::schema::credit_facts::dsl::*;
+    use crate::schema::consumer_credit::dsl::*;
 
-    use models::ConsumerFacts;
-    use models::CreditFacts;
+    use models::ConsumerCredit;
 
     let mut connection = establish_connection_pg();
 
+    let dto: ConsumerCreditDto = record.clone().into_inner().into();
+
     // Insert new consumer facts
-    let new_consumer_facts = ConsumerFacts {
-        first_name: record.consumer_facts.first_name.clone(),
-        last_name: record.consumer_facts.last_name.clone(),
-        email: record.consumer_facts.email.clone(),
-        date_of_birth: record.consumer_facts.date_of_birth.clone(),
-        address: record.consumer_facts.address.clone(),
-        phone_number: record.consumer_facts.phone_number.clone(),
-        consumer_state: record.consumer_facts.consumer_state.clone(),
-        institution_names: record.consumer_facts.institution_names.clone(),
+    let new_consumer_facts = ConsumerCredit {
+        consumer_credit_id: consumer_credit_id_dto.to_string(),
+        first_name: dto.first_name.clone(),
+        last_name: dto.last_name.clone(),
+        email: dto.email.clone(),
+        date_of_birth: dto.date_of_birth.clone(),
+        address: dto.address.clone(),
+        phone_number: dto.phone_number.clone(),
+        consumer_state: dto.consumer_state.clone(),
+        institution_names: dto.institution_names.clone(),
+        amount: dto.amount,
+        credit_type: dto.credit_type.clone(),
+        application_datetime: dto.application_datetime.clone(),
+        credit_state: dto.credit_state.clone(),
     };
 
-    diesel::insert_into(consumer_facts)
+    diesel::insert_into(consumer_credit)
         .values(&new_consumer_facts)
         .execute(&mut connection)
-        .expect("Error saving new consumer facts");
-
-    // Insert new credit facts
-    let new_credit_facts = CreditFacts {
-        amount: record.credit_facts.amount,
-        credit_type: record.credit_facts.credit_type.clone(),
-        application_datetime: record.credit_facts.application_datetime.clone(),
-        credit_state: record.credit_facts.credit_state.clone(),
-    };
-
-    diesel::insert_into(credit_facts)
-        .values(&new_credit_facts)
-        .execute(&mut connection)
-        .expect("Error saving new credit facts");
+        .expect("Error saving new consumer credit");
 
     Ok(Created::new("/").body(record))
 }
 
-#[post("/consumer-credit/<id>", data = "<record>")]
+#[post("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn update_consumer_credit(
-    id: String,
+    consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditRecord>,
     _auth: ApiKeyAuth,
 ) -> Status {
-    use crate::schema::consumer_facts::dsl::*;
-    use crate::schema::credit_facts::dsl::*;
+    use crate::schema::consumer_credit::dsl::*;
 
-    use models::ConsumerFacts;
-    use models::CreditFacts;
+    let dto: ConsumerCreditDto = record.clone().into_inner().into();
 
     let mut connection = establish_connection_pg();
 
-    // Find the existing consumer facts by id
-    let target_consumer = consumer_facts.filter(id.eq(&id));
-    let target_credit = credit_facts.filter(consumer_id.eq(&id));
+    let target_consumer_credit =
+        consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto));
 
-    // Update consumer facts
-    let updated_consumer_facts = ConsumerFacts {
-        first_name: record.consumer_facts.first_name.clone(),
-        last_name: record.consumer_facts.last_name.clone(),
-        email: record.consumer_facts.email.clone(),
-        date_of_birth: record.consumer_facts.date_of_birth.clone(),
-        address: record.consumer_facts.address.clone(),
-        phone_number: record.consumer_facts.phone_number.clone(),
-        consumer_state: record.consumer_facts.consumer_state.clone(),
-        institution_names: record.consumer_facts.institution_names.clone(),
+    let updated_consumer_facts = ConsumerCreditDto {
+        first_name: dto.first_name.clone(),
+        last_name: dto.last_name.clone(),
+        email: dto.email.clone(),
+        date_of_birth: dto.date_of_birth.clone(),
+        address: dto.address.clone(),
+        phone_number: dto.phone_number.clone(),
+        consumer_state: dto.consumer_state.clone(),
+        institution_names: dto.institution_names.clone(),
+        amount: dto.amount,
+        credit_type: dto.credit_type.clone(),
+        application_datetime: dto.application_datetime.clone(),
+        credit_state: dto.credit_state.clone(),
     };
 
-    let consumer_update_result = diesel::update(target_consumer)
-        .set(&updated_consumer_facts)
+    let consumer_update_result = diesel::update(target_consumer_credit)
+        .set((
+            first_name.eq(updated_consumer_facts.first_name),
+            email.eq(updated_consumer_facts.email),
+        ))
         .execute(&mut connection);
 
-    // Update credit facts
-    let updated_credit_facts = CreditFacts {
-        amount: record.credit_facts.amount,
-        credit_type: record.credit_facts.credit_type.clone(),
-        application_datetime: record.credit_facts.application_datetime.clone(),
-        credit_state: record.credit_facts.credit_state.clone(),
-    };
-
-    let credit_update_result = diesel::update(target_credit)
-        .set(&updated_credit_facts)
-        .execute(&mut connection);
-
-    match (consumer_update_result, credit_update_result) {
-        (Ok(1), Ok(1)) => Status::Ok,
+    match consumer_update_result {
+        Ok(1) => Status::Ok,
         _ => Status::NotFound,
     }
 }

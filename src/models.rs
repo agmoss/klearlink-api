@@ -1,12 +1,12 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::schema::consumer_facts;
-use super::schema::credit_facts;
+use super::schema::consumer_credit;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
-#[diesel(table_name = consumer_facts)]
-pub struct ConsumerFacts {
+#[diesel(table_name = consumer_credit)]
+pub struct ConsumerCredit {
+    pub consumer_credit_id: String,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -15,19 +15,8 @@ pub struct ConsumerFacts {
     pub phone_number: String,
     pub consumer_state: String,
     pub institution_names: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Queryable, Insertable)]
-#[diesel(table_name = credit_facts)]
-pub struct CreditFacts {
     pub amount: f64,
     pub credit_type: String,
     pub application_datetime: String,
     pub credit_state: String,
-}
-
-#[derive(Deserialize, Serialize)]
-pub(crate) struct ConsumerCreditRecord {
-    pub consumer_facts: ConsumerFacts,
-    pub credit_facts: CreditFacts,
 }

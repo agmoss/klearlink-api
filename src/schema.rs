@@ -1,6 +1,9 @@
+// @generated automatically by Diesel CLI.
+
 diesel::table! {
-    consumer_facts (id) {
+    consumer_credit (id) {
         id -> Int4,
+        consumer_credit_id -> Varchar,
         first_name -> Varchar,
         last_name -> Varchar,
         email -> Varchar,
@@ -8,14 +11,7 @@ diesel::table! {
         address -> Varchar,
         phone_number -> Varchar,
         consumer_state -> Varchar,
-        institution_names -> Array<Text>,
-    }
-}
-
-diesel::table! {
-    credit_facts (id) {
-        id -> Int4,
-        consumer_id -> Int4,
+        institution_names -> Array<Nullable<Text>>,
         amount -> Float8,
         credit_type -> Varchar,
         application_datetime -> Varchar,
