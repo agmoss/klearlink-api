@@ -55,7 +55,17 @@ async fn update_consumer_credit(
         diesel::update(consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto)))
             .set((
                 first_name.eq(updated_consumer_facts.first_name),
+                last_name.eq(updated_consumer_facts.last_name),
                 email.eq(updated_consumer_facts.email),
+                date_of_birth.eq(updated_consumer_facts.date_of_birth),
+                address.eq(updated_consumer_facts.address),
+                phone_number.eq(updated_consumer_facts.phone_number),
+                consumer_state.eq(updated_consumer_facts.consumer_state),
+                institution_names.eq(updated_consumer_facts.institution_names),
+                amount.eq(updated_consumer_facts.amount),
+                credit_type.eq(updated_consumer_facts.credit_type),
+                application_datetime.eq(updated_consumer_facts.application_datetime),
+                credit_state.eq(updated_consumer_facts.credit_state),
             ))
             .execute(&mut establish_connection_pg());
 
