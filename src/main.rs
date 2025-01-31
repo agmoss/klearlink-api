@@ -80,10 +80,15 @@ async fn update_consumer_credit(
 }
 
 #[get("/consumer-credit/<id>")]
-async fn view_consumer_credit(id: String, _auth: ApiKeyAuth) -> Status {
-    // Implement logic to retrieve a consumer credit record
-    // Return 200 OK or 404 Not Found
-    Status::Ok
+async fn view_consumer_credit(id: String, _auth: ApiKeyAuth) -> Result<Json<ConsumerCredit>, Status> {
+    use crate::schema::consumer_credit::dsl::*;
+
+    let mut connection = establish_connection_pg();
+
+    match consumer_credit.filter(consumer_credit_id.eq(id)).first::<ConsumerCredit>(&mut connection) {
+        Ok(record) => Ok(Json(record)),
+        Err(_) => Err(Status::NotFound),
+    }
 }
 
 #[get("/consumer-credit/<id>/consumer-match")]
