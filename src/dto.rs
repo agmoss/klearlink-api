@@ -2,28 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{ConsumerCredit, NewConsumerCredit};
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ConsumerCreditDto {
-    pub first_name: String,
-    pub last_name: String,
-    pub email: String,
-    pub date_of_birth: String,
-    pub address: String,
-    pub phone_number: String,
-    pub consumer_state: String,
-    pub institution_names: Vec<String>,
-    pub amount: f64,
-    pub credit_type: String,
-    pub application_datetime: String,
-    pub credit_state: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ConsumerCreditRecord {
-    pub consumer_facts: ConsumerFactsDto,
-    pub credit_facts: CreditFactsDto,
-}
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerFactsDto {
     pub first_name: String,
@@ -42,6 +20,29 @@ pub struct CreditFactsDto {
     pub credit_type: String,
     pub application_datetime: String,
     pub credit_state: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerCreditRecord {
+    pub consumer_facts: ConsumerFactsDto,
+    pub credit_facts: CreditFactsDto,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ConsumerCreditDto {
+    #[serde(flatten)]
+    pub consumer_facts: ConsumerFactsDto,
+    #[serde(flatten)]
+    pub credit_facts: CreditFactsDto,
+}
+
+impl From<ConsumerCreditRecord> for ConsumerCreditDto {
+    fn from(record: ConsumerCreditRecord) -> Self {
+        ConsumerCreditDto {
+            consumer_facts: record.consumer_facts,
+            credit_facts: record.credit_facts,
+        }
+    }
 }
 
 impl ConsumerCreditRecord {
@@ -78,7 +79,7 @@ impl From<ConsumerCredit> for ConsumerCreditRecord {
                 institution_names: consumer_credit
                     .institution_names
                     .into_iter()
-                    .flatten() // Remove None values
+                    .flatten()
                     .collect(),
             },
             credit_facts: CreditFactsDto {

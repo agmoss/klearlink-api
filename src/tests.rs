@@ -16,18 +16,22 @@ mod tests {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
         let dummy_payload = json!({
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "john.doe@example.com",
-            "date_of_birth": "1990-01-01",
-            "address": "123 Test St, Test City",
-            "phone_number": "123-456-7890",
-            "consumer_state": "Active",
-            "institution_names": ["Bank A", "Bank B"],
-            "amount": 1000.0,
-            "credit_type": "Personal Loan",
-            "application_datetime": "2024-01-01T12:00:00Z",
-            "credit_state": "Approved"
+            "consumer_facts": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john.doe@example.com",
+                "date_of_birth": "1990-01-01",
+                "address": "123 Test St, Test City",
+                "phone_number": "123-456-7890",
+                "consumer_state": "Active",
+                "institution_names": ["Bank A", "Bank B"]
+            },
+            "credit_facts": {
+                "amount": 1000.0,
+                "credit_type": "Personal Loan",
+                "application_datetime": "2024-01-01T12:00:00Z",
+                "credit_state": "Approved"
+            }
         });
 
         let response = client
@@ -45,18 +49,22 @@ mod tests {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
         let dummy_payload = json!({
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "john.doe@example.com",
-            "date_of_birth": "1990-01-01",
-            "address": "123 Test St, Test City",
-            "phone_number": "123-456-7890",
-            "consumer_state": "Active",
-            "institution_names": ["Bank A", "Bank B"],
-            "amount": 1000.0,
-            "credit_type": "Personal Loan",
-            "application_datetime": "2024-01-01T12:00:00Z",
-            "credit_state": "Fulfilled"
+            "consumer_facts": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john.doe@example.com",
+                "date_of_birth": "1990-01-01",
+                "address": "123 Test St, Test City",
+                "phone_number": "123-456-7890",
+                "consumer_state": "Active",
+                "institution_names": ["Bank A", "Bank B"]
+            },
+            "credit_facts": {
+                "amount": 1000.0,
+                "credit_type": "Personal Loan",
+                "application_datetime": "2024-01-01T12:00:00Z",
+                "credit_state": "Fulfilled"
+            }
         });
 
         let response = client

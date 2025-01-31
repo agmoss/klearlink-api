@@ -2,11 +2,10 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
-use dotenvy::dotenv;
 use rocket::http::Status;
 use rocket::response::{status::Created, Debug};
 use rocket::serde::json::Json;
-use rocket::{get, launch, post, put, routes};
+use rocket::{get, launch, post, put, routes, Build, Rocket};
 
 mod auth;
 
@@ -16,18 +15,13 @@ use dto::ConsumerCreditRecord;
 use models::ConsumerCredit;
 
 use auth::{ApiKeyAuth, AuthStore};
-use std::env;
+
+mod conn;
+
+use conn::establish_connection_pg;
 
 #[cfg(test)]
 mod tests;
-
-pub fn establish_connection_pg() -> PgConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
-}
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
@@ -39,13 +33,9 @@ async fn submit_consumer_credit(
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    let mut connection = establish_connection_pg();
-
-    let new_consumer_facts = record.to_consumer_credit(consumer_credit_id_dto);
-
     diesel::insert_into(consumer_credit)
-        .values(&new_consumer_facts)
-        .execute(&mut connection)
+        .values(&record.to_consumer_credit(consumer_credit_id_dto))
+        .execute(&mut establish_connection_pg())
         .expect("Error saving new consumer credit");
 
     Ok(Created::new("/").body(record))
@@ -59,19 +49,15 @@ async fn update_consumer_credit(
 ) -> Status {
     use crate::schema::consumer_credit::dsl::*;
 
-    let mut connection = establish_connection_pg();
-
-    let target_consumer_credit =
-        consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto));
-
     let updated_consumer_facts = record.to_consumer_credit(consumer_credit_id_dto);
 
-    let consumer_update_result = diesel::update(target_consumer_credit)
-        .set((
-            first_name.eq(updated_consumer_facts.first_name),
-            email.eq(updated_consumer_facts.email),
-        ))
-        .execute(&mut connection);
+    let consumer_update_result =
+        diesel::update(consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto)))
+            .set((
+                first_name.eq(updated_consumer_facts.first_name),
+                email.eq(updated_consumer_facts.email),
+            ))
+            .execute(&mut establish_connection_pg());
 
     match consumer_update_result {
         Ok(1) => Status::Ok,
@@ -86,11 +72,9 @@ async fn view_consumer_credit(
 ) -> Result<Json<ConsumerCreditRecord>, Status> {
     use crate::schema::consumer_credit::dsl::*;
 
-    let mut connection = establish_connection_pg();
-
     match consumer_credit
         .filter(consumer_credit_id.eq(consumer_credit_id_dto))
-        .first::<ConsumerCredit>(&mut connection)
+        .first::<ConsumerCredit>(&mut establish_connection_pg())
     {
         Ok(record) => {
             let consumer_credit_record: ConsumerCreditRecord = record.into();
@@ -108,8 +92,7 @@ async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
     Status::Ok
 }
 
-#[launch]
-fn rocket() -> _ {
+fn create_rocket() -> Rocket<Build> {
     rocket::build().manage(AuthStore::new()).mount(
         "/",
         routes![
@@ -119,4 +102,9 @@ fn rocket() -> _ {
             view_consumer_match
         ],
     )
+}
+
+#[launch]
+fn rocket() -> Rocket<Build> {
+    create_rocket()
 }
