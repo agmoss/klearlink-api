@@ -19,7 +19,7 @@ lint:
 	cargo clippy
 
 test:
-	cargo test
+	cargo test -- --test-threads=1
 
 run: 
 	cargo run

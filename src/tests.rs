@@ -1,11 +1,17 @@
 #[cfg(test)]
 mod tests {
     use crate::rocket;
+    use once_cell::sync::Lazy;
     use rocket::http::{Header, Status};
     use rocket::local::blocking::Client;
     use serde_json::json;
+    use serial_test::serial;
+    use uuid::Uuid;
+
+    static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
 
     #[test]
+    #[serial]
     fn test_submit_consumer_credit() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
@@ -29,7 +35,7 @@ mod tests {
         });
 
         let response = client
-            .put("/consumer-credit/1")
+            .put(format!("/consumer-credit/{}", *TEST_UUID))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
@@ -38,6 +44,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_consumer_credit() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
@@ -61,7 +68,7 @@ mod tests {
         });
 
         let response = client
-            .post("/consumer-credit/1")
+            .post(format!("/consumer-credit/{}", *TEST_UUID))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
@@ -70,10 +77,11 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_view_consumer_credit() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
         let response = client
-            .get("/consumer-credit/1")
+            .get(format!("/consumer-credit/{}", *TEST_UUID))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .dispatch();
@@ -81,10 +89,11 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_view_consumer_match() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
         let response = client
-            .get("/consumer-credit/1/consumer-match")
+            .get(format!("/consumer-credit/{}/consumer-match", *TEST_UUID))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .dispatch();

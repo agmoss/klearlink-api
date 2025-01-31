@@ -1,7 +1,7 @@
 pub mod models;
 pub mod schema;
 
-use diesel::{prelude::*};
+use diesel::prelude::*;
 use dotenvy::dotenv;
 use rocket::http::Status;
 use rocket::response::{status::Created, Debug};
@@ -79,7 +79,6 @@ async fn update_consumer_credit(
     _auth: ApiKeyAuth,
 ) -> Status {
     use crate::schema::consumer_credit::dsl::*;
-
 
     let mut connection = establish_connection_pg();
 
