@@ -12,7 +12,7 @@ mod auth;
 
 mod dto;
 
-use dto::{ConsumerCreditDto, ConsumerCreditRecord};
+use dto::ConsumerCreditRecord;
 use models::ConsumerCredit;
 
 use auth::{ApiKeyAuth, AuthStore};
@@ -83,16 +83,19 @@ async fn update_consumer_credit(
 async fn view_consumer_credit(
     consumer_credit_id_dto: &str,
     _auth: ApiKeyAuth,
-) -> Result<Json<ConsumerCredit>, Status> {
+) -> Result<Json<ConsumerCreditRecord>, Status> {
     use crate::schema::consumer_credit::dsl::*;
 
     let mut connection = establish_connection_pg();
 
     match consumer_credit
-        .filter(consumer_credit_id.eq(&consumer_credit_id_dto))
+        .filter(consumer_credit_id.eq(consumer_credit_id_dto))
         .first::<ConsumerCredit>(&mut connection)
     {
-        Ok(record) => Ok(Json(record)),
+        Ok(record) => {
+            let consumer_credit_record: ConsumerCreditRecord = record.into();
+            Ok(Json(consumer_credit_record))
+        }
         Err(diesel::result::Error::NotFound) => Err(Status::NotFound),
         Err(_) => Err(Status::InternalServerError),
     }

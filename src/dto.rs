@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::ConsumerCredit;
+use crate::models::{ConsumerCredit, NewConsumerCredit};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConsumerCreditDto {
@@ -64,9 +64,9 @@ impl From<ConsumerCreditRecord> for ConsumerCreditDto {
 }
 
 impl ConsumerCreditRecord {
-    pub fn to_consumer_credit(&self, consumer_credit_id_dto: &str) -> ConsumerCredit {
+    pub fn to_consumer_credit(&self, consumer_credit_id_dto: &str) -> NewConsumerCredit {
         let dto: ConsumerCreditDto = self.clone().into();
-        ConsumerCredit {
+        NewConsumerCredit {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
             first_name: dto.first_name.clone(),
             last_name: dto.last_name.clone(),
@@ -80,6 +80,33 @@ impl ConsumerCreditRecord {
             credit_type: dto.credit_type.clone(),
             application_datetime: dto.application_datetime.clone(),
             credit_state: dto.credit_state.clone(),
+        }
+    }
+}
+
+impl From<ConsumerCredit> for ConsumerCreditRecord {
+    fn from(consumer_credit: ConsumerCredit) -> Self {
+        ConsumerCreditRecord {
+            consumer_facts: ConsumerFactsDto {
+                first_name: consumer_credit.first_name,
+                last_name: consumer_credit.last_name,
+                email: consumer_credit.email,
+                date_of_birth: consumer_credit.date_of_birth,
+                address: consumer_credit.address,
+                phone_number: consumer_credit.phone_number,
+                consumer_state: consumer_credit.consumer_state,
+                institution_names: consumer_credit
+                    .institution_names
+                    .into_iter()
+                    .flatten() // Remove None values
+                    .collect(),
+            },
+            credit_facts: CreditFactsDto {
+                amount: consumer_credit.amount,
+                credit_type: consumer_credit.credit_type,
+                application_datetime: consumer_credit.application_datetime,
+                credit_state: consumer_credit.credit_state,
+            },
         }
     }
 }
