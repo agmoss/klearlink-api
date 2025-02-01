@@ -41,4 +41,23 @@ pub struct NewConsumerCredit {
     pub credit_type: String,
     pub application_datetime: String,
     pub credit_state: String,
+    pub tenant: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = consumer_credit)]
+pub struct NewConsumerCredit2 {
+    pub consumer_credit_id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub date_of_birth: String,
+    pub address: String,
+    pub phone_number: String,
+    pub consumer_state: String,
+    pub institution_names: Vec<String>,
+    pub amount: f64,
+    pub credit_type: String,
+    pub application_datetime: String,
+    pub credit_state: String,
 }

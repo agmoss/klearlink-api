@@ -30,17 +30,11 @@ async fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditRecord>,
     _auth: ApiKeyAuth,
-    _auth: ApiKeyAuth,
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    let new_consumer_credit = NewConsumerCredit {
-        tenant: _auth.username.clone(),
-        ..record.to_consumer_credit(consumer_credit_id_dto)
-    };
-
     diesel::insert_into(consumer_credit)
-        .values(&new_consumer_credit)
+        .values(record.to_new_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
         .execute(&mut establish_connection_pg())
         .expect("Error saving new consumer credit");
 
@@ -55,7 +49,7 @@ async fn update_consumer_credit(
 ) -> Status {
     use crate::schema::consumer_credit::dsl::*;
 
-    let updated_consumer_facts = record.to_consumer_credit(consumer_credit_id_dto);
+    let updated_consumer_facts = record.to_new_consumer_credit2(consumer_credit_id_dto);
 
     let consumer_update_result =
         diesel::update(consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto)))
