@@ -23,14 +23,13 @@ mod tests {
                 "date_of_birth": "1990-01-01",
                 "address": "123 Test St, Test City",
                 "phone_number": "123-456-7890",
-                "consumer_state": "Active",
                 "institution_names": ["Bank A", "Bank B"]
             },
             "credit_facts": {
                 "amount": 1000.0,
-                "credit_type": "Personal Loan",
-                "application_datetime": "2024-01-01T12:00:00Z",
-                "credit_state": "Approved"
+                "credit_type": "PDL",
+                "application_datetime": "2024-01-01T12:00:00",
+                "credit_state": "application"
             }
         });
 
@@ -56,14 +55,13 @@ mod tests {
                 "date_of_birth": "1990-01-01",
                 "address": "123 Test St, Test City",
                 "phone_number": "123-456-7890",
-                "consumer_state": "Active",
                 "institution_names": ["Bank A", "Bank B"]
             },
             "credit_facts": {
                 "amount": 1000.0,
-                "credit_type": "Personal Loan",
-                "application_datetime": "2024-01-01T12:00:00Z",
-                "credit_state": "Fulfilled"
+                "credit_type": "PDL",
+                "application_datetime": "2024-01-01T12:00:00",
+                "credit_state": "originated"
             }
         });
 
@@ -73,7 +71,7 @@ mod tests {
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
             .dispatch();
-        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.status(), Status::Accepted);
     }
 
     #[test]

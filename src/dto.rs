@@ -1,3 +1,5 @@
+use bigdecimal::BigDecimal;
+use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
@@ -7,18 +9,18 @@ pub struct ConsumerFactsDto {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub date_of_birth: String,
+    pub date_of_birth: NaiveDate,
     pub address: String,
     pub phone_number: String,
-    pub consumer_state: String,
+    pub sin_ssn: Option<String>,
     pub institution_names: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CreditFactsDto {
-    pub amount: f64,
+    pub amount: BigDecimal,
     pub credit_type: String,
-    pub application_datetime: String,
+    pub application_datetime: NaiveDateTime,
     pub credit_state: String,
 }
 
@@ -39,14 +41,14 @@ impl ConsumerCreditDto {
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
             email: self.consumer_facts.email.clone(),
-            date_of_birth: self.consumer_facts.date_of_birth.clone(),
+            date_of_birth: self.consumer_facts.date_of_birth,
             address: self.consumer_facts.address.clone(),
             phone_number: self.consumer_facts.phone_number.clone(),
-            consumer_state: self.consumer_facts.consumer_state.clone(),
+            sin_ssn: self.consumer_facts.sin_ssn.clone(),
             institution_names: self.consumer_facts.institution_names.clone(),
-            amount: self.credit_facts.amount,
+            amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
-            application_datetime: self.credit_facts.application_datetime.clone(),
+            application_datetime: self.credit_facts.application_datetime,
             credit_state: self.credit_facts.credit_state.clone(),
             tenant: tenant.to_string(),
         }
@@ -61,14 +63,14 @@ impl ConsumerCreditDto {
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
             email: self.consumer_facts.email.clone(),
-            date_of_birth: self.consumer_facts.date_of_birth.clone(),
+            date_of_birth: self.consumer_facts.date_of_birth,
             address: self.consumer_facts.address.clone(),
             phone_number: self.consumer_facts.phone_number.clone(),
-            consumer_state: self.consumer_facts.consumer_state.clone(),
+            sin_ssn: self.consumer_facts.sin_ssn.clone(),
             institution_names: self.consumer_facts.institution_names.clone(),
-            amount: self.credit_facts.amount,
+            amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
-            application_datetime: self.credit_facts.application_datetime.clone(),
+            application_datetime: self.credit_facts.application_datetime,
             credit_state: self.credit_facts.credit_state.clone(),
         }
     }
@@ -84,7 +86,7 @@ impl From<ConsumerCredit> for ConsumerCreditDto {
                 date_of_birth: consumer_credit.date_of_birth,
                 address: consumer_credit.address,
                 phone_number: consumer_credit.phone_number,
-                consumer_state: consumer_credit.consumer_state,
+                sin_ssn: consumer_credit.sin_ssn,
                 institution_names: consumer_credit
                     .institution_names
                     .into_iter()

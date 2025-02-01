@@ -1,7 +1,8 @@
+use super::schema::consumer_credit;
+use bigdecimal::BigDecimal;
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-
-use super::schema::consumer_credit;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = consumer_credit)]
@@ -11,14 +12,18 @@ pub struct ConsumerCredit {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub date_of_birth: String,
+    #[diesel(sql_type = Date)]
+    pub date_of_birth: NaiveDate,
     pub address: String,
     pub phone_number: String,
-    pub consumer_state: String,
+    pub sin_ssn: Option<String>,
+    #[diesel(sql_type = Array<Nullable<Text>>)]
     pub institution_names: Vec<Option<String>>,
-    pub amount: f64,
+    #[diesel(sql_type = Numeric)]
+    pub amount: BigDecimal,
     pub credit_type: String,
-    pub application_datetime: String,
+    #[diesel(sql_type = Timestamp)]
+    pub application_datetime: NaiveDateTime,
     pub credit_state: String,
     pub tenant: String,
 }
@@ -30,14 +35,15 @@ pub struct InsertConsumerCredit {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub date_of_birth: String,
+    pub date_of_birth: NaiveDate,
     pub address: String,
     pub phone_number: String,
-    pub consumer_state: String,
+    pub sin_ssn: Option<String>,
     pub institution_names: Vec<String>,
-    pub amount: f64,
+    #[diesel(sql_type = Numeric)]
+    pub amount: BigDecimal,
     pub credit_type: String,
-    pub application_datetime: String,
+    pub application_datetime: NaiveDateTime,
     pub credit_state: String,
     pub tenant: String,
 }
@@ -49,13 +55,14 @@ pub struct UpdateConsumerCredit {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub date_of_birth: String,
+    pub date_of_birth: NaiveDate,
     pub address: String,
     pub phone_number: String,
-    pub consumer_state: String,
+    pub sin_ssn: Option<String>,
     pub institution_names: Vec<String>,
-    pub amount: f64,
+    #[diesel(sql_type = Numeric)]
+    pub amount: BigDecimal,
     pub credit_type: String,
-    pub application_datetime: String,
+    pub application_datetime: NaiveDateTime,
     pub credit_state: String,
 }

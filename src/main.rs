@@ -2,12 +2,15 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
+use handler::ApiError;
 use rocket::http::Status;
-use rocket::response::{status::Created, Debug};
+use rocket::response::{status::Accepted, status::Created, Debug};
 use rocket::serde::json::Json;
 use rocket::{get, launch, post, put, routes, Build, Rocket};
 
 mod auth;
+
+mod handler;
 
 mod dto;
 
@@ -23,7 +26,7 @@ use conn::establish_connection_pg;
 #[cfg(test)]
 mod tests;
 
-type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
+type Result<T, E = ApiError> = std::result::Result<T, E>;
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn submit_consumer_credit(
@@ -33,12 +36,13 @@ async fn submit_consumer_credit(
 ) -> Result<Created<Json<ConsumerCreditDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    diesel::insert_into(consumer_credit)
+    match diesel::insert_into(consumer_credit)
         .values(record.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
         .execute(&mut establish_connection_pg())
-        .expect("Error saving new consumer credit");
-
-    Ok(Created::new("/").body(record))
+    {
+        Ok(_ok) => Ok(Created::new("/").body(record)),
+        Err(e) => Err(ApiError::from(e)),
+    }
 }
 
 #[post("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
@@ -46,7 +50,7 @@ async fn update_consumer_credit(
     consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditDto>,
     _auth: ApiKeyAuth,
-) -> Status {
+) -> Result<Accepted<Json<ConsumerCreditDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
     let updated_consumer_facts = record.to_update_consumer_credit_model(consumer_credit_id_dto);
@@ -60,7 +64,6 @@ async fn update_consumer_credit(
                 date_of_birth.eq(updated_consumer_facts.date_of_birth),
                 address.eq(updated_consumer_facts.address),
                 phone_number.eq(updated_consumer_facts.phone_number),
-                consumer_state.eq(updated_consumer_facts.consumer_state),
                 institution_names.eq(updated_consumer_facts.institution_names),
                 amount.eq(updated_consumer_facts.amount),
                 credit_type.eq(updated_consumer_facts.credit_type),
@@ -70,8 +73,8 @@ async fn update_consumer_credit(
             .execute(&mut establish_connection_pg());
 
     match consumer_update_result {
-        Ok(1) => Status::Ok,
-        _ => Status::NotFound,
+        Ok(_ok) => Ok(Accepted(record)),
+        Err(e) => Err(ApiError::from(e)),
     }
 }
 
@@ -79,7 +82,7 @@ async fn update_consumer_credit(
 async fn view_consumer_credit(
     consumer_credit_id_dto: &str,
     _auth: ApiKeyAuth,
-) -> Result<Json<ConsumerCreditDto>, Status> {
+) -> Result<Json<ConsumerCreditDto>> {
     use crate::schema::consumer_credit::dsl::*;
 
     match consumer_credit
@@ -90,8 +93,7 @@ async fn view_consumer_credit(
             let consumer_credit_record: ConsumerCreditDto = record.into();
             Ok(Json(consumer_credit_record))
         }
-        Err(diesel::result::Error::NotFound) => Err(Status::NotFound),
-        Err(_) => Err(Status::InternalServerError),
+        Err(e) => Err(ApiError::from(e)),
     }
 }
 

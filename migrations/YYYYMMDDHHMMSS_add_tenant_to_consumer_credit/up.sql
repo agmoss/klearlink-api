@@ -1,1 +1,0 @@
-ALTER TABLE consumer_credit ADD COLUMN tenant VARCHAR NOT NULL;
