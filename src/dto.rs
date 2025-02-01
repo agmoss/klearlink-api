@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{ConsumerCredit, NewConsumerCredit, NewConsumerCredit2};
+use crate::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerFactsDto {
@@ -23,35 +23,18 @@ pub struct CreditFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ConsumerCreditRecord {
-    pub consumer_facts: ConsumerFactsDto,
-    pub credit_facts: CreditFactsDto,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 pub struct ConsumerCreditDto {
-    #[serde(flatten)]
     pub consumer_facts: ConsumerFactsDto,
-    #[serde(flatten)]
     pub credit_facts: CreditFactsDto,
 }
 
-impl From<ConsumerCreditRecord> for ConsumerCreditDto {
-    fn from(record: ConsumerCreditRecord) -> Self {
-        ConsumerCreditDto {
-            consumer_facts: record.consumer_facts,
-            credit_facts: record.credit_facts,
-        }
-    }
-}
-
-impl ConsumerCreditRecord {
-    pub fn to_new_consumer_credit(
+impl ConsumerCreditDto {
+    pub fn to_insert_consumer_credit(
         &self,
         consumer_credit_id_dto: &str,
         tenant: &str,
-    ) -> NewConsumerCredit {
-        NewConsumerCredit {
+    ) -> InsertConsumerCredit {
+        InsertConsumerCredit {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
@@ -69,8 +52,11 @@ impl ConsumerCreditRecord {
         }
     }
 
-    pub fn to_new_consumer_credit2(&self, consumer_credit_id_dto: &str) -> NewConsumerCredit2 {
-        NewConsumerCredit2 {
+    pub fn to_update_consumer_credit_model(
+        &self,
+        consumer_credit_id_dto: &str,
+    ) -> UpdateConsumerCredit {
+        UpdateConsumerCredit {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
@@ -88,9 +74,9 @@ impl ConsumerCreditRecord {
     }
 }
 
-impl From<ConsumerCredit> for ConsumerCreditRecord {
+impl From<ConsumerCredit> for ConsumerCreditDto {
     fn from(consumer_credit: ConsumerCredit) -> Self {
-        ConsumerCreditRecord {
+        ConsumerCreditDto {
             consumer_facts: ConsumerFactsDto {
                 first_name: consumer_credit.first_name,
                 last_name: consumer_credit.last_name,

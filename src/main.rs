@@ -11,7 +11,7 @@ mod auth;
 
 mod dto;
 
-use dto::ConsumerCreditRecord;
+use dto::ConsumerCreditDto;
 use models::ConsumerCredit;
 
 use auth::{ApiKeyAuth, AuthStore};
@@ -28,13 +28,13 @@ type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
-    record: Json<ConsumerCreditRecord>,
+    record: Json<ConsumerCreditDto>,
     _auth: ApiKeyAuth,
-) -> Result<Created<Json<ConsumerCreditRecord>>> {
+) -> Result<Created<Json<ConsumerCreditDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
     diesel::insert_into(consumer_credit)
-        .values(record.to_new_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
+        .values(record.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
         .execute(&mut establish_connection_pg())
         .expect("Error saving new consumer credit");
 
@@ -44,12 +44,12 @@ async fn submit_consumer_credit(
 #[post("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn update_consumer_credit(
     consumer_credit_id_dto: &str,
-    record: Json<ConsumerCreditRecord>,
+    record: Json<ConsumerCreditDto>,
     _auth: ApiKeyAuth,
 ) -> Status {
     use crate::schema::consumer_credit::dsl::*;
 
-    let updated_consumer_facts = record.to_new_consumer_credit2(consumer_credit_id_dto);
+    let updated_consumer_facts = record.to_update_consumer_credit_model(consumer_credit_id_dto);
 
     let consumer_update_result =
         diesel::update(consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto)))
@@ -79,7 +79,7 @@ async fn update_consumer_credit(
 async fn view_consumer_credit(
     consumer_credit_id_dto: &str,
     _auth: ApiKeyAuth,
-) -> Result<Json<ConsumerCreditRecord>, Status> {
+) -> Result<Json<ConsumerCreditDto>, Status> {
     use crate::schema::consumer_credit::dsl::*;
 
     match consumer_credit
@@ -87,7 +87,7 @@ async fn view_consumer_credit(
         .first::<ConsumerCredit>(&mut establish_connection_pg())
     {
         Ok(record) => {
-            let consumer_credit_record: ConsumerCreditRecord = record.into();
+            let consumer_credit_record: ConsumerCreditDto = record.into();
             Ok(Json(consumer_credit_record))
         }
         Err(diesel::result::Error::NotFound) => Err(Status::NotFound),

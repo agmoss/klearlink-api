@@ -1,5 +1,4 @@
 use diesel::prelude::*;
-use diesel::sql_types::*;
 use serde::{Deserialize, Serialize};
 
 use super::schema::consumer_credit;
@@ -16,7 +15,6 @@ pub struct ConsumerCredit {
     pub address: String,
     pub phone_number: String,
     pub consumer_state: String,
-    #[diesel(sql_type = Array<Nullable<Text>>)]
     pub institution_names: Vec<Option<String>>,
     pub amount: f64,
     pub credit_type: String,
@@ -27,7 +25,7 @@ pub struct ConsumerCredit {
 
 #[derive(Insertable)]
 #[diesel(table_name = consumer_credit)]
-pub struct NewConsumerCredit {
+pub struct InsertConsumerCredit {
     pub consumer_credit_id: String,
     pub first_name: String,
     pub last_name: String,
@@ -46,7 +44,7 @@ pub struct NewConsumerCredit {
 
 #[derive(Insertable)]
 #[diesel(table_name = consumer_credit)]
-pub struct NewConsumerCredit2 {
+pub struct UpdateConsumerCredit {
     pub consumer_credit_id: String,
     pub first_name: String,
     pub last_name: String,
