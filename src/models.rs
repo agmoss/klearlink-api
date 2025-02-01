@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::schema::consumer_credit;
 
-#[derive(Deserialize, Serialize, Queryable, Insertable, QueryableByName)]
+#[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = consumer_credit)]
 pub struct ConsumerCredit {
     pub id: i32,
