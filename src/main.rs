@@ -30,11 +30,17 @@ async fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditRecord>,
     _auth: ApiKeyAuth,
+    _auth: ApiKeyAuth,
 ) -> Result<Created<Json<ConsumerCreditRecord>>> {
     use crate::schema::consumer_credit::dsl::*;
 
+    let new_consumer_credit = NewConsumerCredit {
+        tenant: _auth.username.clone(),
+        ..record.to_consumer_credit(consumer_credit_id_dto)
+    };
+
     diesel::insert_into(consumer_credit)
-        .values(&record.to_consumer_credit(consumer_credit_id_dto))
+        .values(&new_consumer_credit)
         .execute(&mut establish_connection_pg())
         .expect("Error saving new consumer credit");
 

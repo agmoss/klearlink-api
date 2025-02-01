@@ -22,6 +22,7 @@ pub struct ConsumerCredit {
     pub credit_type: String,
     pub application_datetime: String,
     pub credit_state: String,
+    pub tenant: String,
 }
 
 #[derive(Insertable)]
