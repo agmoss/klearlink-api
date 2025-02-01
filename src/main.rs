@@ -2,15 +2,15 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
-use handler::ApiError;
+
+use response::{ErrorResponse, RestResult};
 use rocket::http::Status;
 use rocket::response::{status::Accepted, status::Created, Debug};
 use rocket::serde::json::Json;
-use rocket::{get, launch, post, put, routes, Build, Rocket};
+use rocket::{catchers, get, launch, post, put, routes, Build, Request, Rocket};
 
 mod auth;
-
-mod handler;
+use rocket::catch;
 
 mod dto;
 
@@ -22,26 +22,30 @@ use auth::{ApiKeyAuth, AuthStore};
 mod conn;
 
 use conn::establish_connection_pg;
+use rocket::serde::de::value::Error as SerdeError;
+use serde::Serialize;
+
+mod error;
+mod generic;
+mod response;
 
 #[cfg(test)]
 mod tests;
-
-type Result<T, E = ApiError> = std::result::Result<T, E>;
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 async fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditDto>,
     _auth: ApiKeyAuth,
-) -> Result<Created<Json<ConsumerCreditDto>>> {
+) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
     match diesel::insert_into(consumer_credit)
         .values(record.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
         .execute(&mut establish_connection_pg())
     {
-        Ok(_ok) => Ok(Created::new("/").body(record)),
-        Err(e) => Err(ApiError::from(e)),
+        Ok(_ok) => Ok(record),
+        Err(e) => Err(ErrorResponse::from(e)),
     }
 }
 
@@ -50,7 +54,7 @@ async fn update_consumer_credit(
     consumer_credit_id_dto: &str,
     record: Json<ConsumerCreditDto>,
     _auth: ApiKeyAuth,
-) -> Result<Accepted<Json<ConsumerCreditDto>>> {
+) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
     let updated_consumer_facts = record.to_update_consumer_credit_model(consumer_credit_id_dto);
@@ -73,8 +77,8 @@ async fn update_consumer_credit(
             .execute(&mut establish_connection_pg());
 
     match consumer_update_result {
-        Ok(_ok) => Ok(Accepted(record)),
-        Err(e) => Err(ApiError::from(e)),
+        Ok(_ok) => Ok(record),
+        Err(e) => Err(ErrorResponse::from(e)),
     }
 }
 
@@ -82,7 +86,7 @@ async fn update_consumer_credit(
 async fn view_consumer_credit(
     consumer_credit_id_dto: &str,
     _auth: ApiKeyAuth,
-) -> Result<Json<ConsumerCreditDto>> {
+) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
     match consumer_credit
@@ -93,7 +97,7 @@ async fn view_consumer_credit(
             let consumer_credit_record: ConsumerCreditDto = record.into();
             Ok(Json(consumer_credit_record))
         }
-        Err(e) => Err(ApiError::from(e)),
+        Err(e) => Err(ErrorResponse::from(e)),
     }
 }
 
@@ -105,17 +109,19 @@ async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
 }
 
 fn create_rocket() -> Rocket<Build> {
-    rocket::build().manage(AuthStore::new()).mount(
-        "/",
-        routes![
-            submit_consumer_credit,
-            update_consumer_credit,
-            view_consumer_credit,
-            view_consumer_match
-        ],
-    )
+    rocket::build()
+        .register("/", error::catchers())
+        .manage(AuthStore::new())
+        .mount(
+            "/",
+            routes![
+                submit_consumer_credit,
+                update_consumer_credit,
+                view_consumer_credit,
+                view_consumer_match
+            ],
+        )
 }
-
 #[launch]
 fn rocket() -> Rocket<Build> {
     create_rocket()

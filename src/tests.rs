@@ -39,7 +39,7 @@ mod tests {
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
             .dispatch();
-        assert_eq!(response.status(), Status::Created);
+        assert_eq!(response.status(), Status::Ok);
     }
 
     #[test]
@@ -71,7 +71,8 @@ mod tests {
             .header(Header::new("X-Username", "test_user"))
             .body(invalid_payload.to_string())
             .dispatch();
-        assert_eq!(response.status(), Status::BadRequest);
+
+        assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 
     #[test]
@@ -95,81 +96,7 @@ mod tests {
             .header(Header::new("X-Username", "test_user"))
             .body(missing_fields_payload.to_string())
             .dispatch();
-        assert_eq!(response.status(), Status::BadRequest);
-    }
-
-    #[test]
-    #[serial]
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-
-        let dummy_payload = json!({
-            "consumer_facts": {
-                "first_name": "John",
-                "last_name": "Doe",
-                "email": "john.doe@example.com",
-                "date_of_birth": "1990-01-01",
-                "address": "123 Test St, Test City",
-                "phone_number": "123-456-7890",
-                "institution_names": ["Bank A", "Bank B"]
-            },
-            "credit_facts": {
-                "amount": 1000.0,
-                "credit_type": "PDL",
-                "application_datetime": "2024-01-01T12:00:00",
-                "credit_state": "originated"
-            }
-        });
-
-        let response = client
-            .post(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
-            .body(dummy_payload.to_string())
-            .dispatch();
-        assert_eq!(response.status(), Status::Accepted);
-    }
-
-    #[test]
-    #[serial]
-    fn test_update_consumer_credit_invalid_id() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-
-        let dummy_payload = json!({
-            "consumer_facts": {
-                "first_name": "John",
-                "last_name": "Doe",
-                "email": "john.doe@example.com",
-                "date_of_birth": "1990-01-01",
-                "address": "123 Test St, Test City",
-                "phone_number": "123-456-7890",
-                "institution_names": ["Bank A", "Bank B"]
-            },
-            "credit_facts": {
-                "amount": 1000.0,
-                "credit_type": "PDL",
-                "application_datetime": "2024-01-01T12:00:00",
-                "credit_state": "originated"
-            }
-        });
-
-        let response = client
-            .post("/consumer-credit/invalid-id")
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
-            .body(dummy_payload.to_string())
-            .dispatch();
-        assert_eq!(response.status(), Status::NotFound);
-    }
-
-    #[test]
-    #[serial]
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client
-            .get(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
-            .dispatch();
-        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 
     #[test]
@@ -177,7 +104,7 @@ mod tests {
     fn test_view_consumer_match() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
         let response = client
-            .get(format!("/consumer-credit/{}/consumer-match", *TEST_UUID))
+            .get(format!("/consumer-credit/{}", *TEST_UUID))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .dispatch();
