@@ -2,8 +2,10 @@
 mod tests {
     use crate::rocket;
     use once_cell::sync::Lazy;
-    use rocket::http::{Header, Status};
-    use rocket::local::blocking::Client;
+    use rocket::{
+        http::{Header, Status},
+        local::blocking::Client,
+    };
     use serde_json::json;
     use serial_test::serial;
     use uuid::Uuid;
@@ -114,7 +116,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_duplicate_consumer_credit_insertion() {
-        let TEST_UUID_DUPLICATE = Uuid::new_v4().to_string();
+        let test_uuid_duplicate = Uuid::new_v4().to_string();
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
         let dummy_payload = json!({
@@ -137,7 +139,7 @@ mod tests {
 
         // First insertion should succeed
         let response = client
-            .put(format!("/consumer-credit/{}", TEST_UUID_DUPLICATE))
+            .put(format!("/consumer-credit/{}", test_uuid_duplicate))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
@@ -146,7 +148,7 @@ mod tests {
 
         // Second insertion with the same UUID should fail
         let response = client
-            .put(format!("/consumer-credit/{}", TEST_UUID_DUPLICATE))
+            .put(format!("/consumer-credit/{}", test_uuid_duplicate))
             .header(Header::new("X-API-Key", "test_key"))
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())

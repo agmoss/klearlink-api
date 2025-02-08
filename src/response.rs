@@ -1,6 +1,7 @@
 use crate::generic::{ErrorMessage, JsonString};
-use rocket::serde::json::Error as SerdeError;
-use rocket::{http::Status, response::Responder, serde::json::Json};
+use rocket::{
+    http::Status, response::Responder, serde::json::Error as SerdeError, serde::json::Json,
+};
 
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 #[derive(Responder, Debug, Clone)]
@@ -18,12 +19,15 @@ pub enum ErrorResponse {
     UnprocessableEntity(JsonString),
 
     #[response(status = 444, content_type = "json")]
+    #[allow(dead_code)]
     NoResponse(JsonString),
 
     #[response(status = 500, content_type = "json")]
+    #[allow(dead_code)]
     InternalServerError(JsonString),
 
     #[response(status = 503, content_type = "json")]
+    #[allow(dead_code)]
     ServiceUnavailable(JsonString),
 }
 
@@ -48,7 +52,7 @@ impl ErrorResponse {
 
         match err {
             DieselError::NotFound => Self::NotFound(message),
-            DieselError::DatabaseError(asf, sadf) => match asf {
+            DieselError::DatabaseError(error_kind, _) => match error_kind {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(message),
                 DatabaseErrorKind::UniqueViolation => Self::BadRequest(message),
                 _ => panic!("Unhandled return status: {}", message),

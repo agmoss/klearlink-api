@@ -1,8 +1,5 @@
-use rocket::http::Status;
-use rocket::request::{FromRequest, Outcome, Request};
-use rocket::State;
-use std::collections::HashMap;
-use std::sync::Mutex;
+use rocket::{http::Status, request::FromRequest, request::Outcome, request::Request, State};
+use std::{collections::HashMap, sync::Mutex};
 
 pub struct AuthStore {
     users: Mutex<HashMap<String, String>>, // username -> api_key
@@ -27,6 +24,7 @@ impl AuthStore {
 #[derive(Debug)]
 pub struct ApiKeyAuth {
     pub username: String,
+    #[allow(dead_code)]
     pub api_key: String,
 }
 
