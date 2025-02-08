@@ -2,7 +2,7 @@ use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 
-use crate::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
+use super::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerFactsDto {

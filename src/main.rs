@@ -1,17 +1,12 @@
-pub mod models;
 pub mod schema;
+
+use core::auth::AuthStore;
 
 use rocket::{launch, routes, Build, Rocket};
 
-mod auth;
-mod conn;
-mod dto;
+mod consumer_credit;
+mod core;
 mod error;
-mod generic;
-mod response;
-mod routes;
-
-use auth::AuthStore;
 
 #[cfg(test)]
 mod tests;
@@ -23,10 +18,10 @@ fn create_rocket() -> Rocket<Build> {
         .mount(
             "/",
             routes![
-                routes::submit_consumer_credit,
-                routes::update_consumer_credit,
-                routes::view_consumer_credit,
-                routes::view_consumer_match
+                consumer_credit::routes::submit_consumer_credit,
+                consumer_credit::routes::update_consumer_credit,
+                consumer_credit::routes::view_consumer_credit,
+                consumer_credit::routes::view_consumer_match
             ],
         )
 }

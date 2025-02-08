@@ -1,11 +1,11 @@
 use diesel::prelude::*;
 use rocket::{get, http::Status, post, put, serde::json::Json};
 
-use crate::auth::ApiKeyAuth;
-use crate::conn::establish_connection_pg;
-use crate::dto::ConsumerCreditDto;
-use crate::models::ConsumerCredit;
-use crate::response::{ErrorResponse, RestDto, RestResult};
+use super::dto::ConsumerCreditDto;
+use super::models::ConsumerCredit;
+use crate::core::auth::ApiKeyAuth;
+use crate::core::conn::establish_connection_pg;
+use crate::core::response::{ErrorResponse, RestDto, RestResult};
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 pub async fn submit_consumer_credit<'r>(

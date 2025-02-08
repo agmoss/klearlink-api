@@ -1,8 +1,9 @@
-use super::schema::consumer_credit;
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+
+use crate::schema::consumer_credit;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = consumer_credit)]

@@ -1,9 +1,11 @@
-use crate::generic::{ErrorMessage, JsonString};
 use rocket::{
     http::Status, response::Responder, serde::json::Error as SerdeError, serde::json::Json,
 };
 
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
+
+use super::generic::{ErrorMessage, JsonString};
+
 #[derive(Responder, Debug, Clone)]
 pub enum ErrorResponse {
     #[response(status = 400, content_type = "json")]
