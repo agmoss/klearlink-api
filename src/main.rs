@@ -3,7 +3,7 @@ pub mod schema;
 
 use diesel::prelude::*;
 
-use response::{ErrorResponse, RestResult};
+use response::{ErrorResponse, RestDto, RestResult};
 use rocket::http::Status;
 
 use rocket::serde::json::Json;
@@ -29,9 +29,9 @@ mod response;
 mod tests;
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
-fn submit_consumer_credit(
+async fn submit_consumer_credit<'r>(
     consumer_credit_id_dto: &str,
-    record: Result<Json<ConsumerCreditDto>, rocket::serde::json::Error>,
+    record: RestDto<'r, ConsumerCreditDto>,
     _auth: ApiKeyAuth,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;

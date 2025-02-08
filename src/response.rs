@@ -1,4 +1,5 @@
 use crate::generic::{ErrorMessage, JsonString};
+use rocket::serde::json::Error as SerdeError;
 use rocket::{http::Status, response::Responder, serde::json::Json};
 
 use diesel::result::Error as DieselError;
@@ -26,6 +27,8 @@ pub enum ErrorResponse {
     ServiceUnavailable(JsonString),
 }
 
+pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
+
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
 
 impl ErrorResponse {
@@ -33,6 +36,7 @@ impl ErrorResponse {
         let message = ErrorMessage::from(status.reason_lossy()).json();
 
         match status.code {
+            401 => Self::Unauthorized(message),
             404 => Self::NotFound(message),
             422 => Self::UnprocessableEntity(message),
             _ => panic!("Unhandled return status: {}", status),
@@ -44,7 +48,7 @@ impl ErrorResponse {
         Self::NoResponse(message)
     }
 
-    fn convert_serde_error(err: rocket::serde::json::Error) -> Self {
+    fn convert_serde_error(err: SerdeError) -> Self {
         let message = ErrorMessage::from(err.to_string()).json();
         Self::UnprocessableEntity(message)
     }
@@ -62,8 +66,8 @@ impl From<DieselError> for ErrorResponse {
     }
 }
 
-impl From<rocket::serde::json::Error<'_>> for ErrorResponse {
-    fn from(error: rocket::serde::json::Error) -> ErrorResponse {
+impl From<SerdeError<'_>> for ErrorResponse {
+    fn from(error: SerdeError<'_>) -> ErrorResponse {
         Self::convert_serde_error(error)
     }
 }
