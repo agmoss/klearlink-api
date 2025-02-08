@@ -43,6 +43,11 @@ impl ErrorResponse {
         let message = ErrorMessage::from(err.to_string()).json();
         Self::NoResponse(message)
     }
+
+    fn convert_serde_error(err: rocket::serde::json::Error) -> Self {
+        let message = ErrorMessage::from(err.to_string()).json();
+        Self::UnprocessableEntity(message)
+    }
 }
 
 impl From<Status> for ErrorResponse {
@@ -54,5 +59,11 @@ impl From<Status> for ErrorResponse {
 impl From<DieselError> for ErrorResponse {
     fn from(error: DieselError) -> ErrorResponse {
         Self::convert_diesel_error(error)
+    }
+}
+
+impl From<rocket::serde::json::Error<'_>> for ErrorResponse {
+    fn from(error: rocket::serde::json::Error) -> ErrorResponse {
+        Self::convert_serde_error(error)
     }
 }

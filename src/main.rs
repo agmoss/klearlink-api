@@ -5,12 +5,11 @@ use diesel::prelude::*;
 
 use response::{ErrorResponse, RestResult};
 use rocket::http::Status;
-use rocket::response::{status::Accepted, status::Created, Debug};
+
 use rocket::serde::json::Json;
-use rocket::{catchers, get, launch, post, put, routes, Build, Request, Rocket};
+use rocket::{get, launch, post, put, routes, Build, Rocket};
 
 mod auth;
-use rocket::catch;
 
 mod dto;
 
@@ -22,10 +21,7 @@ use auth::{ApiKeyAuth, AuthStore};
 mod conn;
 
 use conn::establish_connection_pg;
-use rocket::serde::de::value::Error as SerdeError;
-use serde::Serialize;
 
-mod error;
 mod generic;
 mod response;
 
@@ -33,18 +29,27 @@ mod response;
 mod tests;
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
-async fn submit_consumer_credit(
+fn submit_consumer_credit(
     consumer_credit_id_dto: &str,
-    record: Json<ConsumerCreditDto>,
+    record: Result<Json<ConsumerCreditDto>, rocket::serde::json::Error>,
     _auth: ApiKeyAuth,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
+    // Handle JSON validation
+    let record = match record {
+        Ok(valid_record) => valid_record,
+        Err(err) => return Err(ErrorResponse::from(err)),
+    };
+
+    let conn = &mut establish_connection_pg();
+
+    // Insert into database
     match diesel::insert_into(consumer_credit)
         .values(record.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
-        .execute(&mut establish_connection_pg())
+        .execute(conn)
     {
-        Ok(_ok) => Ok(record),
+        Ok(_) => Ok(record),
         Err(e) => Err(ErrorResponse::from(e)),
     }
 }
@@ -109,18 +114,15 @@ async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
 }
 
 fn create_rocket() -> Rocket<Build> {
-    rocket::build()
-        .register("/", error::catchers())
-        .manage(AuthStore::new())
-        .mount(
-            "/",
-            routes![
-                submit_consumer_credit,
-                update_consumer_credit,
-                view_consumer_credit,
-                view_consumer_match
-            ],
-        )
+    rocket::build().manage(AuthStore::new()).mount(
+        "/",
+        routes![
+            submit_consumer_credit,
+            update_consumer_credit,
+            view_consumer_credit,
+            view_consumer_match
+        ],
+    )
 }
 #[launch]
 fn rocket() -> Rocket<Build> {
