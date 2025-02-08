@@ -153,6 +153,6 @@ mod tests {
             .header(Header::new("X-Username", "test_user"))
             .body(dummy_payload.to_string())
             .dispatch();
-        assert_eq!(response.status(), Status::BadRequest);
+        assert_eq!(response.status(), Status::Conflict);
     }
 }

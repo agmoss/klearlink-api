@@ -15,33 +15,34 @@ pub async fn submit_consumer_credit<'r>(
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
-    // Handle JSON validation
-    let record = match record {
+    let dto = match record {
         Ok(valid_record) => valid_record,
         Err(err) => return Err(ErrorResponse::from(err)),
     };
 
-    let conn = &mut establish_connection_pg();
-
-    // Insert into database
     match diesel::insert_into(consumer_credit)
-        .values(record.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
-        .execute(conn)
+        .values(dto.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
+        .execute(&mut establish_connection_pg())
     {
-        Ok(_) => Ok(record),
+        Ok(_) => Ok(dto),
         Err(e) => Err(ErrorResponse::from(e)),
     }
 }
 
 #[post("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
-pub async fn update_consumer_credit(
+pub async fn update_consumer_credit<'r>(
     consumer_credit_id_dto: &str,
-    record: Json<ConsumerCreditDto>,
+    record: RestDto<'r, ConsumerCreditDto>,
     _auth: ApiKeyAuth,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
-    let updated_consumer_facts = record.to_update_consumer_credit_model(consumer_credit_id_dto);
+    let dto = match record {
+        Ok(valid_record) => valid_record,
+        Err(err) => return Err(ErrorResponse::from(err)),
+    };
+
+    let updated_consumer_facts = dto.to_update_consumer_credit_model(consumer_credit_id_dto);
 
     let consumer_update_result =
         diesel::update(consumer_credit.filter(consumer_credit_id.eq(consumer_credit_id_dto)))
@@ -61,7 +62,7 @@ pub async fn update_consumer_credit(
             .execute(&mut establish_connection_pg());
 
     match consumer_update_result {
-        Ok(_ok) => Ok(record),
+        Ok(_ok) => Ok(dto),
         Err(e) => Err(ErrorResponse::from(e)),
     }
 }
