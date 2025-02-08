@@ -1,5 +1,9 @@
 SHELL := /bin/bash
 
+
+diesel-cli:
+	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/diesel-rs/diesel/releases/latest/download/diesel_cli-installer.sh | sh
+
 install-diesel-cli:
 	cargo install diesel_cli --no-default-features --features postgres
 

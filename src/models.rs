@@ -17,7 +17,7 @@ pub struct ConsumerCredit {
     pub address: String,
     pub phone_number: String,
     pub sin_ssn: Option<String>,
-    #[diesel(sql_type = Array<Nullable<Text>>)]
+    #[diesel(sql_type = Nullable<Array<Nullable<Text>>>)]
     pub institution_names: Vec<Option<String>>,
     #[diesel(sql_type = Numeric)]
     pub amount: BigDecimal,

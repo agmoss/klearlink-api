@@ -2,7 +2,7 @@ use crate::generic::{ErrorMessage, JsonString};
 use rocket::serde::json::Error as SerdeError;
 use rocket::{http::Status, response::Responder, serde::json::Json};
 
-use diesel::result::Error as DieselError;
+use diesel::result::{DatabaseErrorKind, Error as DieselError};
 #[derive(Responder, Debug, Clone)]
 pub enum ErrorResponse {
     #[response(status = 400, content_type = "json")]
@@ -45,7 +45,17 @@ impl ErrorResponse {
 
     fn convert_diesel_error(err: DieselError) -> Self {
         let message = ErrorMessage::from(err.to_string()).json();
-        Self::NoResponse(message)
+
+        match err {
+            DieselError::NotFound => Self::NotFound(message),
+            DieselError::DatabaseError(asf, sadf) => match asf {
+                DatabaseErrorKind::NotNullViolation => Self::BadRequest(message),
+                DatabaseErrorKind::UniqueViolation => Self::BadRequest(message),
+                _ => panic!("Unhandled return status: {}", message),
+            },
+
+            _ => panic!("Unhandled return status: {}", message),
+        }
     }
 
     fn convert_serde_error(err: SerdeError) -> Self {

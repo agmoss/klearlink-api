@@ -17,7 +17,7 @@ diesel::table! {
         phone_number -> Varchar,
         #[max_length = 11]
         sin_ssn -> Nullable<Varchar>,
-        institution_names -> Array<Nullable<Varchar>>,
+        institution_names -> Array<Nullable<Text>>,
         amount -> Numeric,
         #[max_length = 10]
         credit_type -> Varchar,

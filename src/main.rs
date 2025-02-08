@@ -2,9 +2,9 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
-use rocket::{get, launch, post, put, routes, Build, Rocket};
 use rocket::http::Status;
 use rocket::serde::json::Json;
+use rocket::{get, launch, post, put, routes, Build, Rocket};
 
 mod auth;
 mod conn;
@@ -18,7 +18,6 @@ use conn::establish_connection_pg;
 use dto::ConsumerCreditDto;
 use models::ConsumerCredit;
 use response::{ErrorResponse, RestDto, RestResult};
-
 
 #[cfg(test)]
 mod tests;
