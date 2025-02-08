@@ -2,28 +2,23 @@ pub mod models;
 pub mod schema;
 
 use diesel::prelude::*;
-
-use response::{ErrorResponse, RestDto, RestResult};
-use rocket::http::Status;
-
-use rocket::serde::json::Json;
 use rocket::{get, launch, post, put, routes, Build, Rocket};
+use rocket::http::Status;
+use rocket::serde::json::Json;
 
 mod auth;
-
-mod dto;
-
-use dto::ConsumerCreditDto;
-use models::ConsumerCredit;
-
-use auth::{ApiKeyAuth, AuthStore};
-
 mod conn;
-
-use conn::establish_connection_pg;
-
+mod dto;
+mod error;
 mod generic;
 mod response;
+
+use auth::{ApiKeyAuth, AuthStore};
+use conn::establish_connection_pg;
+use dto::ConsumerCreditDto;
+use models::ConsumerCredit;
+use response::{ErrorResponse, RestDto, RestResult};
+
 
 #[cfg(test)]
 mod tests;
@@ -114,15 +109,18 @@ async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
 }
 
 fn create_rocket() -> Rocket<Build> {
-    rocket::build().manage(AuthStore::new()).mount(
-        "/",
-        routes![
-            submit_consumer_credit,
-            update_consumer_credit,
-            view_consumer_credit,
-            view_consumer_match
-        ],
-    )
+    rocket::build()
+        .register("/", error::catchers())
+        .manage(AuthStore::new())
+        .mount(
+            "/",
+            routes![
+                submit_consumer_credit,
+                update_consumer_credit,
+                view_consumer_credit,
+                view_consumer_match
+            ],
+        )
 }
 #[launch]
 fn rocket() -> Rocket<Build> {

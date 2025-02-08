@@ -1,4 +1,4 @@
-use crate::response::ErrorResponse;
+use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
 use std::collections::HashMap;
@@ -47,7 +47,7 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
                     api_key: key.to_string(),
                 })
             }
-            _ => Outcome::Failure((Status::Unauthorized, ErrorResponse::Unauthorized(ErrorMessage::from("Unauthorized").json()))),
+            _ => Outcome::Error((Status::Unauthorized, ())),
         }
     }
 }
