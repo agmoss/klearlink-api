@@ -1,9 +1,10 @@
 use diesel::prelude::*;
+use diesel::result::Error;
 use rocket::{get, http::Status, post, put, serde::json::Json};
-use serde_json::json;
 
 use super::dto::ConsumerCreditDto;
 use super::models::ConsumerCredit;
+use crate::consumer_credit::dto::{ConsumerMatchDto, MatchedOnDto};
 use crate::core::auth::ApiKeyAuth;
 use crate::core::conn::establish_connection_pg;
 use crate::core::response::{ErrorResponse, RestDto, RestResult};
@@ -87,21 +88,21 @@ pub async fn view_consumer_credit(
     }
 }
 
-#[get("/consumer-credit/<id>/consumer-match")]
-pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerMatchDto>>> {
+#[get("/consumer-credit/<consumer_credit_id_dto>/consumer-match")]
+pub async fn view_consumer_match(consumer_credit_id_dto: &str, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerMatchDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
     let connection = &mut establish_connection_pg();
 
     // Retrieve the consumer credit record by ID
     let target_record = consumer_credit
-        .filter(consumer_credit_id.eq(&id))
+        .filter(consumer_credit_id.eq(consumer_credit_id_dto))
         .first::<ConsumerCredit>(connection);
 
     match target_record {
         Ok(target) => {
             // Find matches based on consumer facts
-            let matches = consumer_credit
+            let matches: Result<Vec<ConsumerCredit>, Error> = consumer_credit
                 .filter(first_name.eq(&target.first_name))
                 .filter(last_name.eq(&target.last_name))
                 .filter(email.eq(&target.email))
@@ -118,12 +119,9 @@ pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Js
                             date_of_birth: r.date_of_birth == target.date_of_birth,
                             address: r.address == target.address,
                             phone_number: r.phone_number == target.phone_number,
-                            institution_names: r.institution_names.clone(),
                         };
-
                         ConsumerMatchDto {
-                            consumer_facts: r.consumer_facts.into(),
-                            credit_facts: r.credit_facts.into(),
+                            consumer_credit: r.into(),
                             matched_on,
                         }
                     }).collect();

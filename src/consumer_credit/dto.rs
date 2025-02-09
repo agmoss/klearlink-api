@@ -25,26 +25,41 @@ pub struct CreditFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ConsumerMatchDto {
+pub struct ConsumerCreditDto {
     pub consumer_facts: ConsumerFactsDto,
     pub credit_facts: CreditFactsDto,
-    pub matched_on: MatchedOnDto,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct MatchedOnDto {
-    pub first_name: bool,
-    pub last_name: bool,
-    pub email: bool,
-    pub date_of_birth: bool,
-    pub address: bool,
-    pub phone_number: bool,
-    pub institution_names: Vec<String>,
+pub struct ConsumerMatchDto {
+    pub consumer_credit: ConsumerCreditDto,
+    pub matched_on: MatchedOnDto,
 }
-    pub consumer_facts: ConsumerFactsDto,
-    pub credit_facts: CreditFactsDto,
-}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]                                                                                                       
+pub struct MatchedOnDto {                                                                                                                             
+    pub first_name: bool,                                                                                                                             
+    pub last_name: bool,                                                                                                                              
+    pub email: bool,                                                                                                                                  
+    pub date_of_birth: bool,                                                                                                                          
+    pub address: bool,                                                                                                                                
+    pub phone_number: bool,                                                                                                                                                                                                                                          
+}                                                                                                                                                     
+                                                                                                                                               
+    
+
+// #[derive(Debug, Deserialize, Serialize, Clone)]
+// pub struct MatchedOnDto {
+//     pub first_name: bool,
+//     pub last_name: bool,
+//     pub email: bool,
+//     pub date_of_birth: bool,
+//     pub address: bool,
+//     pub phone_number: bool,
+//     pub institution_names: Vec<String>,
+//     pub consumer_facts: ConsumerFactsDto,
+//     pub credit_facts: CreditFactsDto,
+// }
 
 impl ConsumerCreditDto {
     pub fn to_insert_consumer_credit(
