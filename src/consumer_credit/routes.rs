@@ -89,7 +89,25 @@ pub async fn view_consumer_credit(
 #[get("/consumer-credit/<id>/consumer-match")]
 #[allow(unused_variables)]
 pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
-    // Implement logic to calculate and return consumer match
-    // Return 200 OK or 404 Not Found
-    Status::Ok
+    use crate::schema::consumer_credit::dsl::*;
+
+    match consumer_credit
+        .filter(consumer_credit_id.eq(&id))
+        .first::<ConsumerCredit>(&mut establish_connection_pg())
+    {
+        Ok(record) => {
+            // Placeholder logic for consumer match
+            // In a real implementation, this would involve more complex logic
+            let match_found = true; // Assume a match is found for demonstration
+
+            if match_found {
+                // Return match details
+                Status::Ok
+            } else {
+                Status::NotFound
+            }
+        }
+        Err(diesel::result::Error::NotFound) => Status::NotFound,
+        Err(_) => Status::InternalServerError,
+    }
 }
