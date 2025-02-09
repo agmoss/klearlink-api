@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use rocket::{get, http::Status, post, put, serde::json::Json};
+use serde_json::json;
 
 use super::dto::ConsumerCreditDto;
 use super::models::ConsumerCredit;
