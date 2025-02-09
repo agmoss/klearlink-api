@@ -1,12 +1,36 @@
-use std::fmt::Debug;
-
-use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
-
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
+use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use tonic::Code;
 use tonic::Status;
 
-use super::generic::{ErrorMessage, JsonString};
+pub type JsonString = String;
+
+#[derive(Serialize, Deserialize, Clone, Debug, Responder)]
+pub struct ErrorMessage {
+    pub error: JsonString,
+}
+
+impl ErrorMessage {
+    pub fn json(&self) -> JsonString {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
+impl From<&str> for ErrorMessage {
+    fn from(msg: &str) -> Self {
+        Self {
+            error: msg.to_owned(),
+        }
+    }
+}
+
+impl From<String> for ErrorMessage {
+    fn from(msg: String) -> Self {
+        Self { error: msg }
+    }
+}
 
 #[derive(Responder, Debug, Clone)]
 pub enum ErrorResponse {
@@ -105,7 +129,8 @@ impl ErrorResponse {
     }
 
     fn convert_serde_error(err: SerdeError) -> Self {
-        let message = ErrorMessage::from(err.to_string()).json();
+        let error_message = err.to_string();
+        let message = ErrorMessage::from(error_message).json();
         Self::UnprocessableEntity(message)
     }
 }
