@@ -87,27 +87,35 @@ pub async fn view_consumer_credit(
 }
 
 #[get("/consumer-credit/<id>/consumer-match")]
-#[allow(unused_variables)]
-pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> Status {
+pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerCreditDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    match consumer_credit
-        .filter(consumer_credit_id.eq(&id))
-        .first::<ConsumerCredit>(&mut establish_connection_pg())
-    {
-        Ok(record) => {
-            // Placeholder logic for consumer match
-            // In a real implementation, this would involve more complex logic
-            let match_found = true; // Assume a match is found for demonstration
+    let connection = &mut establish_connection_pg();
 
-            if match_found {
-                // Return match details
-                Status::Ok
-            } else {
-                Status::NotFound
+    // Retrieve the consumer credit record by ID
+    let target_record = consumer_credit
+        .filter(consumer_credit_id.eq(&id))
+        .first::<ConsumerCredit>(connection);
+
+    match target_record {
+        Ok(target) => {
+            // Find matches based on consumer facts
+            let matches = consumer_credit
+                .filter(first_name.eq(&target.first_name))
+                .filter(last_name.eq(&target.last_name))
+                .filter(email.eq(&target.email))
+                .filter(date_of_birth.eq(&target.date_of_birth))
+                .load::<ConsumerCredit>(connection);
+
+            match matches {
+                Ok(records) => {
+                    let matched_records: Vec<ConsumerCreditDto> = records.into_iter().map(|r| r.into()).collect();
+                    Ok(Json(matched_records))
+                }
+                Err(_) => Err(ErrorResponse::InternalServerError("Error retrieving matches.".into())),
             }
         }
-        Err(diesel::result::Error::NotFound) => Status::NotFound,
-        Err(_) => Status::InternalServerError,
+        Err(diesel::result::Error::NotFound) => Err(ErrorResponse::NotFound("No consumer credit record found for this ID.".into())),
+        Err(_) => Err(ErrorResponse::InternalServerError("Error retrieving consumer credit record.".into())),
     }
 }
