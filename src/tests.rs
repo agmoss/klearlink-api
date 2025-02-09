@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::rocket;
+    use crate::{consumer_credit::models::InsertConsumerCredit, rocket};
     use once_cell::sync::Lazy;
     use rocket::{
         http::{Header, Status},
