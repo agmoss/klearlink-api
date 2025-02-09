@@ -97,20 +97,20 @@ pub async fn view_consumer_match(
 
     let connection = &mut establish_connection_pg();
 
-    // Retrieve the consumer credit record by ID
     let target_record = consumer_credit
         .filter(consumer_credit_id.eq(consumer_credit_id_dto))
         .first::<ConsumerCredit>(connection);
 
     match target_record {
         Ok(target) => {
-            // Find matches based on consumer facts, excluding the current tenant
             let matches: Result<Vec<ConsumerCredit>, Error> = consumer_credit
-                .filter(first_name.eq(&target.first_name))
-                .filter(last_name.eq(&target.last_name))
-                .filter(email.eq(&target.email))
-                .filter(date_of_birth.eq(&target.date_of_birth))
-                .filter(tenant.ne(&_auth.username)) // Exclude current tenant
+                .or_filter(first_name.eq(&target.first_name))
+                .or_filter(last_name.eq(&target.last_name))
+                .or_filter(email.eq(&target.email))
+                .or_filter(date_of_birth.eq(&target.date_of_birth))
+                .or_filter(address.eq(&target.address))
+                .or_filter(phone_number.eq(&target.phone_number))
+                .filter(tenant.ne(&_auth.username))
                 .load::<ConsumerCredit>(connection);
 
             match matches {
@@ -135,16 +135,9 @@ pub async fn view_consumer_match(
                         .collect();
                     Ok(Json(matched_records))
                 }
-                Err(_) => Err(ErrorResponse::InternalServerError(
-                    "Error retrieving matches.".into(),
-                )),
+                Err(e) => Err(ErrorResponse::from(e)),
             }
         }
-        Err(diesel::result::Error::NotFound) => Err(ErrorResponse::NotFound(
-            "No consumer credit record found for this ID.".into(),
-        )),
-        Err(_) => Err(ErrorResponse::InternalServerError(
-            "Error retrieving consumer credit record.".into(),
-        )),
+        Err(e) => Err(ErrorResponse::from(e)),
     }
 }
