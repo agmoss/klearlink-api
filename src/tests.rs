@@ -103,14 +103,54 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_view_consumer_match() {
+    fn test_view_consumer_match_with_matches() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let connection = &mut establish_connection_pg();
+
+        // Insert test records
+        let test_records = vec![
+            InsertConsumerCredit {
+                consumer_credit_id: "test1".to_string(),
+                first_name: "John".to_string(),
+                last_name: "Doe".to_string(),
+                email: "john.doe@example.com".to_string(),
+                date_of_birth: NaiveDate::from_ymd(1990, 1, 1),
+                address: "123 Test St".to_string(),
+                phone_number: "+1234567890".to_string(),
+                sin_ssn: None,
+                institution_names: vec!["Bank A".to_string()],
+            },
+            InsertConsumerCredit {
+                consumer_credit_id: "test2".to_string(),
+                first_name: "John".to_string(),
+                last_name: "Doe".to_string(),
+                email: "john.doe@example.com".to_string(),
+                date_of_birth: NaiveDate::from_ymd(1990, 1, 1),
+                address: "123 Test St".to_string(),
+                phone_number: "+1234567890".to_string(),
+                sin_ssn: None,
+                institution_names: vec!["Bank B".to_string()],
+            },
+        ];
+
+        for record in test_records {
+            diesel::insert_into(crate::schema::consumer_credit::table)
+                .values(&record)
+                .execute(connection)
+                .expect("Error inserting test record");
+        }
+
+        // Call the view_consumer_match endpoint
         let response = client
-            .get(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
+            .get("/consumer-credit/test1/consumer-match")
             .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key"))
             .dispatch();
+
+        // Verify the response
         assert_eq!(response.status(), Status::Ok);
+        let matches: Vec<ConsumerCreditDto> = response.into_json().expect("valid JSON response");
+        assert_eq!(matches.len(), 2);
     }
 
     #[test]
