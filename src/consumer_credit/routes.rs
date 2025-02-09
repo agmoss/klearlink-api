@@ -88,7 +88,7 @@ pub async fn view_consumer_credit(
 }
 
 #[get("/consumer-credit/<id>/consumer-match")]
-pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerCreditDto>>> {
+pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerMatchDto>>> {
     use crate::schema::consumer_credit::dsl::*;
 
     let connection = &mut establish_connection_pg();
@@ -110,20 +110,22 @@ pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Js
 
             match matches {
                 Ok(records) => {
-                    let matched_records: Vec<ConsumerCreditDto> = records.into_iter().map(|r| {
-                        let matched_on = json!({
-                            "first_name": r.first_name == target.first_name,
-                            "last_name": r.last_name == target.last_name,
-                            "email": r.email == target.email,
-                            "date_of_birth": r.date_of_birth == target.date_of_birth,
-                            "address": r.address == target.address,
-                            "phone_number": r.phone_number == target.phone_number,
-                            "institution_names": r.institution_names == target.institution_names,
-                        });
+                    let matched_records: Vec<ConsumerMatchDto> = records.into_iter().map(|r| {
+                        let matched_on = MatchedOnDto {
+                            first_name: r.first_name == target.first_name,
+                            last_name: r.last_name == target.last_name,
+                            email: r.email == target.email,
+                            date_of_birth: r.date_of_birth == target.date_of_birth,
+                            address: r.address == target.address,
+                            phone_number: r.phone_number == target.phone_number,
+                            institution_names: r.institution_names.clone(),
+                        };
 
-                        let mut dto: ConsumerCreditDto = r.into();
-                        dto.matched_on = Some(matched_on);
-                        dto
+                        ConsumerMatchDto {
+                            consumer_facts: r.consumer_facts.into(),
+                            credit_facts: r.credit_facts.into(),
+                            matched_on,
+                        }
                     }).collect();
                     Ok(Json(matched_records))
                 }
