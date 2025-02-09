@@ -16,14 +16,14 @@
 --
 -- SELECT diesel_manage_updated_at('users');
 -- ```
-CREATE OR REPLACE FUNCTION diesel_manage_updated_at(_tbl regclass) RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION diesel_manage_updated_at (_tbl regclass) RETURNS VOID AS $$
 BEGIN
     EXECUTE format('CREATE TRIGGER set_updated_at BEFORE UPDATE ON %s
                     FOR EACH ROW EXECUTE PROCEDURE diesel_set_updated_at()', _tbl);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql ;
 
-CREATE OR REPLACE FUNCTION diesel_set_updated_at() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION diesel_set_updated_at () RETURNS trigger AS $$
 BEGIN
     IF (
         NEW IS DISTINCT FROM OLD AND
@@ -33,4 +33,4 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql ;

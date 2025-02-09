@@ -25,5 +25,14 @@ lint:
 test:
 	cargo test -- --test-threads=1
 
+install-sql-linter:
+	curl -fsSL https://raw.githubusercontent.com/quarylabs/sqruff/main/install.sh | bash
+
+lint-sql:
+	sqruff lint migrations
+
+lint-sql-fix:
+	sqruff fix migrations
+
 run: 
 	cargo run
