@@ -109,7 +109,21 @@ pub async fn view_consumer_match(id: String, _auth: ApiKeyAuth) -> RestResult<Js
 
             match matches {
                 Ok(records) => {
-                    let matched_records: Vec<ConsumerCreditDto> = records.into_iter().map(|r| r.into()).collect();
+                    let matched_records: Vec<ConsumerCreditDto> = records.into_iter().map(|r| {
+                        let matched_on = json!({
+                            "first_name": r.first_name == target.first_name,
+                            "last_name": r.last_name == target.last_name,
+                            "email": r.email == target.email,
+                            "date_of_birth": r.date_of_birth == target.date_of_birth,
+                            "address": r.address == target.address,
+                            "phone_number": r.phone_number == target.phone_number,
+                            "institution_names": r.institution_names == target.institution_names,
+                        });
+
+                        let mut dto: ConsumerCreditDto = r.into();
+                        dto.matched_on = Some(matched_on);
+                        dto
+                    }).collect();
                     Ok(Json(matched_records))
                 }
                 Err(_) => Err(ErrorResponse::InternalServerError("Error retrieving matches.".into())),
