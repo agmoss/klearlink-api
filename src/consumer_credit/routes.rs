@@ -120,8 +120,9 @@ pub async fn view_consumer_match(consumer_credit_id_dto: &str, _auth: ApiKeyAuth
                             address: r.address == target.address,
                             phone_number: r.phone_number == target.phone_number,
                         };
+                        let consumer_credit_dto: ConsumerCreditDto = r.into();
                         ConsumerMatchDto {
-                            consumer_credit: r.into(),
+                            consumer_credit: consumer_credit_dto,
                             matched_on,
                         }
                     }).collect();
