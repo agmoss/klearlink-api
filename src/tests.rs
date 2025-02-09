@@ -105,39 +105,53 @@ mod tests {
     #[serial]
     fn test_view_consumer_match_with_matches() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let connection = &mut establish_connection_pg();
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
 
-        // Insert test records
-        let test_records = vec![
-            InsertConsumerCredit {
-                consumer_credit_id: "test1".to_string(),
-                first_name: "John".to_string(),
-                last_name: "Doe".to_string(),
-                email: "john.doe@example.com".to_string(),
-                date_of_birth: NaiveDate::from_ymd(1990, 1, 1),
-                address: "123 Test St".to_string(),
-                phone_number: "+1234567890".to_string(),
-                sin_ssn: None,
-                institution_names: vec!["Bank A".to_string()],
-            },
-            InsertConsumerCredit {
-                consumer_credit_id: "test2".to_string(),
-                first_name: "John".to_string(),
-                last_name: "Doe".to_string(),
-                email: "john.doe@example.com".to_string(),
-                date_of_birth: NaiveDate::from_ymd(1990, 1, 1),
-                address: "123 Test St".to_string(),
-                phone_number: "+1234567890".to_string(),
-                sin_ssn: None,
-                institution_names: vec!["Bank B".to_string()],
-            },
+        let test_payloads = vec![
+            json!({
+                "consumer_facts": {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john.doe@example.com",
+                    "date_of_birth": "1990-01-01",
+                    "address": "123 Test St",
+                    "phone_number": "+1234567890",
+                    "institution_names": ["Bank A"]
+                },
+                "credit_facts": {
+                    "amount": 1000.0,
+                    "credit_type": "PDL",
+                    "application_datetime": "2024-01-01T12:00:00",
+                    "credit_state": "application"
+                }
+            }),
+            json!({
+                "consumer_facts": {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john.doe@example.com",
+                    "date_of_birth": "1990-01-01",
+                    "address": "123 Test St",
+                    "phone_number": "+1234567890",
+                    "institution_names": ["Bank B"]
+                },
+                "credit_facts": {
+                    "amount": 1500.0,
+                    "credit_type": "PDL",
+                    "application_datetime": "2024-01-02T12:00:00",
+                    "credit_state": "application"
+                }
+            }),
         ];
 
-        for record in test_records {
-            diesel::insert_into(crate::schema::consumer_credit::table)
-                .values(&record)
-                .execute(connection)
-                .expect("Error inserting test record");
+        for (i, payload) in test_payloads.iter().enumerate() {
+            let response = client
+                .put(format!("/consumer-credit/test{}", i + 1))
+                .header(Header::new("X-API-Key", "test_key"))
+                .header(Header::new("X-Username", "test_user"))
+                .body(payload.to_string())
+                .dispatch();
+            assert_eq!(response.status(), Status::Created);
         }
 
         // Call the view_consumer_match endpoint
