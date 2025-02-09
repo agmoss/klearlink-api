@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use diesel::result::Error;
-use rocket::{get, http::Status, post, put, serde::json::Json};
+use rocket::{get, post, put, serde::json::Json};
 
 use super::dto::ConsumerCreditDto;
 use super::models::ConsumerCredit;
@@ -89,7 +89,10 @@ pub async fn view_consumer_credit(
 }
 
 #[get("/consumer-credit/<consumer_credit_id_dto>/consumer-match")]
-pub async fn view_consumer_match(consumer_credit_id_dto: &str, _auth: ApiKeyAuth) -> RestResult<Json<Vec<ConsumerMatchDto>>> {
+pub async fn view_consumer_match(
+    consumer_credit_id_dto: &str,
+    _auth: ApiKeyAuth,
+) -> RestResult<Vec<ConsumerMatchDto>> {
     use crate::schema::consumer_credit::dsl::*;
 
     let connection = &mut establish_connection_pg();
@@ -111,27 +114,36 @@ pub async fn view_consumer_match(consumer_credit_id_dto: &str, _auth: ApiKeyAuth
 
             match matches {
                 Ok(records) => {
-                    let matched_records: Vec<ConsumerMatchDto> = records.into_iter().map(|r| {
-                        let matched_on = MatchedOnDto {
-                            first_name: r.first_name == target.first_name,
-                            last_name: r.last_name == target.last_name,
-                            email: r.email == target.email,
-                            date_of_birth: r.date_of_birth == target.date_of_birth,
-                            address: r.address == target.address,
-                            phone_number: r.phone_number == target.phone_number,
-                        };
-                        let consumer_credit_dto: ConsumerCreditDto = r.into();
-                        ConsumerMatchDto {
-                            consumer_credit: consumer_credit_dto,
-                            matched_on,
-                        }
-                    }).collect();
+                    let matched_records: Vec<ConsumerMatchDto> = records
+                        .into_iter()
+                        .map(|r| {
+                            let matched_on = MatchedOnDto {
+                                first_name: r.first_name == target.first_name,
+                                last_name: r.last_name == target.last_name,
+                                email: r.email == target.email,
+                                date_of_birth: r.date_of_birth == target.date_of_birth,
+                                address: r.address == target.address,
+                                phone_number: r.phone_number == target.phone_number,
+                            };
+                            let consumer_credit_dto: ConsumerCreditDto = r.into();
+                            ConsumerMatchDto {
+                                consumer_credit: consumer_credit_dto,
+                                matched_on,
+                            }
+                        })
+                        .collect();
                     Ok(Json(matched_records))
                 }
-                Err(_) => Err(ErrorResponse::InternalServerError("Error retrieving matches.".into())),
+                Err(_) => Err(ErrorResponse::InternalServerError(
+                    "Error retrieving matches.".into(),
+                )),
             }
         }
-        Err(diesel::result::Error::NotFound) => Err(ErrorResponse::NotFound("No consumer credit record found for this ID.".into())),
-        Err(_) => Err(ErrorResponse::InternalServerError("Error retrieving consumer credit record.".into())),
+        Err(diesel::result::Error::NotFound) => Err(ErrorResponse::NotFound(
+            "No consumer credit record found for this ID.".into(),
+        )),
+        Err(_) => Err(ErrorResponse::InternalServerError(
+            "Error retrieving consumer credit record.".into(),
+        )),
     }
 }

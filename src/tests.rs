@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::{consumer_credit::{dto::ConsumerCreditDto, models::InsertConsumerCredit}, rocket};
+    use crate::{
+        consumer_credit::{dto::ConsumerCreditDto, models::InsertConsumerCredit},
+        rocket,
+    };
     use once_cell::sync::Lazy;
     use rocket::{
         http::{Header, Status},
@@ -37,8 +40,8 @@ mod tests {
 
         let response = client
             .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key_1"))
+            .header(Header::new("X-Username", "test_user_1"))
             .body(dummy_payload.to_string())
             .dispatch();
         assert_eq!(response.status(), Status::Ok);
@@ -69,8 +72,8 @@ mod tests {
 
         let response = client
             .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key_1"))
+            .header(Header::new("X-Username", "test_user_1"))
             .body(invalid_payload.to_string())
             .dispatch();
 
@@ -94,8 +97,8 @@ mod tests {
 
         let response = client
             .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key_1"))
+            .header(Header::new("X-Username", "test_user_1"))
             .body(missing_fields_payload.to_string())
             .dispatch();
         assert_eq!(response.status(), Status::UnprocessableEntity);
@@ -105,7 +108,8 @@ mod tests {
     #[serial]
     fn test_view_consumer_match_with_matches() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let test_uuid_matches = Uuid::new_v4().to_string();
 
         let test_payloads = vec![
             json!({
@@ -146,9 +150,9 @@ mod tests {
 
         for (i, payload) in test_payloads.iter().enumerate() {
             let response = client
-                .put(format!("/consumer-credit/test{}", i + 1))
-                .header(Header::new("X-API-Key", "test_key"))
-                .header(Header::new("X-Username", "test_user"))
+                .put(format!("/consumer-credit/{}_{}", test_uuid_matches, i + 1))
+                .header(Header::new("X-API-Key", format!("test_key_2")))
+                .header(Header::new("X-Username", format!("test_user_2")))
                 .body(payload.to_string())
                 .dispatch();
             assert_eq!(response.status(), Status::Created);
@@ -156,9 +160,11 @@ mod tests {
 
         // Call the view_consumer_match endpoint
         let response = client
-            .get("/consumer-credit/test1/consumer-match")
-            .header(Header::new("X-Username", "test_user"))
-            .header(Header::new("X-API-Key", "test_key"))
+            .get(format!(
+                "/consumer-credit/{test_uuid_matches}_1/consumer-match"
+            ))
+            .header(Header::new("X-Username", "test_user_1"))
+            .header(Header::new("X-API-Key", "test_key_1"))
             .dispatch();
 
         // Verify the response
@@ -194,8 +200,8 @@ mod tests {
         // First insertion should succeed
         let response = client
             .put(format!("/consumer-credit/{}", test_uuid_duplicate))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key_1"))
+            .header(Header::new("X-Username", "test_user_1"))
             .body(dummy_payload.to_string())
             .dispatch();
         assert_eq!(response.status(), Status::Ok);
@@ -203,8 +209,8 @@ mod tests {
         // Second insertion with the same UUID should fail
         let response = client
             .put(format!("/consumer-credit/{}", test_uuid_duplicate))
-            .header(Header::new("X-API-Key", "test_key"))
-            .header(Header::new("X-Username", "test_user"))
+            .header(Header::new("X-API-Key", "test_key_1"))
+            .header(Header::new("X-Username", "test_user_1"))
             .body(dummy_payload.to_string())
             .dispatch();
         assert_eq!(response.status(), Status::Conflict);

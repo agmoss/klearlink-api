@@ -9,7 +9,8 @@ impl AuthStore {
     pub fn new() -> Self {
         let mut users = HashMap::new();
         // fake data
-        users.insert("test_user".to_string(), "test_key".to_string());
+        users.insert("test_user_1".to_string(), "test_key_1".to_string());
+        users.insert("test_user_2".to_string(), "test_key_2".to_string());
         Self {
             users: Mutex::new(users),
         }
