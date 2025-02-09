@@ -104,12 +104,13 @@ pub async fn view_consumer_match(
 
     match target_record {
         Ok(target) => {
-            // Find matches based on consumer facts
+            // Find matches based on consumer facts, excluding the current tenant
             let matches: Result<Vec<ConsumerCredit>, Error> = consumer_credit
                 .filter(first_name.eq(&target.first_name))
                 .filter(last_name.eq(&target.last_name))
                 .filter(email.eq(&target.email))
                 .filter(date_of_birth.eq(&target.date_of_birth))
+                .filter(tenant.ne(&_auth.username)) // Exclude current tenant
                 .load::<ConsumerCredit>(connection);
 
             match matches {
