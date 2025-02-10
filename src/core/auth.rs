@@ -1,24 +1,20 @@
-use rocket::{http::Status, request::FromRequest, request::Outcome, request::Request, State};
-use std::{collections::HashMap, sync::Mutex};
+use diesel::prelude::*;
+use rocket::{http::Status, request::FromRequest, request::Outcome, request::Request};
+use crate::core::conn::establish_connection_pg;
+use crate::user::models::Users;
 
-pub struct AuthStore {
-    users: Mutex<HashMap<String, String>>, // username -> api_key
-}
+pub struct AuthStore;
 
 impl AuthStore {
-    pub fn new() -> Self {
-        let mut users = HashMap::new();
-        // fake data
-        users.insert("test_user_1".to_string(), "test_key_1".to_string());
-        users.insert("test_user_2".to_string(), "test_key_2".to_string());
-        Self {
-            users: Mutex::new(users),
-        }
-    }
+    pub fn validate(username: &str, api_key: &str) -> bool {
+        use crate::schema::users::dsl::*;
 
-    pub fn validate(&self, username: &str, api_key: &str) -> bool {
-        let users = self.users.lock().unwrap();
-        users.get(username).is_some_and(|key| key == api_key)
+        let connection = &mut establish_connection_pg();
+        users
+            .filter(username.eq(username))
+            .filter(api_key.eq(api_key))
+            .first::<Users>(connection)
+            .is_ok()
     }
 }
 
