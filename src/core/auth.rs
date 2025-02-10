@@ -19,7 +19,9 @@ impl AuthStore {
 }
 
 #[derive(Debug)]
+#[derive(Debug)]
 pub struct ApiKeyAuth {
+    pub id: i32,
     pub username: String,
     #[allow(dead_code)]
     pub api_key: String,
@@ -35,14 +37,24 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
         let username = req.headers().get_one("X-Username");
         let api_key = req.headers().get_one("X-API-Key");
 
-        match (username, api_key) {
-            (Some(user), Some(key)) if auth_store.validate(user, key) => {
-                Outcome::Success(ApiKeyAuth {
-                    username: user.to_string(),
-                    api_key: key.to_string(),
-                })
+        if let (Some(user), Some(key)) = (username, api_key) {
+            use crate::schema::users::dsl::*;
+            let connection = &mut establish_connection_pg();
+
+            match users
+                .filter(username.eq(user))
+                .filter(api_key.eq(key))
+                .first::<Users>(connection)
+            {
+                Ok(user_record) => Outcome::Success(ApiKeyAuth {
+                    id: user_record.id,
+                    username: user_record.username,
+                    api_key: user_record.api_key,
+                }),
+                Err(_) => Outcome::Failure((Status::Unauthorized, ())),
             }
-            _ => Outcome::Error((Status::Unauthorized, ())),
+        } else {
+            Outcome::Failure((Status::Unauthorized, ()))
         }
     }
 }
