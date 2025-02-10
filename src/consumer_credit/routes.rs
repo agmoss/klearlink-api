@@ -1,6 +1,7 @@
 use diesel::prelude::*;
 use diesel::result::Error;
 use rocket::{get, post, put, serde::json::Json};
+use serde_valid::Validate;
 
 use super::dto::ConsumerCreditDto;
 use super::models::ConsumerCredit;
@@ -21,6 +22,8 @@ pub async fn submit_consumer_credit<'r>(
         Ok(valid_record) => valid_record,
         Err(err) => return Err(ErrorResponse::from(err)),
     };
+
+    dto.validate().map_err(ErrorResponse::from)?;
 
     match diesel::insert_into(consumer_credit)
         .values(dto.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.user_id.clone()))

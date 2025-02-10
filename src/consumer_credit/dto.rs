@@ -1,22 +1,27 @@
+use super::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
+use serde_valid::Validate;
 
-use super::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct ConsumerFactsDto {
+    #[validate(min_length = 5)]
     pub first_name: String,
+    #[validate(min_length = 5)]
     pub last_name: String,
+    #[validate(min_length = 5)]
     pub email: String,
     pub date_of_birth: NaiveDate,
+    #[validate(min_length = 5)]
     pub address: String,
+    #[validate(min_length = 5)]
     pub phone_number: String,
     pub sin_ssn: Option<String>,
     pub institution_names: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct CreditFactsDto {
     pub amount: BigDecimal,
     pub credit_type: String,
@@ -24,9 +29,11 @@ pub struct CreditFactsDto {
     pub credit_state: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct ConsumerCreditDto {
+    #[validate]
     pub consumer_facts: ConsumerFactsDto,
+    #[validate]
     pub credit_facts: CreditFactsDto,
 }
 

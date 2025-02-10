@@ -13,6 +13,7 @@ chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15.7"
 bigdecimal = { version = "0.4.7", features = ["serde"] }
 tonic = "0.12.3"
+serde_valid = "1.0.5"
 
 [dev-dependencies]
 uuid = { version = "1.4", features = ["v4"] }

@@ -1,6 +1,7 @@
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
 use serde::{Deserialize, Serialize};
+use serde_valid::validation::Errors as SerdeValidErrors;
 use std::fmt::Debug;
 use tonic::Code;
 use tonic::Status;
@@ -133,6 +134,12 @@ impl ErrorResponse {
         let message = ErrorMessage::from(error_message).json();
         Self::UnprocessableEntity(message)
     }
+
+    fn convert_serde_valid_error(err: SerdeValidErrors) -> Self {
+        let error_message = err.to_string();
+        let message = ErrorMessage::from(error_message).json();
+        Self::UnprocessableEntity(message)
+    }
 }
 
 impl From<Status> for ErrorResponse {
@@ -150,5 +157,11 @@ impl From<DieselError> for ErrorResponse {
 impl From<SerdeError<'_>> for ErrorResponse {
     fn from(error: SerdeError<'_>) -> ErrorResponse {
         Self::convert_serde_error(error)
+    }
+}
+
+impl From<SerdeValidErrors> for ErrorResponse {
+    fn from(error: SerdeValidErrors) -> ErrorResponse {
+        Self::convert_serde_valid_error(error)
     }
 }
