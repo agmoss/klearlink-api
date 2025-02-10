@@ -7,6 +7,7 @@ pub struct AuthStore;
 
 impl AuthStore {
     pub fn new() -> Self {
+    pub fn get_user(username: &str, api_key: &str) -> Option<Users> {
         use crate::schema::users::dsl::*;
 
         let connection = &mut establish_connection_pg();
@@ -35,6 +36,7 @@ impl AuthStore {
             .filter(api_key.eq(api_key))
             .first::<Users>(connection)
             .ok()
+    }
     }
 }
 
