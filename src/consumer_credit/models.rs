@@ -26,7 +26,6 @@ pub struct ConsumerCredit {
     #[diesel(sql_type = Timestamp)]
     pub application_datetime: NaiveDateTime,
     pub credit_state: String,
-    pub tenant: String,
     pub user_id: i32,
 }
 

@@ -24,8 +24,6 @@ diesel::table! {
         application_datetime -> Timestamp,
         #[max_length = 20]
         credit_state -> Varchar,
-        #[max_length = 50]
-        tenant -> Varchar,
         user_id -> Int4,
     }
 }

@@ -23,7 +23,7 @@ pub async fn submit_consumer_credit<'r>(
     };
 
     match diesel::insert_into(consumer_credit)
-        .values(dto.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.username.clone()))
+        .values(dto.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.user_id.clone()))
         .execute(&mut establish_connection_pg())
     {
         Ok(_) => Ok(dto),
@@ -110,7 +110,7 @@ pub async fn view_consumer_match(
                 .or_filter(date_of_birth.eq(&target.date_of_birth))
                 .or_filter(address.eq(&target.address))
                 .or_filter(phone_number.eq(&target.phone_number))
-                .filter(tenant.ne(&_auth.username))
+                .filter(user_id.ne(&_auth.user_id))
                 .load::<ConsumerCredit>(connection);
 
             match matches {
