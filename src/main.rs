@@ -7,6 +7,7 @@ use rocket::{launch, routes, Build, Rocket};
 mod consumer_credit;
 mod core;
 mod error;
+mod user;
 
 #[cfg(test)]
 mod tests;

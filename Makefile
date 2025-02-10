@@ -41,6 +41,11 @@ migrate-down:
 	diesel migration redo
 	$(PRINT_DONE)
 
+create-migration:
+	$(PRINT_CMD)
+	diesel migration generate create_posts
+	$(PRINT_DONE)
+
 # Code Quality
 format: 
 	$(PRINT_CMD)

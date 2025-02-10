@@ -26,5 +26,20 @@ diesel::table! {
         credit_state -> Varchar,
         #[max_length = 50]
         tenant -> Varchar,
+        user_id -> Int4,
     }
 }
+
+diesel::table! {
+    users (id) {
+        id -> Int4,
+        #[max_length = 100]
+        username -> Varchar,
+        #[max_length = 100]
+        api_key -> Varchar,
+    }
+}
+
+diesel::joinable!(consumer_credit -> users (user_id));
+
+diesel::allow_tables_to_appear_in_same_query!(consumer_credit, users,);

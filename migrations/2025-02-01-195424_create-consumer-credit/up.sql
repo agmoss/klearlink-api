@@ -1,4 +1,12 @@
 -- Your SQL goes here
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    api_key VARCHAR(100) NOT NULL,
+    UNIQUE (username)
+);
+
 CREATE TABLE consumer_credit (
 id SERIAL PRIMARY KEY,
 consumer_credit_id VARCHAR (100) NOT NULL,
@@ -19,7 +27,7 @@ OR sin_ssn ~ '^\d{3}-\d{2}-\d{4}$'
 ),
 -- Optional SIN/SSN with pattern validation
 institution_names TEXT [] NOT NULL,
-amount NUMERIC (12, 2) NOT NULL CHECK (amount > = 0),
+amount NUMERIC (12, 2) NOT NULL CHECK (amount >= 0),
 -- Ensures accurate financial calculations
 credit_type VARCHAR (10) NOT NULL CHECK (credit_type IN ('PDL', 'BNPL')),
 -- Enforce valid credit types
@@ -36,5 +44,6 @@ credit_state IN (
 )
 ),
 tenant VARCHAR (50) NOT NULL,
-UNIQUE (consumer_credit_id, tenant)
+UNIQUE (consumer_credit_id, tenant),
+user_id INTEGER NOT NULL REFERENCES users (id)
 ) ;

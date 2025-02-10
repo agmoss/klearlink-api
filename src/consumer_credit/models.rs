@@ -27,6 +27,7 @@ pub struct ConsumerCredit {
     pub application_datetime: NaiveDateTime,
     pub credit_state: String,
     pub tenant: String,
+    pub user_id: i32,
 }
 
 #[derive(Insertable)]
@@ -46,7 +47,7 @@ pub struct InsertConsumerCredit {
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
     pub credit_state: String,
-    pub tenant: String,
+    pub user_id: i32,
 }
 
 #[derive(Insertable)]

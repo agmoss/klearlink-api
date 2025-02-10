@@ -50,7 +50,7 @@ impl ConsumerCreditDto {
     pub fn to_insert_consumer_credit(
         &self,
         consumer_credit_id_dto: &str,
-        tenant: &str,
+        user_id: &i32,
     ) -> InsertConsumerCredit {
         InsertConsumerCredit {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
@@ -66,7 +66,7 @@ impl ConsumerCreditDto {
             credit_type: self.credit_facts.credit_type.clone(),
             application_datetime: self.credit_facts.application_datetime,
             credit_state: self.credit_facts.credit_state.clone(),
-            tenant: tenant.to_string(),
+            user_id: *user_id,
         }
     }
 
