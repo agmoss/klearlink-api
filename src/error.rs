@@ -1,5 +1,5 @@
 use crate::core::{response::ErrorMessage, response::ErrorResponse};
-use rocket::{catch, catchers, http::Status, Request};
+use rocket::{catch, catchers, http::Status, serde::json::Json, Request};
 
 pub fn catchers() -> Vec<rocket::Catcher> {
     catchers![unauthorized]
@@ -7,11 +7,9 @@ pub fn catchers() -> Vec<rocket::Catcher> {
 
 #[catch(401)]
 fn unauthorized(status: Status, _req: &Request) -> ErrorResponse {
-    ErrorResponse::Unauthorized(
-        ErrorMessage::from(format!(
-            "This request is unauthorized: {}",
-            status.reason().unwrap(),
-        ))
-        .json(),
-    )
+    let message = ErrorMessage::from_str(&format!(
+        "This request is unauthorized: {}",
+        status.reason().unwrap_or("Unknown reason"),
+    ));
+    ErrorResponse::Unauthorized(Json(message))
 }

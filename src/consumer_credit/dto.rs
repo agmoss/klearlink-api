@@ -6,11 +6,11 @@ use serde_valid::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct ConsumerFactsDto {
-    #[validate(min_length = 5)]
+    #[validate(min_length = 2)]
     pub first_name: String,
-    #[validate(min_length = 5)]
+    #[validate(min_length = 2)]
     pub last_name: String,
-    #[validate(min_length = 5)]
+    #[validate(min_length = 2)]
     pub email: String,
     pub date_of_birth: NaiveDate,
     #[validate(min_length = 5)]

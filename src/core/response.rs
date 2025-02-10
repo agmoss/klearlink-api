@@ -1,88 +1,70 @@
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_valid::validation::Errors as SerdeValidErrors;
 use std::fmt::Debug;
-use tonic::Code;
-use tonic::Status;
-
-pub type JsonString = String;
+use tonic::{Code, Status};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Responder)]
 pub struct ErrorMessage {
-    pub error: JsonString,
+    pub error: Value,
 }
 
 impl ErrorMessage {
-    pub fn json(&self) -> JsonString {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
-impl From<&str> for ErrorMessage {
-    fn from(msg: &str) -> Self {
+    // Constructor for a string message
+    pub fn from_str(msg: &str) -> Self {
         Self {
-            error: msg.to_owned(),
+            error: Value::String(msg.to_owned()),
         }
     }
-}
 
-impl From<String> for ErrorMessage {
-    fn from(msg: String) -> Self {
-        Self { error: msg }
+    // Constructor for a serde_json::Value
+    pub fn from_value(value: Value) -> Self {
+        Self { error: value }
     }
 }
 
 #[derive(Responder, Debug, Clone)]
 pub enum ErrorResponse {
     #[response(status = 400, content_type = "json")]
-    BadRequest(JsonString),
+    BadRequest(Json<ErrorMessage>),
 
     #[response(status = 401, content_type = "json")]
-    Unauthorized(JsonString),
+    Unauthorized(Json<ErrorMessage>),
 
     #[response(status = 404, content_type = "json")]
-    NotFound(JsonString),
+    NotFound(Json<ErrorMessage>),
 
-    /// 408 Request Timeout
     #[response(status = 408, content_type = "json")]
-    RequestTimeout(JsonString),
+    RequestTimeout(Json<ErrorMessage>),
 
-    /// 409 Conflict
     #[response(status = 409, content_type = "json")]
-    Conflict(JsonString),
+    Conflict(Json<ErrorMessage>),
 
-    /// 412 Precondition Failed
     #[response(status = 412, content_type = "json")]
-    PreconditionFailed(JsonString),
+    PreconditionFailed(Json<ErrorMessage>),
 
-    /// 422 Unprocessable Entity
     #[response(status = 422, content_type = "json")]
-    UnprocessableEntity(JsonString),
+    UnprocessableEntity(Json<ErrorMessage>),
 
-    /// 444 No Response
     #[response(status = 444, content_type = "json")]
-    NoResponse(JsonString),
+    NoResponse(Json<ErrorMessage>),
 
-    /// 499 Client Closed Request
     #[response(status = 499, content_type = "json")]
-    ClientClosedRequest(JsonString),
+    ClientClosedRequest(Json<ErrorMessage>),
 
-    /// 500 Internal Server Error
     #[response(status = 500, content_type = "json")]
-    InternalServerError(JsonString),
+    InternalServerError(Json<ErrorMessage>),
 
-    /// 501 Not Implemented
     #[response(status = 501, content_type = "json")]
-    NotImplemented(JsonString),
+    NotImplemented(Json<ErrorMessage>),
 
-    /// 503 Service Unavailable
     #[response(status = 503, content_type = "json")]
-    ServiceUnavailable(JsonString),
+    ServiceUnavailable(Json<ErrorMessage>),
 
-    /// 511 Network Authentication Required
     #[response(status = 511, content_type = "json")]
-    NetworkAuthenticationRequired(JsonString),
+    NetworkAuthenticationRequired(Json<ErrorMessage>),
 }
 
 pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
@@ -91,54 +73,53 @@ pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
 
 impl ErrorResponse {
     fn convert(status: Status) -> Self {
-        let message = ErrorMessage::from(status.message()).json();
-
+        let message = ErrorMessage::from_str(status.message());
         match status.code() {
-            Code::Aborted => Self::NoResponse(message),
-            Code::AlreadyExists => Self::Conflict(message),
-            Code::Cancelled => Self::ClientClosedRequest(message),
-            Code::DataLoss => Self::BadRequest(message),
-            Code::DeadlineExceeded => Self::RequestTimeout(message),
-            Code::FailedPrecondition => Self::PreconditionFailed(message),
-            Code::Internal => Self::InternalServerError(message),
-            Code::InvalidArgument => Self::UnprocessableEntity(message),
-            Code::NotFound => Self::NotFound(message),
+            Code::Aborted => Self::NoResponse(Json(message)),
+            Code::AlreadyExists => Self::Conflict(Json(message)),
+            Code::Cancelled => Self::ClientClosedRequest(Json(message)),
+            Code::DataLoss => Self::BadRequest(Json(message)),
+            Code::DeadlineExceeded => Self::RequestTimeout(Json(message)),
+            Code::FailedPrecondition => Self::PreconditionFailed(Json(message)),
+            Code::Internal => Self::InternalServerError(Json(message)),
+            Code::InvalidArgument => Self::UnprocessableEntity(Json(message)),
+            Code::NotFound => Self::NotFound(Json(message)),
             Code::Ok => panic!("Returned an error with an 'OK' status. What???"),
-            Code::OutOfRange => Self::UnprocessableEntity(message),
-            Code::PermissionDenied => Self::Unauthorized(message),
-            Code::Unauthenticated => Self::NetworkAuthenticationRequired(message),
-            Code::Unavailable => Self::ServiceUnavailable(message),
-            Code::Unimplemented => Self::NotImplemented(message),
-            Code::Unknown => Self::InternalServerError(message),
+            Code::OutOfRange => Self::UnprocessableEntity(Json(message)),
+            Code::PermissionDenied => Self::Unauthorized(Json(message)),
+            Code::Unauthenticated => Self::NetworkAuthenticationRequired(Json(message)),
+            Code::Unavailable => Self::ServiceUnavailable(Json(message)),
+            Code::Unimplemented => Self::NotImplemented(Json(message)),
+            Code::Unknown => Self::InternalServerError(Json(message)),
             _ => panic!("Unhandled return status: {}", status),
         }
     }
 
     fn convert_diesel_error(err: DieselError) -> Self {
-        let message = ErrorMessage::from(err.to_string()).json();
-
+        let message = ErrorMessage::from_str(&err.to_string());
         match err {
-            DieselError::NotFound => Self::NotFound(message),
+            DieselError::NotFound => Self::NotFound(Json(message)),
             DieselError::DatabaseError(error_kind, _) => match error_kind {
-                DatabaseErrorKind::NotNullViolation => Self::BadRequest(message),
-                DatabaseErrorKind::UniqueViolation => Self::Conflict(message),
-                _ => panic!("Unhandled return status: {}", message),
+                DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
+                DatabaseErrorKind::UniqueViolation => Self::Conflict(Json(message)),
+                _ => Self::InternalServerError(Json(message)),
             },
-
-            _ => panic!("Unhandled return status: {}", message),
+            _ => Self::InternalServerError(Json(message)),
         }
     }
 
-    fn convert_serde_error(err: SerdeError) -> Self {
-        let error_message = err.to_string();
-        let message = ErrorMessage::from(error_message).json();
-        Self::UnprocessableEntity(message)
+    fn convert_serde_error(err: SerdeError<'_>) -> Self {
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
     }
 
     fn convert_serde_valid_error(err: SerdeValidErrors) -> Self {
-        let error_message = err.to_string();
-        let message = ErrorMessage::from(error_message).json();
-        Self::UnprocessableEntity(message)
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
     }
 }
 
