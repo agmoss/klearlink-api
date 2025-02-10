@@ -6,7 +6,27 @@ use crate::user::models::Users;
 pub struct AuthStore;
 
 impl AuthStore {
-    pub fn get_user(username: &str, api_key: &str) -> Option<Users> {
+    pub fn new() -> Self {
+        use crate::schema::users::dsl::*;
+
+        let connection = &mut establish_connection_pg();
+        let user_count: i64 = users.count().get_result(connection).unwrap_or(0);
+
+        if user_count == 0 {
+            let dummy_user = Users {
+                id: 1,
+                username: "test_user".to_string(),
+                api_key: "test_key".to_string(),
+            };
+
+            diesel::insert_into(users)
+                .values(&dummy_user)
+                .execute(connection)
+                .expect("Error inserting dummy user");
+        }
+
+        AuthStore
+    }
         use crate::schema::users::dsl::*;
 
         let connection = &mut establish_connection_pg();
