@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::schema::consumer_credit;
 
-#[derive(Deserialize, Serialize, Queryable, Insertable)]
+#[derive(Deserialize, Serialize, Queryable, Insertable, Clone)]
 #[diesel(table_name = consumer_credit)]
 pub struct ConsumerCredit {
     pub id: i32,
