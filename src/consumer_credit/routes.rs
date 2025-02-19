@@ -8,13 +8,15 @@ use super::models::ConsumerCredit;
 use crate::consumer_credit::dto::{ConsumerMatchDto, MatchedOnDto};
 use crate::core::auth::ApiKeyAuth;
 use crate::core::conn::establish_connection_pg;
+use crate::core::pool::Db;
 use crate::core::response::{ErrorResponse, RestDto, RestResult};
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 pub async fn submit_consumer_credit<'r>(
-    consumer_credit_id_dto: &str,
+    consumer_credit_id_dto: String,
     record: RestDto<'r, ConsumerCreditDto>,
     _auth: ApiKeyAuth,
+    conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
@@ -25,10 +27,17 @@ pub async fn submit_consumer_credit<'r>(
 
     dto.validate().map_err(ErrorResponse::from)?;
 
-    match diesel::insert_into(consumer_credit)
-        .values(dto.to_insert_consumer_credit(consumer_credit_id_dto, &_auth.user_id.clone()))
-        .execute(&mut establish_connection_pg())
-    {
+    let res = conn
+        .run(move |c| {
+            diesel::insert_into(consumer_credit)
+                .values(
+                    &dto.to_insert_consumer_credit(&consumer_credit_id_dto, &_auth.user_id.clone()),
+                )
+                .execute(c)
+        })
+        .await;
+
+    match res {
         Ok(_) => Ok(dto),
         Err(e) => Err(ErrorResponse::from(e)),
     }

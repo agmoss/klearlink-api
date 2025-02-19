@@ -1,6 +1,8 @@
 pub mod schema;
 
 use core::auth::AuthStore;
+use core::pool::Db;
+use dotenvy::dotenv;
 
 use rocket::{launch, routes, Build, Rocket};
 
@@ -15,6 +17,7 @@ mod tests;
 fn create_rocket() -> Rocket<Build> {
     rocket::build()
         .register("/", error::catchers())
+        .attach(Db::fairing())
         .manage(AuthStore::new())
         .mount(
             "/",
@@ -28,5 +31,6 @@ fn create_rocket() -> Rocket<Build> {
 }
 #[launch]
 fn rocket() -> Rocket<Build> {
+    dotenv().ok();
     create_rocket()
 }
