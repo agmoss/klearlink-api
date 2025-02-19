@@ -17,6 +17,8 @@ pub async fn submit_consumer_credit<'r>(
     record: RestDto<'r, ConsumerCreditDto>,
     _auth: ApiKeyAuth,
     conn: Db,
+    conn: Db,
+    conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
 
@@ -74,7 +76,7 @@ pub async fn update_consumer_credit<'r>(
                 application_datetime.eq(updated_consumer_facts.application_datetime),
                 credit_state.eq(updated_consumer_facts.credit_state),
             ))
-            .execute(&mut establish_connection_pg());
+            .execute(&mut *conn);
 
     match consumer_update_result {
         Ok(_ok) => Ok(dto),
@@ -91,7 +93,7 @@ pub async fn view_consumer_credit(
 
     match consumer_credit
         .filter(consumer_credit_id.eq(consumer_credit_id_dto))
-        .first::<ConsumerCredit>(&mut establish_connection_pg())
+        .first::<ConsumerCredit>(&mut *conn)
     {
         Ok(record) => {
             let consumer_credit_record: ConsumerCreditDto = record.into();
@@ -105,14 +107,14 @@ pub async fn view_consumer_credit(
 pub async fn view_consumer_match(
     consumer_credit_id_dto: &str,
     _auth: ApiKeyAuth,
+    conn: Db,
 ) -> RestResult<Vec<ConsumerMatchDto>> {
     use crate::schema::consumer_credit::dsl::*;
 
-    let connection = &mut establish_connection_pg();
 
     let target_record = consumer_credit
         .filter(consumer_credit_id.eq(consumer_credit_id_dto))
-        .first::<ConsumerCredit>(connection);
+        .first::<ConsumerCredit>(&mut *conn)
 
     match target_record {
         Ok(target) => {
@@ -124,7 +126,7 @@ pub async fn view_consumer_match(
                 .or_filter(address.eq(&target.address))
                 .or_filter(phone_number.eq(&target.phone_number))
                 .filter(user_id.ne(&_auth.user_id))
-                .load::<ConsumerCredit>(connection);
+                .load::<ConsumerCredit>(&mut *conn)
 
             match matches {
                 Ok(records) => {
