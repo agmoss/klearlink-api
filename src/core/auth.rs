@@ -1,5 +1,6 @@
 use crate::user::models::Users;
-use crate::{core::conn::establish_connection_pg, user::models::InsertUsers};
+use crate::user::models::InsertUsers;
+use crate::core::pool::Db;
 use diesel::prelude::*;
 use rocket::{http::Status, request::FromRequest, request::Outcome, request::Request};
 
@@ -9,11 +10,13 @@ impl AuthStore {
     /**
      * For testing
      */
-    pub fn new() -> Self {
+    pub async fn new(conn: Db) -> Self {
         use crate::schema::users::dsl::*;
 
-        let connection = &mut establish_connection_pg();
-        let user_count: i64 = users.count().get_result(connection).unwrap_or(0);
+        let user_count: i64 = conn
+            .run(|c| users.count().get_result(c))
+            .await
+            .unwrap_or(0);
 
         if user_count == 0 {
             let dummy_user = InsertUsers {
@@ -23,7 +26,7 @@ impl AuthStore {
 
             diesel::insert_into(users)
                 .values(&dummy_user)
-                .execute(connection)
+                .execute(c)
                 .expect("Error inserting dummy user");
 
             let dummy_user_2 = InsertUsers {
@@ -33,20 +36,23 @@ impl AuthStore {
 
             diesel::insert_into(users)
                 .values(&dummy_user_2)
-                .execute(connection)
+                .execute(c)
                 .expect("Error inserting dummy user");
         }
 
         AuthStore
     }
 
-    pub fn get_user(u_name: &str, a_key: &str) -> Option<Users> {
+    pub async fn get_user(u_name: &str, a_key: &str, conn: Db) -> Option<Users> {
         use crate::schema::users::dsl::*;
-        users
-            .filter(username.eq(u_name))
-            .filter(api_key.eq(a_key))
-            .first::<Users>(&mut establish_connection_pg())
-            .ok()
+        conn.run(move |c| {
+            users
+                .filter(username.eq(u_name))
+                .filter(api_key.eq(a_key))
+                .first::<Users>(c)
+                .ok()
+        })
+        .await
     }
 }
 
