@@ -27,18 +27,19 @@ pub async fn submit_consumer_credit<'r>(
 
     dto.validate().map_err(ErrorResponse::from)?;
 
+
+    let adsf = dto.clone();
+
     let res = conn
         .run(move |c| {
             diesel::insert_into(consumer_credit)
-                .values(
-                    &dto.to_insert_consumer_credit(&consumer_credit_id_dto, &_auth.user_id.clone()),
-                )
+                .values(dto.to_insert_consumer_credit(&consumer_credit_id_dto, &_auth.user_id))
                 .execute(c)
         })
         .await;
 
     match res {
-        Ok(_) => Ok(dto),
+        Ok(_) => Ok(adsf),
         Err(e) => Err(ErrorResponse::from(e)),
     }
 }
