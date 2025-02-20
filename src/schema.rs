@@ -33,8 +33,7 @@ diesel::table! {
         id -> Int4,
         #[max_length = 100]
         username -> Varchar,
-        #[max_length = 100]
-        api_key -> Varchar,
+        api_key -> Uuid,
     }
 }
 

@@ -123,6 +123,13 @@ impl ErrorResponse {
         let message = ErrorMessage::from_value(error_value);
         Self::UnprocessableEntity(Json(message))
     }
+
+    fn convert_uuid_valid_error(err: uuid::Error) -> Self {
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
+    }
 }
 
 impl From<Status> for ErrorResponse {
@@ -146,5 +153,11 @@ impl From<SerdeError<'_>> for ErrorResponse {
 impl From<SerdeValidErrors> for ErrorResponse {
     fn from(error: SerdeValidErrors) -> ErrorResponse {
         Self::convert_serde_valid_error(error)
+    }
+}
+
+impl From<uuid::Error> for ErrorResponse {
+    fn from(error: uuid::Error) -> ErrorResponse {
+        Self::convert_uuid_valid_error(error)
     }
 }

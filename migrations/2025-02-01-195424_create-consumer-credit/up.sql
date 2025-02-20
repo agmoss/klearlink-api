@@ -3,7 +3,7 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
-    api_key VARCHAR(100) NOT NULL,
+    api_key UUID NOT NULL,
     UNIQUE (username)
 );
 
