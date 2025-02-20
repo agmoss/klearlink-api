@@ -1,5 +1,6 @@
 use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto, MatchedOnDto};
 use crate::consumer_credit::models::ConsumerCredit;
+use crate::core::auth::{Auth, AuthResponse};
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
 use diesel::prelude::*;
@@ -13,10 +14,15 @@ impl Service {
     pub async fn submit_consumer_credit_service<'r>(
         _consumer_credit_id: String,
         record: RestDto<'r, ConsumerCreditDto>,
-        _user_id: i32,
+        auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
         use crate::schema::consumer_credit::dsl::*;
+
+        let auth_res: Auth = match auth {
+            Ok(valid_record) => valid_record,
+            Err(err) => return Err(ErrorResponse::from(err)),
+        };
 
         let dto = match record {
             Ok(valid_record) => valid_record,
@@ -30,7 +36,7 @@ impl Service {
         let res = conn
             .run(move |c| {
                 diesel::insert_into(consumer_credit)
-                    .values(dto.to_insert_consumer_credit(&_consumer_credit_id, &_user_id))
+                    .values(dto.to_insert_consumer_credit(&_consumer_credit_id, &auth_res.user_id))
                     .execute(c)
             })
             .await;
@@ -44,9 +50,15 @@ impl Service {
     pub async fn update_consumer_credit_service<'r>(
         _consumer_credit_id: String,
         record: RestDto<'r, ConsumerCreditDto>,
+        auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
         use crate::schema::consumer_credit::dsl::*;
+
+        match auth {
+            Ok(valid_record) => valid_record,
+            Err(err) => return Err(ErrorResponse::from(err)),
+        };
 
         let dto = match record {
             Ok(valid_record) => valid_record,
@@ -83,10 +95,16 @@ impl Service {
 
     pub async fn view_consumer_credit_service(
         _consumer_credit_id: String,
-        _user_id: i32,
+        auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
-        let target_record = Self::get_target_record(_consumer_credit_id, _user_id, &conn).await;
+        let auth_res: Auth = match auth {
+            Ok(valid_record) => valid_record,
+            Err(err) => return Err(ErrorResponse::from(err)),
+        };
+
+        let target_record =
+            Self::get_target_record(_consumer_credit_id, auth_res.user_id, &conn).await;
 
         match target_record {
             Ok(record) => {
@@ -99,12 +117,18 @@ impl Service {
 
     pub async fn view_consumer_match_service(
         _consumer_credit_id: String,
-        _user_id: i32,
+        auth: AuthResponse,
         conn: Db,
     ) -> RestResult<Vec<ConsumerMatchDto>> {
         use crate::schema::consumer_credit::dsl::*;
 
-        let target_record = Self::get_target_record(_consumer_credit_id, _user_id, &conn).await;
+        let auth_res: Auth = match auth {
+            Ok(valid_record) => valid_record,
+            Err(err) => return Err(ErrorResponse::from(err)),
+        };
+
+        let target_record =
+            Self::get_target_record(_consumer_credit_id, auth_res.user_id, &conn).await;
 
         match target_record {
             Ok(target) => {
@@ -120,7 +144,7 @@ impl Service {
                             .or_filter(date_of_birth.eq(&target.date_of_birth))
                             .or_filter(address.eq(&target.address))
                             .or_filter(phone_number.eq(&target.phone_number))
-                            .filter(user_id.ne(&_user_id))
+                            .filter(user_id.ne(&auth_res.user_id))
                             .load::<ConsumerCredit>(c)
                     })
                     .await;

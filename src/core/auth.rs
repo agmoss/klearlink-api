@@ -10,6 +10,8 @@ use uuid::Uuid;
 
 use super::response::{ErrorMessage, ErrorResponse};
 
+pub type AuthResponse = Result<Auth, ErrorResponse>;
+
 pub struct AuthStore;
 
 impl AuthStore {
@@ -27,7 +29,7 @@ impl AuthStore {
 }
 
 #[derive(Debug)]
-pub struct ApiKeyAuth {
+pub struct Auth {
     pub user_id: i32,
     #[allow(dead_code)]
     pub username: String,
@@ -36,7 +38,7 @@ pub struct ApiKeyAuth {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for ApiKeyAuth {
+impl<'r> FromRequest<'r> for Auth {
     type Error = ErrorResponse;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
@@ -48,22 +50,24 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
 
             match Uuid::try_parse(key) {
                 Ok(okk) => match AuthStore::get_user(user.to_string(), okk, conn).await {
-                    Some(user_record) => Outcome::Success(ApiKeyAuth {
+                    Some(user_record) => Outcome::Success(Auth {
                         user_id: user_record.id,
                         username: user_record.username,
                         api_key: user_record.api_key,
                     }),
                     None => Outcome::Error((
                         Status::UnprocessableEntity,
-                        ErrorResponse::NotFound((Json(ErrorMessage::from_str("asdf")))),
+                        ErrorResponse::NotFound(Json(ErrorMessage::from_str("User not found"))),
                     )),
                 },
                 Err(e) => Outcome::Error((Status::UnprocessableEntity, ErrorResponse::from(e))),
             }
         } else {
-            Outcome::Failure((
+            Outcome::Error((
                 Status::UnprocessableEntity,
-                ErrorResponse::NotFound(Json(ErrorMessage::from_str("Missing authentication headers"))),
+                ErrorResponse::NotFound(Json(ErrorMessage::from_str(
+                    "Missing authentication headers",
+                ))),
             ))
         }
     }
