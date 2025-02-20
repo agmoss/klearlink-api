@@ -7,10 +7,7 @@ use rocket::serde::json::Json;
 pub struct UserService;
 
 impl UserService {
-    pub async fn create_user_service(
-        new_user: InsertUsers,
-        conn: Db,
-    ) -> RestResult<Users> {
+    pub async fn create_user_service(new_user: InsertUsers, conn: Db) -> RestResult<Users> {
         use crate::schema::users::dsl::*;
 
         let res = conn
@@ -27,10 +24,7 @@ impl UserService {
         }
     }
 
-    pub async fn get_user_service(
-        user_id: i32,
-        conn: Db,
-    ) -> RestResult<Users> {
+    pub async fn get_user_service(user_id: i32, conn: Db) -> RestResult<Users> {
         use crate::schema::users::dsl::*;
 
         let res = conn
@@ -67,10 +61,7 @@ impl UserService {
         }
     }
 
-    pub async fn delete_user_service(
-        user_id: i32,
-        conn: Db,
-    ) -> RestResult<()> {
+    pub async fn delete_user_service(user_id: i32, conn: Db) -> RestResult<()> {
         use crate::schema::users::dsl::*;
 
         let res = conn

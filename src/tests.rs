@@ -3,7 +3,7 @@ mod tests {
     use crate::rocket;
     use once_cell::sync::Lazy;
     use rocket::{
-        http::{Header, Status},
+        http::{ContentType, Header, Status},
         local::blocking::Client,
     };
     use serde_json::json;
@@ -15,7 +15,62 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
-    #[rocket::async_test]
+    #[test]
+    #[serial]
+    fn test_create_user() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client
+            .post("/users")
+            .header(ContentType::JSON)
+            .body(
+                json!({
+                    "username": "test_user",
+                    "api_key": Uuid::new_v4()
+                })
+                .to_string(),
+            )
+            .dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    #[serial]
+    fn test_get_user() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get("/users/1").dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    // #[test]
+    // #[serial]
+    // fn test_update_user() {
+    //     let client = Client::tracked(rocket()).expect("valid rocket instance");
+    //     let response = client
+    //         .put("/users/1")
+    //         .header(ContentType::JSON)
+    //         .body(
+    //             json!({
+    //                 "username": "updated_user",
+    //                 "api_key": Uuid::new_v4()
+    //             })
+    //             .to_string(),
+    //         )
+    //         .dispatch();
+    //     assert_eq!(response.status(), Status::Ok);
+    // }
+
+    // #[test]
+    // #[serial]
+    // fn test_delete_user() {
+    //     let client = Client::tracked(rocket()).expect("valid rocket instance");
+    //     let response = client.delete("/users/1").dispatch();
+
+    //     assert_eq!(response.status(), Status::Ok);
+    // }
+
+    #[test]
     #[serial]
     fn test_submit_consumer_credit() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
@@ -47,7 +102,7 @@ mod tests {
         assert_eq!(response.status(), Status::Ok);
     }
 
-    #[rocket::async_test]
+    #[test]
     #[serial]
     fn test_submit_consumer_credit_invalid_data() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
@@ -80,7 +135,7 @@ mod tests {
         assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 
-    #[rocket::async_test]
+    #[test]
     #[serial]
     fn test_submit_consumer_credit_missing_fields() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
@@ -104,7 +159,7 @@ mod tests {
         assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 
-    #[rocket::async_test]
+    #[test]
     #[serial]
     fn test_view_consumer_match_with_matches() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
@@ -167,7 +222,7 @@ mod tests {
         assert_eq!(response.status(), Status::Ok);
     }
 
-    #[rocket::async_test]
+    #[test]
     #[serial]
     fn test_duplicate_consumer_credit_insertion() {
         let test_uuid_duplicate = Uuid::new_v4().to_string();
