@@ -1,49 +1,12 @@
-use crate::user::models::Users;
-use crate::user::models::InsertUsers;
 use crate::core::pool::Db;
+use crate::user::models::Users;
 use diesel::prelude::*;
 use rocket::{http::Status, request::FromRequest, request::Outcome, request::Request};
 
 pub struct AuthStore;
 
 impl AuthStore {
-    /**
-     * For testing
-     */
-    pub async fn new(conn: Db) -> Self {
-        use crate::schema::users::dsl::*;
-
-        let user_count: i64 = conn
-            .run(|c| users.count().get_result(c))
-            .await
-            .unwrap_or(0);
-
-        if user_count == 0 {
-            let dummy_user = InsertUsers {
-                username: "test_user_1".to_string(),
-                api_key: "test_key_1".to_string(),
-            };
-
-            diesel::insert_into(users)
-                .values(&dummy_user)
-                .execute(c)
-                .expect("Error inserting dummy user");
-
-            let dummy_user_2 = InsertUsers {
-                username: "test_user_2".to_string(),
-                api_key: "test_key_2".to_string(),
-            };
-
-            diesel::insert_into(users)
-                .values(&dummy_user_2)
-                .execute(c)
-                .expect("Error inserting dummy user");
-        }
-
-        AuthStore
-    }
-
-    pub async fn get_user(u_name: &str, a_key: &str, conn: Db) -> Option<Users> {
+    pub async fn get_user(u_name: String, a_key: String, conn: Db) -> Option<Users> {
         use crate::schema::users::dsl::*;
         conn.run(move |c| {
             users
@@ -75,7 +38,7 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
 
         if let (Some(user), Some(key)) = (username, api_key) {
             let conn = req.guard::<Db>().await.unwrap();
-            match AuthStore::get_user(user, key, conn).await {
+            match AuthStore::get_user(user.to_string(), key.to_string(), conn).await {
                 Some(user_record) => Outcome::Success(ApiKeyAuth {
                     user_id: user_record.id,
                     username: user_record.username,
