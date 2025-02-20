@@ -156,9 +156,7 @@ mod tests {
         }
 
         let response = client
-            .get(format!(
-                "/consumer-credit/{test_uuid_matches}_1/consumer-match"
-            ))
+            .get(format!("/consumer-credit/{}/consumer-match", *TEST_UUID))
             .header(Header::new("X-Username", "test_user_1"))
             .header(Header::new("X-API-Key", "test_key_1"))
             .dispatch();

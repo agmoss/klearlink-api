@@ -1,4 +1,4 @@
-use diesel::result::{DatabaseErrorKind, Error as DieselError};
+use diesel::result::{DatabaseErrorKind, Error as _DieselError};
 use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -67,6 +67,8 @@ pub enum ErrorResponse {
     NetworkAuthenticationRequired(Json<ErrorMessage>),
 }
 
+pub type DbError = _DieselError;
+
 pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
 
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
@@ -95,11 +97,11 @@ impl ErrorResponse {
         }
     }
 
-    fn convert_diesel_error(err: DieselError) -> Self {
+    fn convert_diesel_error(err: DbError) -> Self {
         let message = ErrorMessage::from_str(&err.to_string());
         match err {
-            DieselError::NotFound => Self::NotFound(Json(message)),
-            DieselError::DatabaseError(error_kind, _) => match error_kind {
+            DbError::NotFound => Self::NotFound(Json(message)),
+            DbError::DatabaseError(error_kind, _) => match error_kind {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
                 DatabaseErrorKind::UniqueViolation => Self::Conflict(Json(message)),
                 _ => Self::InternalServerError(Json(message)),
@@ -129,8 +131,8 @@ impl From<Status> for ErrorResponse {
     }
 }
 
-impl From<DieselError> for ErrorResponse {
-    fn from(error: DieselError) -> ErrorResponse {
+impl From<DbError> for ErrorResponse {
+    fn from(error: DbError) -> ErrorResponse {
         Self::convert_diesel_error(error)
     }
 }
