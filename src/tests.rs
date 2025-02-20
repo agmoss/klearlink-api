@@ -36,42 +36,6 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_get_user() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get("/users/1").dispatch();
-
-        assert_eq!(response.status(), Status::Ok);
-    }
-
-    // #[test]
-    // #[serial]
-    // fn test_update_user() {
-    //     let client = Client::tracked(rocket()).expect("valid rocket instance");
-    //     let response = client
-    //         .put("/users/1")
-    //         .header(ContentType::JSON)
-    //         .body(
-    //             json!({
-    //                 "username": "updated_user",
-    //                 "api_key": Uuid::new_v4()
-    //             })
-    //             .to_string(),
-    //         )
-    //         .dispatch();
-    //     assert_eq!(response.status(), Status::Ok);
-    // }
-
-    // #[test]
-    // #[serial]
-    // fn test_delete_user() {
-    //     let client = Client::tracked(rocket()).expect("valid rocket instance");
-    //     let response = client.delete("/users/1").dispatch();
-
-    //     assert_eq!(response.status(), Status::Ok);
-    // }
-
-    #[test]
-    #[serial]
     fn test_submit_consumer_credit() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 

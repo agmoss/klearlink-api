@@ -12,14 +12,11 @@ pub struct ErrorMessage {
 }
 
 impl ErrorMessage {
-    // Constructor for a string message
     pub fn from_str(msg: &str) -> Self {
         Self {
             error: Value::String(msg.to_owned()),
         }
     }
-
-    // Constructor for a serde_json::Value
     pub fn from_value(value: Value) -> Self {
         Self { error: value }
     }
