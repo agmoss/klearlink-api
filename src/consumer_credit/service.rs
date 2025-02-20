@@ -1,18 +1,24 @@
-use diesel::prelude::*;
-use diesel::result::Error;
 use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto, MatchedOnDto};
 use crate::consumer_credit::models::ConsumerCredit;
 use crate::core::pool::Db;
-use crate::core::response::{ErrorResponse, RestResult};
+use crate::core::response::{ErrorResponse, RestDto, RestResult};
+use diesel::prelude::*;
+use diesel::result::Error;
 use rocket::serde::json::Json;
+use serde_valid::Validate;
 
 pub async fn submit_consumer_credit_service<'r>(
     consumer_credit_id_dto: String,
-    dto: ConsumerCreditDto,
-    user_id: i32,
+    record: RestDto<'r, ConsumerCreditDto>,
+    usr_id: i32,
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
+
+    let dto = match record {
+        Ok(valid_record) => valid_record,
+        Err(err) => return Err(ErrorResponse::from(err)),
+    };
 
     dto.validate().map_err(ErrorResponse::from)?;
 
@@ -21,7 +27,7 @@ pub async fn submit_consumer_credit_service<'r>(
     let res = conn
         .run(move |c| {
             diesel::insert_into(consumer_credit)
-                .values(dto.to_insert_consumer_credit(&consumer_credit_id_dto, &user_id))
+                .values(dto.to_insert_consumer_credit(&consumer_credit_id_dto, &usr_id))
                 .execute(c)
         })
         .await;
@@ -34,10 +40,15 @@ pub async fn submit_consumer_credit_service<'r>(
 
 pub async fn update_consumer_credit_service<'r>(
     consumer_credit_id_dto: String,
-    dto: ConsumerCreditDto,
+    record: RestDto<'r, ConsumerCreditDto>,
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
     use crate::schema::consumer_credit::dsl::*;
+
+    let dto = match record {
+        Ok(valid_record) => valid_record,
+        Err(err) => return Err(ErrorResponse::from(err)),
+    };
 
     let updated_consumer_facts = dto.to_update_consumer_credit_model(&consumer_credit_id_dto);
 
@@ -92,7 +103,7 @@ pub async fn view_consumer_credit_service(
 
 pub async fn view_consumer_match_service(
     consumer_credit_id_dto: String,
-    user_id: i32,
+    usr_id: i32,
     conn: Db,
 ) -> RestResult<Vec<ConsumerMatchDto>> {
     use crate::schema::consumer_credit::dsl::*;
@@ -101,6 +112,7 @@ pub async fn view_consumer_match_service(
         .run(move |c| {
             consumer_credit
                 .filter(consumer_credit_id.eq(consumer_credit_id_dto))
+                .filter(user_id.eq(usr_id))
                 .first::<ConsumerCredit>(c)
         })
         .await;

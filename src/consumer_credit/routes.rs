@@ -1,17 +1,14 @@
-use diesel::prelude::*;
-use diesel::result::Error;
-use rocket::{get, post, put, serde::json::Json};
-use serde_valid::Validate;
+use rocket::{get, post, put};
 
 use super::dto::ConsumerCreditDto;
-use super::models::ConsumerCredit;
-use crate::consumer_credit::dto::{ConsumerMatchDto, MatchedOnDto};
+use crate::consumer_credit::dto::ConsumerMatchDto;
 use crate::consumer_credit::service::{
     submit_consumer_credit_service, update_consumer_credit_service, view_consumer_credit_service,
     view_consumer_match_service,
 };
+use crate::core::auth::ApiKeyAuth;
 use crate::core::pool::Db;
-use crate::core::response::{ErrorResponse, RestDto, RestResult};
+use crate::core::response::{RestDto, RestResult};
 
 #[put("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
 pub async fn submit_consumer_credit<'r>(
@@ -20,8 +17,7 @@ pub async fn submit_consumer_credit<'r>(
     _auth: ApiKeyAuth,
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
-    let dto = record?;
-    submit_consumer_credit_service(consumer_credit_id_dto, dto, _auth.user_id, conn).await
+    submit_consumer_credit_service(consumer_credit_id_dto, record, _auth.user_id, conn).await
 }
 
 #[post("/consumer-credit/<consumer_credit_id_dto>", data = "<record>")]
@@ -31,8 +27,7 @@ pub async fn update_consumer_credit<'r>(
     _auth: ApiKeyAuth,
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
-    let dto = record?;
-    update_consumer_credit_service(consumer_credit_id_dto, dto, conn).await
+    update_consumer_credit_service(consumer_credit_id_dto, record, conn).await
 }
 
 #[get("/consumer-credit/<consumer_credit_id_dto>")]
