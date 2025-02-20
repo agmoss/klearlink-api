@@ -1,5 +1,5 @@
 use crate::core::pool::Db;
-use crate::user::models::Users;
+use crate::user::models::UserModel;
 use diesel::prelude::*;
 use rocket::{
     http::Status,
@@ -15,13 +15,13 @@ pub type AuthResponse = Result<Auth, ErrorResponse>;
 pub struct AuthStore;
 
 impl AuthStore {
-    pub async fn get_user(u_name: String, a_key: Uuid, conn: Db) -> Option<Users> {
+    pub async fn get_user(u_name: String, a_key: Uuid, conn: Db) -> Option<UserModel> {
         use crate::schema::users::dsl::*;
         conn.run(move |c| {
             users
                 .filter(username.eq(u_name))
                 .filter(api_key.eq(a_key))
-                .first::<Users>(c)
+                .first::<UserModel>(c)
                 .ok()
         })
         .await

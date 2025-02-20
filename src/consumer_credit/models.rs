@@ -7,7 +7,7 @@ use crate::schema::consumer_credit;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Clone)]
 #[diesel(table_name = consumer_credit)]
-pub struct ConsumerCredit {
+pub struct ConsumerCreditModel {
     pub id: i32,
     pub consumer_credit_id: String,
     pub first_name: String,
@@ -31,7 +31,7 @@ pub struct ConsumerCredit {
 
 #[derive(Insertable)]
 #[diesel(table_name = consumer_credit)]
-pub struct InsertConsumerCredit {
+pub struct InsertConsumerCreditModel {
     pub consumer_credit_id: String,
     pub first_name: String,
     pub last_name: String,
@@ -51,7 +51,7 @@ pub struct InsertConsumerCredit {
 
 #[derive(Insertable)]
 #[diesel(table_name = consumer_credit)]
-pub struct UpdateConsumerCredit {
+pub struct UpdateConsumerCreditModel {
     pub consumer_credit_id: String,
     pub first_name: String,
     pub last_name: String,

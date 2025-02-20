@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = users)]
-pub struct Users {
+pub struct UserModel {
     pub id: i32,
     pub username: String,
     pub api_key: Uuid,
@@ -13,7 +13,7 @@ pub struct Users {
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
 #[diesel(table_name = users)]
-pub struct InsertUsers {
+pub struct InsertUserModel {
     pub username: String,
     pub api_key: Uuid,
 }

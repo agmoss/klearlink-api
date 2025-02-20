@@ -1,6 +1,8 @@
 use crate::core::pool::Db;
 use crate::core::response::{ErrorResponse, RestDto, RestResult};
+use crate::user::models::UserModel;
 use diesel::prelude::*;
+use rocket::serde::json::Json;
 use serde_valid::Validate;
 
 use super::dto::UserDto;
@@ -24,15 +26,15 @@ impl UserService {
             .run(move |c| {
                 diesel::insert_into(users)
                     .values(&insert_user)
-                    .get_result::<Users>(c)
+                    .get_result::<UserModel>(c)
             })
             .await;
 
         match result {
             Ok(user) => Ok(Json(user.into())),
-            Err(diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
-                Err(ErrorResponse::from("User with this username or API key already exists"))
-            }
+            // Err(diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
+            //     Err(ErrorResponse::from("User with this username or API key already exists"))
+            // }
             Err(e) => Err(ErrorResponse::from(e)),
         }
     }

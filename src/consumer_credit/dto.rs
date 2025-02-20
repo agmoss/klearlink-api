@@ -1,4 +1,4 @@
-use super::models::{ConsumerCredit, InsertConsumerCredit, UpdateConsumerCredit};
+use super::models::{ConsumerCreditModel, InsertConsumerCreditModel, UpdateConsumerCreditModel};
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -58,8 +58,8 @@ impl ConsumerCreditDto {
         &self,
         consumer_credit_id_dto: &str,
         user_id: &i32,
-    ) -> InsertConsumerCredit {
-        InsertConsumerCredit {
+    ) -> InsertConsumerCreditModel {
+        InsertConsumerCreditModel {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
@@ -80,8 +80,8 @@ impl ConsumerCreditDto {
     pub fn to_update_consumer_credit_model(
         &self,
         consumer_credit_id_dto: &str,
-    ) -> UpdateConsumerCredit {
-        UpdateConsumerCredit {
+    ) -> UpdateConsumerCreditModel {
+        UpdateConsumerCreditModel {
             consumer_credit_id: consumer_credit_id_dto.to_string(),
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
@@ -99,8 +99,8 @@ impl ConsumerCreditDto {
     }
 }
 
-impl From<ConsumerCredit> for ConsumerCreditDto {
-    fn from(consumer_credit: ConsumerCredit) -> Self {
+impl From<ConsumerCreditModel> for ConsumerCreditDto {
+    fn from(consumer_credit: ConsumerCreditModel) -> Self {
         ConsumerCreditDto {
             consumer_facts: ConsumerFactsDto {
                 first_name: consumer_credit.first_name,

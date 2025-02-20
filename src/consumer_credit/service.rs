@@ -1,5 +1,5 @@
 use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto, MatchedOnDto};
-use crate::consumer_credit::models::ConsumerCredit;
+use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::{Auth, AuthResponse};
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
@@ -132,10 +132,10 @@ impl Service {
 
         match target_record {
             Ok(target) => {
-                let copied: ConsumerCredit =
+                let copied: ConsumerCreditModel =
                     serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
 
-                let matches: Result<Vec<ConsumerCredit>, Error> = conn
+                let matches: Result<Vec<ConsumerCreditModel>, Error> = conn
                     .run(move |c| {
                         consumer_credit
                             .or_filter(first_name.eq(&target.first_name))
@@ -145,7 +145,7 @@ impl Service {
                             .or_filter(address.eq(&target.address))
                             .or_filter(phone_number.eq(&target.phone_number))
                             .filter(user_id.ne(&auth_res.user_id))
-                            .load::<ConsumerCredit>(c)
+                            .load::<ConsumerCreditModel>(c)
                     })
                     .await;
 
@@ -182,14 +182,14 @@ impl Service {
         _consumer_credit_id: String,
         _user_id: i32,
         conn: &Db,
-    ) -> Result<ConsumerCredit, DbError> {
+    ) -> Result<ConsumerCreditModel, DbError> {
         use crate::schema::consumer_credit::dsl::*;
 
         conn.run(move |c| {
             consumer_credit
                 .filter(consumer_credit_id.eq(_consumer_credit_id))
                 .filter(user_id.eq(_user_id))
-                .first::<ConsumerCredit>(c)
+                .first::<ConsumerCreditModel>(c)
         })
         .await
     }
