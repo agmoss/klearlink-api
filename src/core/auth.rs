@@ -61,7 +61,10 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
                 Err(e) => Outcome::Error((Status::UnprocessableEntity, ErrorResponse::from(e))),
             }
         } else {
-            Outcome::Forward(Status::UnprocessableEntity)
+            Outcome::Failure((
+                Status::UnprocessableEntity,
+                ErrorResponse::NotFound(Json(ErrorMessage::from_str("Missing authentication headers"))),
+            ))
         }
     }
 }
