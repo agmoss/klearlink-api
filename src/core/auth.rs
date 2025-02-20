@@ -74,7 +74,8 @@ impl<'r> FromRequest<'r> for ApiKeyAuth {
         let api_key = req.headers().get_one("X-API-Key");
 
         if let (Some(user), Some(key)) = (username, api_key) {
-            match AuthStore::get_user(user, key) {
+            let conn = req.guard::<Db>().await.unwrap();
+            match AuthStore::get_user(user, key, conn).await {
                 Some(user_record) => Outcome::Success(ApiKeyAuth {
                     user_id: user_record.id,
                     username: user_record.username,
