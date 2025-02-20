@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 
 use crate::schema::users;
@@ -8,7 +9,7 @@ use crate::schema::users;
 pub struct Users {
     pub id: i32,
     pub username: String,
-    pub api_key: String, // TODO: Make this a UUID
+    pub api_key: Uuid,
 }
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]
