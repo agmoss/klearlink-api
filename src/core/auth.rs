@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use super::response::{ErrorMessage, ErrorResponse};
 
-pub type AuthResponse = Result<Auth, ErrorResponse>;
+pub type AuthResponse = Result<UserModel, ErrorResponse>;
 
 pub struct AuthStore;
 
@@ -28,17 +28,8 @@ impl AuthStore {
     }
 }
 
-#[derive(Debug)]
-pub struct Auth {
-    pub user_id: i32,
-    #[allow(dead_code)]
-    pub username: String,
-    #[allow(dead_code)]
-    pub api_key: Uuid,
-}
-
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Auth {
+impl<'r> FromRequest<'r> for UserModel {
     type Error = ErrorResponse;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
@@ -50,8 +41,8 @@ impl<'r> FromRequest<'r> for Auth {
 
             match Uuid::try_parse(key) {
                 Ok(okk) => match AuthStore::get_user(user.to_string(), okk, conn).await {
-                    Some(user_record) => Outcome::Success(Auth {
-                        user_id: user_record.id,
+                    Some(user_record) => Outcome::Success(UserModel {
+                        id: user_record.id,
                         username: user_record.username,
                         api_key: user_record.api_key,
                     }),

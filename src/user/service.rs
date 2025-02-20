@@ -1,5 +1,5 @@
 use crate::core::pool::Db;
-use crate::core::response::{ErrorResponse, RestDto, RestResult};
+use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
 use crate::user::models::UserModel;
 use diesel::prelude::*;
 use rocket::serde::json::Json;
@@ -20,12 +20,10 @@ impl UserService {
 
         dto.validate().map_err(ErrorResponse::from)?;
 
-        let insert_user = dto.to_insert_user();
-
         let result = conn
             .run(move |c| {
                 diesel::insert_into(users)
-                    .values(&insert_user)
+                    .values(&dto.to_insert_user())
                     .get_result::<UserModel>(c)
             })
             .await;
@@ -37,5 +35,21 @@ impl UserService {
             // }
             Err(e) => Err(ErrorResponse::from(e)),
         }
+    }
+
+    pub async fn view_user(_username: String, conn: Db) -> RestResult<UserDto> {
+        let target_record = Self::get_target_record(_username, &conn).await;
+
+        match target_record {
+            Ok(record) => Ok(Json(record.into())),
+            Err(e) => Err(ErrorResponse::from(e)),
+        }
+    }
+
+    async fn get_target_record(_username: String, conn: &Db) -> Result<UserModel, DbError> {
+        use crate::schema::users::dsl::*;
+
+        conn.run(move |c| users.filter(username.eq(_username)).first::<UserModel>(c))
+            .await
     }
 }

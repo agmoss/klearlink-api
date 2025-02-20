@@ -25,6 +25,7 @@ fn create_rocket() -> Rocket<Build> {
                 consumer_credit::routes::view_consumer_credit,
                 consumer_credit::routes::view_consumer_match,
                 user::routes::create_user,
+                user::routes::view_user
             ],
         )
 }

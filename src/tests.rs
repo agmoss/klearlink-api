@@ -24,7 +24,7 @@ mod tests {
             .header(ContentType::JSON)
             .body(
                 json!({
-                    "username": "test_user",
+                    "username": Uuid::new_v4(),
                     "api_key": Uuid::new_v4()
                 })
                 .to_string(),
