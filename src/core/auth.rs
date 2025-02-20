@@ -57,7 +57,7 @@ impl<'r> FromRequest<'r> for Auth {
                     }),
                     None => Outcome::Error((
                         Status::UnprocessableEntity,
-                        ErrorResponse::NotFound(Json(ErrorMessage::from_str("User not found"))),
+                        ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!("User '{}' not found", user)))),
                     )),
                 },
                 Err(e) => Outcome::Error((Status::UnprocessableEntity, ErrorResponse::from(e))),
