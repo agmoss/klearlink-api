@@ -14,25 +14,25 @@ impl UserService {
     ) -> RestResult<UserDto> {
         use crate::schema::users::dsl::*;
 
-        let dto = match new_user {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
-        };
+        let dto = new_user.map_err(ErrorResponse::from)?;
 
         dto.validate().map_err(ErrorResponse::from)?;
 
-        let adsf = dto.clone();
+        let insert_user = dto.to_insert_user();
 
-        let res = conn
+        let result = conn
             .run(move |c| {
                 diesel::insert_into(users)
-                    .values(dto.to_insert_user())
-                    .execute(c)
+                    .values(&insert_user)
+                    .get_result::<Users>(c)
             })
             .await;
 
-        match res {
-            Ok(_) => Ok(adsf),
+        match result {
+            Ok(user) => Ok(Json(user.into())),
+            Err(diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
+                Err(ErrorResponse::from("User with this username or API key already exists"))
+            }
             Err(e) => Err(ErrorResponse::from(e)),
         }
     }
