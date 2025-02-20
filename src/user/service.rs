@@ -1,9 +1,8 @@
 use crate::core::pool::Db;
-use crate::core::response::{DbError, ErrorResponse, RestResult};
+use crate::core::response::{ErrorResponse, RestResult};
 use crate::user::models::{InsertUsers, Users};
 use diesel::prelude::*;
 use rocket::serde::json::Json;
-use uuid::Uuid;
 
 pub struct UserService;
 

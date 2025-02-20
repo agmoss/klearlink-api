@@ -11,7 +11,7 @@ use serde_valid::Validate;
 pub struct Service;
 
 impl Service {
-    pub async fn submit_consumer_credit_service<'r>(
+    pub async fn submit_consumer_credit<'r>(
         _consumer_credit_id: String,
         record: RestDto<'r, ConsumerCreditDto>,
         auth: AuthResponse,
@@ -47,7 +47,7 @@ impl Service {
         }
     }
 
-    pub async fn update_consumer_credit_service<'r>(
+    pub async fn update_consumer_credit<'r>(
         _consumer_credit_id: String,
         record: RestDto<'r, ConsumerCreditDto>,
         auth: AuthResponse,
@@ -93,7 +93,7 @@ impl Service {
         }
     }
 
-    pub async fn view_consumer_credit_service(
+    pub async fn view_consumer_credit(
         _consumer_credit_id: String,
         auth: AuthResponse,
         conn: Db,
@@ -115,7 +115,7 @@ impl Service {
         }
     }
 
-    pub async fn view_consumer_match_service(
+    pub async fn view_consumer_match(
         _consumer_credit_id: String,
         auth: AuthResponse,
         conn: Db,
