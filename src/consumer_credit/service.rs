@@ -34,6 +34,7 @@ impl ConsumerCreditService {
             |ok| Ok(Json(ok.into())),
         )
         .await
+        .map_err(ErrorResponse::from)
     }
 
     pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
