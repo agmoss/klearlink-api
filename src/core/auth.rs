@@ -41,12 +41,23 @@ impl<'r> FromRequest<'r> for UserModel {
 
             match Uuid::try_parse(key) {
                 Ok(okk) => match AuthStore::get_user(user.to_string(), okk, conn).await {
-                    Some(user_record) => Outcome::Success(UserModel {
-                        id: user_record.id,
-                        username: user_record.username,
-                        api_key: user_record.api_key,
-                        role: user_record.role,
-                    }),
+                    Some(user_record) => {
+                        if user_record.role == "admin" {
+                            Outcome::Success(UserModel {
+                                id: user_record.id,
+                                username: user_record.username,
+                                api_key: user_record.api_key,
+                                role: user_record.role,
+                            })
+                        } else {
+                            Outcome::Error((
+                                Status::Unauthorized,
+                                ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
+                                    "Access denied: Admin role required",
+                                ))),
+                            ))
+                        }
+                    }
                     None => Outcome::Error((
                         Status::UnprocessableEntity,
                         ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
