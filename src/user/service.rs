@@ -10,10 +10,7 @@ use super::dto::UserDto;
 pub struct UserService;
 
 impl UserService {
-    pub async fn create_user_service<'r>(
-        new_user: RestDto<'r, UserDto>,
-        conn: Db,
-    ) -> RestResult<UserDto> {
+    pub async fn create_user<'r>(new_user: RestDto<'r, UserDto>, conn: Db) -> RestResult<UserDto> {
         use crate::schema::users::dsl::*;
 
         let dto = new_user.map_err(ErrorResponse::from)?;
