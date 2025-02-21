@@ -1,6 +1,7 @@
 use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto, MatchedOnDto};
 use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
+use crate::core::execute_db_operation::execute_db_operation;
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
 use diesel::prelude::*;
@@ -22,7 +23,7 @@ impl ConsumerCreditService {
         let dto = record.map_err(ErrorResponse::from)?;
         dto.validate().map_err(ErrorResponse::from)?;
 
-        Self::execute_db_operation(
+        execute_db_operation(
             conn,
             move |c| {
                 diesel::insert_into(consumer_credit)
@@ -40,7 +41,7 @@ impl ConsumerCreditService {
 
         match user_id_result {
             Ok(_user_id) => {
-                Self::execute_db_operation(
+                execute_db_operation(
                     conn,
                     move |c| {
                         use crate::schema::consumer_credit::dsl::*;
@@ -66,7 +67,7 @@ impl ConsumerCreditService {
         let dto = record.map_err(ErrorResponse::from)?;
         let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
-        Self::execute_db_operation(
+        execute_db_operation(
             conn,
             move |c| {
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(_consumer_credit_id)))
@@ -119,7 +120,7 @@ impl ConsumerCreditService {
                 let copied: ConsumerCreditModel =
                     serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
 
-                Self::execute_db_operation(
+                execute_db_operation(
                     conn,
                     move |c| {
                         consumer_credit
@@ -174,22 +175,6 @@ impl ConsumerCreditService {
                 .first::<ConsumerCreditModel>(c)
         })
         .await
-    }
-
-    async fn execute_db_operation<T, F, R>(
-        conn: Db,
-        db_op: F,
-        success_handler: impl Fn(T) -> RestResult<R>,
-    ) -> RestResult<R>
-    where
-        F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
-        T: Send + 'static,
-    {
-        let result = conn.run(db_op).await;
-        match result {
-            Ok(value) => success_handler(value),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
     }
 
     async fn get_user_id_by_username(username: String, conn: &Db) -> Result<i32, DbError> {

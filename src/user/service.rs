@@ -1,3 +1,4 @@
+use crate::core::execute_db_operation::execute_db_operation;
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
 use crate::user::models::{InsertUserModel, UserModel};
@@ -14,7 +15,7 @@ impl UserService {
         let dto = new_user.map_err(ErrorResponse::from)?;
         dto.validate().map_err(ErrorResponse::from)?;
 
-        Self::execute_db_operation(
+        execute_db_operation(
             conn,
             move |c| {
                 use crate::schema::users::dsl::*;
@@ -32,7 +33,7 @@ impl UserService {
     }
 
     pub async fn delete_user(_username: String, conn: Db) -> RestResult<()> {
-        Self::execute_db_operation(
+        execute_db_operation(
             conn,
             move |c| {
                 use crate::schema::users::dsl::*;
@@ -48,22 +49,6 @@ impl UserService {
         target_record
             .map(|record| Json(record.into()))
             .map_err(ErrorResponse::from)
-    }
-
-    async fn execute_db_operation<T, F, R>(
-        conn: Db,
-        db_op: F,
-        success_handler: impl Fn(T) -> RestResult<R>,
-    ) -> RestResult<R>
-    where
-        F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
-        T: Send + 'static,
-    {
-        let result = conn.run(db_op).await;
-        match result {
-            Ok(value) => success_handler(value),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
     }
 
     async fn get_target_record(_username: String, conn: &Db) -> Result<UserModel, DbError> {
