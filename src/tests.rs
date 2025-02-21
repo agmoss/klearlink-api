@@ -22,7 +22,7 @@ mod tests {
             json!({
                 "username": "test_user_1",
                 "api_key": API_KEY_1,
-                "role": "lender"
+                "role": "admin"
             }),
             json!({
                 "username": "test_user_2",
@@ -63,6 +63,42 @@ mod tests {
         }
 
         println!("🧹 Global Cleanup: Test users deleted.");
+    }
+
+    #[test]
+    #[serial]
+    fn test_create_user() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let new_user = json!({
+            "username": "new_user",
+            "api_key": Uuid::new_v4().to_string(),
+            "role": "lender"
+        });
+
+        let response = client
+            .post("/users")
+            .header(Header::new("X-API-Key", API_KEY_1))
+            .header(Header::new("X-Username", "test_user_1"))
+            .header(ContentType::JSON)
+            .body(new_user.to_string())
+            .dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    #[serial]
+    fn test_delete_user() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let response = client
+            .delete("/users/new_user")
+            .header(Header::new("X-API-Key", API_KEY_1))
+            .header(Header::new("X-Username", "test_user_1"))
+            .dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
     }
 
     #[test]
