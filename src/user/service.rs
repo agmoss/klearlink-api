@@ -45,10 +45,8 @@ impl UserService {
     }
 
     pub async fn view_user(_username: String, conn: Db) -> RestResult<UserDto> {
-        let target_record = Self::get_target_record(_username, &conn).await;
-        target_record
-            .map(|record| Json(record.into()))
-            .map_err(ErrorResponse::from)
+        let target_record = Self::get_target_record(_username, &conn).await?;
+        Ok(Json(target_record.into()))
     }
 
     async fn get_target_record(_username: String, conn: &Db) -> Result<UserModel, DbError> {

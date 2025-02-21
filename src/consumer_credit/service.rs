@@ -37,22 +37,17 @@ impl ConsumerCreditService {
     }
 
     pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
-        let user_id_result = Self::get_user_id_by_username(username, &conn).await;
+        let user_id_result = Self::get_user_id_by_username(username, &conn).await?;
 
-        match user_id_result {
-            Ok(_user_id) => {
-                execute_db_operation(
-                    conn,
-                    move |c| {
-                        use crate::schema::consumer_credit::dsl::*;
-                        diesel::delete(consumer_credit.filter(user_id.eq(_user_id))).execute(c)
-                    },
-                    |_| Ok(Json(())),
-                )
-                .await
-            }
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+        execute_db_operation(
+            conn,
+            move |c| {
+                use crate::schema::consumer_credit::dsl::*;
+                diesel::delete(consumer_credit.filter(user_id.eq(user_id_result))).execute(c)
+            },
+            |_| Ok(Json(())),
+        )
+        .await
     }
 
     pub async fn update_consumer_credit<'r>(
