@@ -45,6 +45,7 @@ impl<'r> FromRequest<'r> for UserModel {
                         id: user_record.id,
                         username: user_record.username,
                         api_key: user_record.api_key,
+                        role: user_record.role,
                     }),
                     None => Outcome::Error((
                         Status::UnprocessableEntity,

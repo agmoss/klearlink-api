@@ -86,7 +86,8 @@ mod tests {
             .body(
                 json!({
                     "username": Uuid::new_v4(),
-                    "api_key": Uuid::new_v4()
+                    "api_key": Uuid::new_v4(),
+                    "role": "lender"
                 })
                 .to_string(),
             )

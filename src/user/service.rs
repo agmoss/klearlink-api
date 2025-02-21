@@ -1,6 +1,6 @@
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
-use crate::user::models::UserModel;
+use crate::user::models::{InsertUserModel, UserModel};
 use diesel::prelude::*;
 use rocket::serde::json::Json;
 use serde_valid::Validate;
@@ -23,11 +23,11 @@ impl UserService {
         let result = conn
             .run(move |c| {
                 diesel::insert_into(users)
-                    .values(&InsertUserModel {
-                        username: dto.username.clone(),
-                        api_key: dto.api_key,
-                        role: dto.role.clone(),
-                    })
+                    .values(&InsertUserModel::new(
+                        dto.username.clone(),
+                        dto.api_key,
+                        dto.role.clone(),
+                    ))
                     .get_result::<UserModel>(c)
             })
             .await;

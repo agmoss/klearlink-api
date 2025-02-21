@@ -28,6 +28,7 @@ impl From<UserModel> for UserDto {
         UserDto {
             username: consumer_credit.username,
             api_key: consumer_credit.api_key,
+            role: consumer_credit.role,
         }
     }
 }
