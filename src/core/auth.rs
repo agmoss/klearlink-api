@@ -26,6 +26,16 @@ impl AuthStore {
         })
         .await
     }
+impl UserModel {
+    pub fn ensure_admin(&self) -> Result<(), ErrorResponse> {
+        if self.role == "admin" {
+            Ok(())
+        } else {
+            Err(ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
+                "Access denied: Admin role required",
+            ))))
+        }
+    }
 }
 
 #[rocket::async_trait]
