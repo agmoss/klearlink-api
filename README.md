@@ -2,17 +2,15 @@
 
 ## Table of Contents
 1. [Authentication](#authentication)
-2. [Endpoints](#endpoints)
+2. [Error Handling](#error-handling)
+3. [Endpoints](#endpoints)
    - [Submit a consumer credit record](#1-submit-a-consumer-credit-record)
    - [Update a consumer credit record](#2-update-a-consumer-credit-record)
    - [View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
    - [View Consumer Match](#4-view-consumer-match)
-3. [Appendix](#appendix)
+4. [Appendix](#appendix)
    - [Definitions](#a-definitions)
    - [Data Standards](#b-data-standards)
-4. [Error Handling](#error-handling)
-5. [Setup Instructions](#setup-instructions)
-6. [License](#license)
 
 ## Authentication
 
@@ -45,18 +43,6 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 - **404 Not Found**: The requested resource could not be found.
 - **409 Conflict**: The request could not be completed due to a conflict with the current state of the resource.
 
-## Setup Instructions
-
-To set up the API locally, follow these steps:
-
-1. Clone the repository: `git clone <repository-url>`
-2. Navigate to the project directory: `cd klearlink-api`
-3. Install dependencies: `cargo build`
-4. Run the server: `cargo run`
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
 
 ## 1. Submit a consumer credit record
 
