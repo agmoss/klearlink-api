@@ -23,7 +23,11 @@ impl UserService {
         let result = conn
             .run(move |c| {
                 diesel::insert_into(users)
-                    .values(&dto.to_insert_user())
+                    .values(&InsertUserModel {
+                        username: dto.username.clone(),
+                        api_key: dto.api_key,
+                        role: dto.role.clone(),
+                    })
                     .get_result::<UserModel>(c)
             })
             .await;
