@@ -17,6 +17,7 @@ impl UserDto {
         InsertUserModel {
             username: self.username.to_string(),
             api_key: self.api_key.clone(),
+            role: self.role.clone(),
         }
     }
 }

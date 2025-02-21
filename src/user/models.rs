@@ -19,9 +19,3 @@ pub struct InsertUserModel {
     pub api_key: Uuid,
     pub role: String,
 
-#[derive(Deserialize, Serialize, Queryable, Insertable)]
-#[diesel(table_name = users)]
-pub struct InsertUserModel {
-    pub username: String,
-    pub api_key: Uuid,
-}
