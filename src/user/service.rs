@@ -41,6 +41,19 @@ impl UserService {
         }
     }
 
+    pub async fn delete_user(_username: String, conn: Db) -> RestResult<()> {
+        use crate::schema::users::dsl::*;
+
+        let result = conn
+            .run(move |c| diesel::delete(users.filter(username.eq(_username))).execute(c))
+            .await;
+
+        match result {
+            Ok(_) => Ok(Json(())),
+            Err(e) => Err(ErrorResponse::from(e)),
+        }
+    }
+
     pub async fn view_user(_username: String, conn: Db) -> RestResult<UserDto> {
         let target_record = Self::get_target_record(_username, &conn).await;
 
