@@ -3,9 +3,7 @@ use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
 use crate::core::pool::Db;
 use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
-use crate::user::models::UserModel;
 use diesel::prelude::*;
-use diesel::result::Error;
 use rocket::serde::json::Json;
 use serde_valid::Validate;
 
@@ -45,6 +43,7 @@ impl ConsumerCreditService {
                 Self::execute_db_operation(
                     conn,
                     move |c| {
+                        use crate::schema::consumer_credit::dsl::*;
                         diesel::delete(consumer_credit.filter(user_id.eq(_user_id))).execute(c)
                     },
                     |_| Ok(Json(())),
@@ -97,8 +96,11 @@ impl ConsumerCreditService {
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
         let auth_result = auth?;
-        let target_record = Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
-        target_record.map(|record| Json(record.into())).map_err(ErrorResponse::from)
+        let target_record =
+            Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
+        target_record
+            .map(|record| Json(record.into()))
+            .map_err(ErrorResponse::from)
     }
 
     pub async fn view_consumer_match(
@@ -109,7 +111,8 @@ impl ConsumerCreditService {
         use crate::schema::consumer_credit::dsl::*;
 
         let auth_result = auth?;
-        let target_record = Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
+        let target_record =
+            Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
 
         match target_record {
             Ok(target) => {
@@ -172,7 +175,7 @@ impl ConsumerCreditService {
         })
         .await
     }
-    
+
     async fn execute_db_operation<T, F, R>(
         conn: Db,
         db_op: F,
@@ -180,6 +183,7 @@ impl ConsumerCreditService {
     ) -> RestResult<R>
     where
         F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+        T: Send + 'static,
     {
         let result = conn.run(db_op).await;
         match result {
@@ -199,5 +203,4 @@ impl ConsumerCreditService {
         })
         .await
     }
-
 }

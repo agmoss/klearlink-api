@@ -13,7 +13,6 @@ pub struct UserDto {
     pub role: String,
 }
 
-
 impl From<UserModel> for UserDto {
     fn from(consumer_credit: UserModel) -> Self {
         UserDto {

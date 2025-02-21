@@ -45,7 +45,9 @@ impl UserService {
 
     pub async fn view_user(_username: String, conn: Db) -> RestResult<UserDto> {
         let target_record = Self::get_target_record(_username, &conn).await;
-        target_record.map(|record| Json(record.into())).map_err(ErrorResponse::from)
+        target_record
+            .map(|record| Json(record.into()))
+            .map_err(ErrorResponse::from)
     }
 
     async fn execute_db_operation<T, F, R>(
@@ -55,6 +57,7 @@ impl UserService {
     ) -> RestResult<R>
     where
         F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+        T: Send + 'static,
     {
         let result = conn.run(db_op).await;
         match result {

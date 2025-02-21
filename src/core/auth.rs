@@ -26,6 +26,8 @@ impl AuthStore {
         })
         .await
     }
+}
+
 impl UserModel {
     pub fn ensure_admin(&self) -> Result<(), ErrorResponse> {
         if self.role == "admin" {
