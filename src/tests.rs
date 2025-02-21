@@ -15,6 +15,31 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
+    fn setup_test_users(client: &Client) {
+        let users = vec![
+            json!({
+                "username": "test_user_1",
+                "api_key": API_KEY_1,
+                "role": "lender"
+            }),
+            json!({
+                "username": "test_user_2",
+                "api_key": API_KEY_2,
+                "role": "lender"
+            }),
+        ];
+
+        for user in users {
+            let response = client
+                .post("/users")
+                .header(ContentType::JSON)
+                .body(user.to_string())
+                .dispatch();
+
+            assert_eq!(response.status(), Status::Ok);
+        }
+    }
+
     #[test]
     #[serial]
     fn test_create_user() {
