@@ -46,6 +46,39 @@ impl ConsumerCreditService {
         }
     }
 
+    pub async fn delete_consumer_credits_by_username(
+        username: String,
+        conn: Db,
+    ) -> RestResult<()> {
+        use crate::schema::consumer_credit::dsl::*;
+        use crate::schema::users::dsl::{users, username as user_username};
+
+        let user_id_result = conn
+            .run(move |c| {
+                users
+                    .filter(user_username.eq(username))
+                    .select(crate::schema::users::dsl::id)
+                    .first::<i32>(c)
+            })
+            .await;
+
+        match user_id_result {
+            Ok(user_id) => {
+                let delete_result = conn
+                    .run(move |c| {
+                        diesel::delete(consumer_credit.filter(user_id.eq(user_id))).execute(c)
+                    })
+                    .await;
+
+                match delete_result {
+                    Ok(_) => Ok(Json(())),
+                    Err(e) => Err(ErrorResponse::from(e)),
+                }
+            }
+            Err(e) => Err(ErrorResponse::from(e)),
+        }
+    }
+
     pub async fn update_consumer_credit<'r>(
         _consumer_credit_id: String,
         record: RestDto<'r, ConsumerCreditDto>,

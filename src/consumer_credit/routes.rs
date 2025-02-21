@@ -1,4 +1,4 @@
-use rocket::{get, post, put};
+use rocket::{get, post, put, delete};
 
 use super::dto::ConsumerCreditDto;
 use super::service::ConsumerCreditService;
@@ -16,6 +16,12 @@ pub async fn submit_consumer_credit<'r>(
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {
     ConsumerCreditService::submit_consumer_credit(consumer_credit_id, record, auth, conn).await
+#[delete("/consumer-credit/user/<username>")]
+pub async fn delete_consumer_credits_by_username(
+    username: String,
+    conn: Db,
+) -> RestResult<()> {
+    ConsumerCreditService::delete_consumer_credits_by_username(username, conn).await
 }
 
 #[post("/consumer-credit/<consumer_credit_id>", data = "<record>")]
