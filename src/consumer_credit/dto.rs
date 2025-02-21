@@ -1,3 +1,5 @@
+use crate::core::dto_validators::Validator;
+
 use super::models::{ConsumerCreditModel, InsertConsumerCreditModel, UpdateConsumerCreditModel};
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
@@ -10,12 +12,12 @@ pub struct ConsumerFactsDto {
     pub first_name: String,
     #[validate(min_length = 2)]
     pub last_name: String,
-    #[validate(email)]
+    #[validate(custom = Validator::email_validation)]
     pub email: String,
     pub date_of_birth: NaiveDate,
-    #[validate(min_length = 5)]
+    #[validate(custom = Validator::address_validation)]
     pub address: String,
-    #[validate(min_length = 5)]
+    #[validate(custom = Validator::phone_validation)]
     pub phone_number: String,
     pub sin_ssn: Option<String>,
     pub institution_names: Vec<String>,

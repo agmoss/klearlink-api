@@ -908,6 +908,7 @@ dependencies = [
  "dotenv",
  "dotenvy",
  "once_cell",
+ "regex",
  "rocket",
  "rocket_sync_db_pools",
  "serde",

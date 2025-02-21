@@ -16,15 +16,16 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
+    // #[test]
     fn global_setup() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
         let users = vec![
-            json!({
-                "username": "test_admin_user",
-                "api_key": API_KEY_ADMIN,
-                "role": "admin"
-            }),
+            //json!({
+            //    "username": "test_admin_user",
+            //    "api_key": API_KEY_ADMIN,
+            //    "role": "admin"
+            // }),
             json!({
                 "username": "test_user_1",
                 "api_key": API_KEY_1,
@@ -40,6 +41,8 @@ mod tests {
         for user in users {
             let response = client
                 .post("/users")
+                .header(Header::new("X-API-Key", API_KEY_ADMIN))
+                .header(Header::new("X-Username", "test_admin_user"))
                 .header(ContentType::JSON)
                 .body(user.to_string())
                 .dispatch();
@@ -50,6 +53,7 @@ mod tests {
         println!("✅ Global Setup: Test users created.");
     }
 
+    // #[test]
     fn global_teardown() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
@@ -118,8 +122,8 @@ mod tests {
                 "last_name": "Doe",
                 "email": "john.doe@example.com",
                 "date_of_birth": "1990-01-01",
-                "address": "123 Test St, Test City",
-                "phone_number": "123-456-7890",
+                "address": "123 Main St, Toronto, ON, M5V 3L9",
+                "phone_number": "+11234567890",
                 "institution_names": ["Bank A", "Bank B"]
             },
             "credit_facts": {
@@ -152,7 +156,7 @@ mod tests {
                 "email": "not-an-email",
                 "date_of_birth": "invalid-date",
                 "address": "123 Test St, Test City",
-                "phone_number": "123-456-7890",
+                "phone_number": "+11234567890",
                 "institution_names": ["Bank A", "Bank B"]
             },
             "credit_facts": {
@@ -211,7 +215,7 @@ mod tests {
                     "last_name": "Doe",
                     "email": "john.doe@example.com",
                     "date_of_birth": "1990-01-01",
-                    "address": "123 Test St",
+                    "address": "123 Main St, Toronto, ON, M5V 3L9",
                     "phone_number": "+1234567890",
                     "institution_names": ["Bank A"]
                 },
@@ -228,7 +232,7 @@ mod tests {
                     "last_name": "Doe",
                     "email": "john.doe@example.com",
                     "date_of_birth": "1990-01-01",
-                    "address": "123 Test St",
+                    "address": "123 Main St, Toronto, ON, M5V 3L9",
                     "phone_number": "+1234567890",
                     "institution_names": ["Bank B"]
                 },
@@ -272,8 +276,8 @@ mod tests {
                 "last_name": "Doe",
                 "email": "john.doe@example.com",
                 "date_of_birth": "1990-01-01",
-                "address": "123 Test St, Test City",
-                "phone_number": "123-456-7890",
+                "address": "123 Main St, Toronto, ON, M5V 3L9",
+                "phone_number": "+11234567890",
                 "institution_names": ["Bank A", "Bank B"]
             },
             "credit_facts": {
