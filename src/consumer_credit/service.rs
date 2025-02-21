@@ -20,57 +20,35 @@ impl ConsumerCreditService {
     ) -> RestResult<ConsumerCreditDto> {
         use crate::schema::consumer_credit::dsl::*;
 
-        let auth_result: UserModel = match auth {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(err),
-        };
-
-        let dto = match record {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
-        };
-
+        let auth_result = auth?;
+        let dto = record.map_err(ErrorResponse::from)?;
         dto.validate().map_err(ErrorResponse::from)?;
 
-        let result = conn
-            .run(move |c| {
+        Self::execute_db_operation(
+            conn,
+            move |c| {
                 diesel::insert_into(consumer_credit)
                     .values(dto.to_insert_consumer_credit(&_consumer_credit_id, &auth_result.id))
                     .get_result::<ConsumerCreditModel>(c)
-            })
-            .await;
-
-        match result {
-            Ok(ok) => Ok(Json(ok.into())),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+            },
+            |ok| Ok(Json(ok.into())),
+        )
+        .await
     }
 
     pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
-        use crate::schema::consumer_credit::dsl::*;
-        use crate::schema::users::dsl::{username as user_username, users};
-
-        let user_id_result = conn
-            .run(move |c| {
-                users
-                    .filter(user_username.eq(username))
-                    .select(crate::schema::users::dsl::id)
-                    .first::<i32>(c)
-            })
-            .await;
+        let user_id_result = Self::get_user_id_by_username(username, &conn).await;
 
         match user_id_result {
             Ok(_user_id) => {
-                let delete_result = conn
-                    .run(move |c| {
+                Self::execute_db_operation(
+                    conn,
+                    move |c| {
                         diesel::delete(consumer_credit.filter(user_id.eq(_user_id))).execute(c)
-                    })
-                    .await;
-
-                match delete_result {
-                    Ok(_) => Ok(Json(())),
-                    Err(e) => Err(ErrorResponse::from(e)),
-                }
+                    },
+                    |_| Ok(Json(())),
+                )
+                .await
             }
             Err(e) => Err(ErrorResponse::from(e)),
         }
@@ -84,20 +62,13 @@ impl ConsumerCreditService {
     ) -> RestResult<ConsumerCreditDto> {
         use crate::schema::consumer_credit::dsl::*;
 
-        match auth {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(err),
-        };
-
-        let dto = match record {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
-        };
-
+        auth?;
+        let dto = record.map_err(ErrorResponse::from)?;
         let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
-        let result = conn
-            .run(move |c| {
+        Self::execute_db_operation(
+            conn,
+            move |c| {
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(_consumer_credit_id)))
                     .set((
                         first_name.eq(updated_consumer_facts.first_name),
@@ -113,13 +84,10 @@ impl ConsumerCreditService {
                         credit_state.eq(updated_consumer_facts.credit_state),
                     ))
                     .get_result::<ConsumerCreditModel>(c)
-            })
-            .await;
-
-        match result {
-            Ok(ok) => Ok(Json(ok.into())),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+            },
+            |ok| Ok(Json(ok.into())),
+        )
+        .await
     }
 
     pub async fn view_consumer_credit(
@@ -127,18 +95,9 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
-        let auth_result: UserModel = match auth {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(err),
-        };
-
-        let target_record =
-            Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
-
-        match target_record {
-            Ok(record) => Ok(Json(record.into())),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+        let auth_result = auth?;
+        let target_record = Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
+        target_record.map(|record| Json(record.into())).map_err(ErrorResponse::from)
     }
 
     pub async fn view_consumer_match(
@@ -148,21 +107,17 @@ impl ConsumerCreditService {
     ) -> RestResult<Vec<ConsumerMatchDto>> {
         use crate::schema::consumer_credit::dsl::*;
 
-        let auth_result: UserModel = match auth {
-            Ok(valid_record) => valid_record,
-            Err(err) => return Err(err),
-        };
-
-        let target_record =
-            Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
+        let auth_result = auth?;
+        let target_record = Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
 
         match target_record {
             Ok(target) => {
                 let copied: ConsumerCreditModel =
                     serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
 
-                let matches: Result<Vec<ConsumerCreditModel>, Error> = conn
-                    .run(move |c| {
+                Self::execute_db_operation(
+                    conn,
+                    move |c| {
                         consumer_credit
                             .or_filter(first_name.eq(&target.first_name))
                             .or_filter(last_name.eq(&target.last_name))
@@ -172,11 +127,8 @@ impl ConsumerCreditService {
                             .or_filter(phone_number.eq(&target.phone_number))
                             .filter(user_id.ne(&auth_result.id))
                             .load::<ConsumerCreditModel>(c)
-                    })
-                    .await;
-
-                match matches {
-                    Ok(records) => {
+                    },
+                    |records| {
                         let matched_records: Vec<ConsumerMatchDto> = records
                             .into_iter()
                             .map(|r| {
@@ -196,9 +148,9 @@ impl ConsumerCreditService {
                             })
                             .collect();
                         Ok(Json(matched_records))
-                    }
-                    Err(e) => Err(ErrorResponse::from(e)),
-                }
+                    },
+                )
+                .await
             }
             Err(e) => Err(ErrorResponse::from(e)),
         }
@@ -219,4 +171,29 @@ impl ConsumerCreditService {
         })
         .await
     }
-}
+    async fn execute_db_operation<T, F, R>(
+        conn: Db,
+        db_op: F,
+        success_handler: impl Fn(T) -> RestResult<R>,
+    ) -> RestResult<R>
+    where
+        F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+    {
+        let result = conn.run(db_op).await;
+        match result {
+            Ok(value) => success_handler(value),
+            Err(e) => Err(ErrorResponse::from(e)),
+        }
+    }
+
+    async fn get_user_id_by_username(username: String, conn: &Db) -> Result<i32, DbError> {
+        use crate::schema::users::dsl::{username as user_username, users};
+
+        conn.run(move |c| {
+            users
+                .filter(user_username.eq(username))
+                .select(crate::schema::users::dsl::id)
+                .first::<i32>(c)
+        })
+        .await
+    }
