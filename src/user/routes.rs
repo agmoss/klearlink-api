@@ -12,15 +12,45 @@ pub async fn create_user<'r>(
     auth: AuthResponse,
     conn: Db,
 ) -> RestResult<UserDto> {
-    UserService::create_user_service(user_dto, conn).await
+    if let Ok(user) = auth {
+        if user.role == "admin" {
+            UserService::create_user_service(user_dto, conn).await
+        } else {
+            Err(ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
+                "Access denied: Admin role required",
+            ))))
+        }
+    } else {
+        Err(auth.unwrap_err())
+    }
 }
 
 #[delete("/users/<username>")]
 pub async fn delete_user(username: String, auth: AuthResponse, conn: Db) -> RestResult<()> {
-    UserService::delete_user(username, conn).await
+    if let Ok(user) = auth {
+        if user.role == "admin" {
+            UserService::delete_user(username, conn).await
+        } else {
+            Err(ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
+                "Access denied: Admin role required",
+            ))))
+        }
+    } else {
+        Err(auth.unwrap_err())
+    }
 }
 
 #[get("/users/<username>")]
 pub async fn view_user(username: String, auth: AuthResponse, conn: Db) -> RestResult<UserDto> {
-    UserService::view_user(username, conn).await
+    if let Ok(user) = auth {
+        if user.role == "admin" {
+            UserService::view_user(username, conn).await
+        } else {
+            Err(ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
+                "Access denied: Admin role required",
+            ))))
+        }
+    } else {
+        Err(auth.unwrap_err())
+    }
 }
