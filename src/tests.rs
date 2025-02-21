@@ -12,6 +12,7 @@ mod tests {
 
     static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
 
+    static API_KEY_ADMIN: &str = "c491a813-234a-4bea-b6c4-7413b244dea4";
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
@@ -20,9 +21,14 @@ mod tests {
 
         let users = vec![
             json!({
+                "username": "test_admin_user",
+                "api_key": API_KEY_ADMIN,
+                "role": "admin"
+            }),
+            json!({
                 "username": "test_user_1",
                 "api_key": API_KEY_1,
-                "role": "admin"
+                "role": "lender"
             }),
             json!({
                 "username": "test_user_2",
@@ -47,7 +53,7 @@ mod tests {
     fn global_teardown() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
-        let usernames = vec!["test_user_1", "test_user_2"];
+        let usernames = vec!["test_admin_user", "test_user_1", "test_user_2"];
         for username in usernames {
             let resp1 = client
                 .delete(format!("/consumer-credit/user/{}", username))
@@ -71,15 +77,15 @@ mod tests {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
 
         let new_user = json!({
-            "username": "new_user",
+            "username": Uuid::new_v4().to_string(),
             "api_key": Uuid::new_v4().to_string(),
             "role": "lender"
         });
 
         let response = client
             .post("/users")
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
+            .header(Header::new("X-API-Key", API_KEY_ADMIN))
+            .header(Header::new("X-Username", "test_admin_user"))
             .header(ContentType::JSON)
             .body(new_user.to_string())
             .dispatch();
@@ -94,8 +100,8 @@ mod tests {
 
         let response = client
             .delete("/users/new_user")
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
+            .header(Header::new("X-API-Key", API_KEY_ADMIN))
+            .header(Header::new("X-Username", "test_admin_user"))
             .dispatch();
 
         assert_eq!(response.status(), Status::Ok);

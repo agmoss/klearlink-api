@@ -94,16 +94,38 @@ impl ErrorResponse {
         }
     }
 
-    fn convert_error<T: ToString>(err: T, default_status: Self) -> Self {
+    fn convert_diesel_error(err: DbError) -> Self {
+        let message = ErrorMessage::from_str(&err.to_string());
+        match err {
+            DbError::NotFound => Self::NotFound(Json(message)),
+            DbError::DatabaseError(error_kind, _) => match error_kind {
+                DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
+                DatabaseErrorKind::UniqueViolation => Self::Conflict(Json(message)),
+                _ => Self::InternalServerError(Json(message)),
+            },
+            _ => Self::InternalServerError(Json(message)),
+        }
+    }
+
+    fn convert_serde_error(err: SerdeError<'_>) -> Self {
         let error_value: Value = serde_json::from_str(&err.to_string())
             .unwrap_or_else(|_| Value::String(err.to_string()));
         let message = ErrorMessage::from_value(error_value);
-        match err.to_string().as_str() {
-            "NotFound" => Self::NotFound(Json(message)),
-            "UniqueViolation" => Self::Conflict(Json(message)),
-            "NotNullViolation" => Self::BadRequest(Json(message)),
-            _ => default_status,
-        }
+        Self::UnprocessableEntity(Json(message))
+    }
+
+    fn convert_serde_valid_error(err: SerdeValidErrors) -> Self {
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
+    }
+
+    fn convert_uuid_valid_error(err: uuid::Error) -> Self {
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
     }
 }
 
@@ -115,24 +137,24 @@ impl From<Status> for ErrorResponse {
 
 impl From<DbError> for ErrorResponse {
     fn from(error: DbError) -> ErrorResponse {
-        Self::convert_error(error, Self::InternalServerError(Json(ErrorMessage::from_str(&error.to_string()))))
+        Self::convert_diesel_error(error)
     }
 }
 
 impl From<SerdeError<'_>> for ErrorResponse {
     fn from(error: SerdeError<'_>) -> ErrorResponse {
-        Self::convert_error(error, Self::UnprocessableEntity(Json(ErrorMessage::from_str(&error.to_string()))))
+        Self::convert_serde_error(error)
     }
 }
 
 impl From<SerdeValidErrors> for ErrorResponse {
     fn from(error: SerdeValidErrors) -> ErrorResponse {
-        Self::convert_error(error, Self::UnprocessableEntity(Json(ErrorMessage::from_str(&error.to_string()))))
+        Self::convert_serde_valid_error(error)
     }
 }
 
 impl From<uuid::Error> for ErrorResponse {
     fn from(error: uuid::Error) -> ErrorResponse {
-        Self::convert_error(error, Self::UnprocessableEntity(Json(ErrorMessage::from_str(&error.to_string()))))
+        Self::convert_uuid_valid_error(error)
     }
 }
