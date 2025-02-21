@@ -1,6 +1,7 @@
 # KlearLink API
 
 ## Table of Contents
+
 1. [Authentication](#authentication)
 2. [Error Handling](#error-handling)
 3. [Endpoints](#endpoints)
@@ -43,7 +44,6 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 - **404 Not Found**: The requested resource could not be found.
 - **409 Conflict**: The request could not be completed due to a conflict with the current state of the resource.
 
-
 ## 1. Submit a consumer credit record
 
 **Endpoint**: `/consumer-credit/{id}`
@@ -69,15 +69,15 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 
 #### consumer_facts
 
-| Field             | Type              | Description                                                             |
-| ----------------- | ----------------- | ----------------------------------------------------------------------- |
-| first_name        | string            | First name of the consumer                                              |
-| last_name         | string            | Last name of the consumer                                               |
-| email             | string            | RFC 5322 and RFC 822 format email address of the consumer               |
-| date_of_birth     | string            | ISO 8601 date format of the consumer's date of birth                    |
-| address           | string            | CAN/CSA-Z109.1-01 or USPS Publication 28 address format of the consumer |
-| phone_number      | string            | E.164 international format phone number of the consumer                 |
-| SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                |
+| Field             | Type              | Description                                                                     |
+| ----------------- | ----------------- | ------------------------------------------------------------------------------- |
+| first_name        | string            | First name of the consumer. Must be at least 2 characters.                      |
+| last_name         | string            | Last name of the consumer. Must be at least 2 characters.                       |
+| email             | string            | RFC 5322 and RFC 822 format email address of the consumer                       |
+| date_of_birth     | string            | ISO 8601 date format of the consumer's date of birth                            |
+| address           | string            | CAN/CSA-Z109.1-01 or USPS Publication 28 address format of the consumer         |
+| phone_number      | string            | E.164 international format phone number of the consumer                         |
+| SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                        |
 | institution_names | array             | List of associated institutions. Each name must be between 2 and 50 characters. |
 
 #### credit_facts
@@ -367,18 +367,16 @@ For real-time updates on consumer matches, use the KlearWatch interface.
 
 ### B. Data Standards
 
-| Data Type        | Standard            | Format Example                        | Description                                              |
-| ---------------- | ------------------- | ------------------------------------- | -------------------------------------------------------- |
-| First Name       | string              | `John`                                | Must be at least 2 characters long.                         |
-| Last Name        | string              | `Doe`                                 | Must be at least 2 characters long.                         |
-| Date             | ISO 8601            | `YYYY-MM-DD`                          | International date format. Dates must not be in the future. |
-| Email            | RFC 5322/822        | `john.doe@example.com`                | RFC 5322 and RFC 822 format email address. Must be between 5 and 254 characters. |
+| Data Type        | Standard            | Format Example                        | Description                                                                          |
+| ---------------- | ------------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| Date             | ISO 8601            | `YYYY-MM-DD`                          | International date format. Dates must not be in the future.                          |
+| Email            | RFC 5322/822        | `john.doe@example.com`                | RFC 5322 and RFC 822 format email address. Must be between 5 and 254 characters.     |
 | DateTime         | ISO 8601            | `YYYY-MM-DD HH:mm:ss.SSSSSS`          | International datetime format with microsecond precision. Must not be in the future. |
-| Phone Number     | E.164               | `+1XXXXXXXXXX`                        | International phone number format. Must be between 10 and 15 digits. |
-| Address (Canada) | CAN/CSA-Z109.1-01   | `101 1ST. S.W. Calgary AB T2P 2V6`    | Canadian postal address format. Must be between 5 and 100 characters. |
-| Address (USA)    | USPS Publication 28 | `1234 MAIN ST NW WASHINGTON DC 20500` | US postal address format. Must be between 5 and 100 characters. |
-| SIN              | CRA Standard        | `NNN-NNN-NNN`                         | Canadian Social Insurance Number format. Must be exactly 9 digits. Optional. |
-| SSN              | SSA Standard        | `NNN-NN-NNNN`                         | US Social Security Number format. Must be exactly 9 digits. Optional. |
+| Phone Number     | E.164               | `+1XXXXXXXXXX`                        | International phone number format. Must be between 10 and 15 digits.                 |
+| Address (Canada) | CAN/CSA-Z109.1-01   | `101 1ST. S.W. Calgary AB T2P 2V6`    | Canadian postal address format. Must be between 5 and 100 characters.                |
+| Address (USA)    | USPS Publication 28 | `1234 MAIN ST NW WASHINGTON DC 20500` | US postal address format. Must be between 5 and 100 characters.                      |
+| SIN              | CRA Standard        | `NNN-NNN-NNN`                         | Canadian Social Insurance Number format. Must be exactly 9 digits. Optional.         |
+| SSN              | SSA Standard        | `NNN-NN-NNNN`                         | US Social Security Number format. Must be exactly 9 digits. Optional.                |
 
 :::warn
 The klearlink API has very strict data validation! All data sent to klearlink must be valid json and the aforementioned key fields MUST adhere to the specified format.
