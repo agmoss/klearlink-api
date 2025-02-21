@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_valid::Validate;
 use uuid::Uuid;
 
-use super::models::{InsertUserModel, UserModel};
+use super::models::UserModel;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct UserDto {
@@ -13,15 +13,6 @@ pub struct UserDto {
     pub role: String,
 }
 
-impl UserDto {
-    pub fn to_insert_user(&self) -> InsertUserModel {
-        InsertUserModel {
-            username: self.username.to_string(),
-            api_key: self.api_key.clone(),
-            role: self.role.clone(),
-        }
-    }
-}
 
 impl From<UserModel> for UserDto {
     fn from(consumer_credit: UserModel) -> Self {

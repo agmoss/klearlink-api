@@ -22,7 +22,7 @@ impl ConsumerCreditService {
 
         let auth_result: UserModel = match auth {
             Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
+            Err(err) => return Err(err),
         };
 
         let dto = match record {
@@ -86,7 +86,7 @@ impl ConsumerCreditService {
 
         match auth {
             Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
+            Err(err) => return Err(err),
         };
 
         let dto = match record {
@@ -129,7 +129,7 @@ impl ConsumerCreditService {
     ) -> RestResult<ConsumerCreditDto> {
         let auth_result: UserModel = match auth {
             Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
+            Err(err) => return Err(err),
         };
 
         let target_record =
@@ -150,7 +150,7 @@ impl ConsumerCreditService {
 
         let auth_result: UserModel = match auth {
             Ok(valid_record) => valid_record,
-            Err(err) => return Err(ErrorResponse::from(err)),
+            Err(err) => return Err(err),
         };
 
         let target_record =
