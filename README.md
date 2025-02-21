@@ -1,5 +1,19 @@
 # KlearLink API
 
+## Table of Contents
+1. [Authentication](#authentication)
+2. [Endpoints](#endpoints)
+   - [Submit a consumer credit record](#1-submit-a-consumer-credit-record)
+   - [Update a consumer credit record](#2-update-a-consumer-credit-record)
+   - [View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
+   - [View Consumer Match](#4-view-consumer-match)
+3. [Appendix](#appendix)
+   - [Definitions](#a-definitions)
+   - [Data Standards](#b-data-standards)
+4. [Error Handling](#error-handling)
+5. [Setup Instructions](#setup-instructions)
+6. [License](#license)
+
 ## Authentication
 
 All API requests must include authentication credentials in the request headers. We use API key-based authentication.
@@ -11,7 +25,7 @@ All API requests must include authentication credentials in the request headers.
 | `X-API-Key`  | string | Your unique API key (UUIDV4) |
 | `X-Username` | string | Your registered username     |
 
-**Example**:
+**Example Request Headers**:
 
 ```http
 X-API-Key: your_api_key_here
@@ -22,7 +36,27 @@ X-Username: your_username
 Keep your API key secure and never share it. If you believe your API key has been compromised, contact support immediately for a replacement.
 :::
 
-> Endpoints
+## Error Handling
+
+The API uses standard HTTP status codes to indicate the success or failure of an API request. Common error codes include:
+
+- **400 Bad Request**: The request was invalid or cannot be otherwise served.
+- **401 Unauthorized**: Authentication credentials were missing or incorrect.
+- **404 Not Found**: The requested resource could not be found.
+- **409 Conflict**: The request could not be completed due to a conflict with the current state of the resource.
+
+## Setup Instructions
+
+To set up the API locally, follow these steps:
+
+1. Clone the repository: `git clone <repository-url>`
+2. Navigate to the project directory: `cd klearlink-api`
+3. Install dependencies: `cargo build`
+4. Run the server: `cargo run`
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
 
 ## 1. Submit a consumer credit record
 
