@@ -171,6 +171,7 @@ impl ConsumerCreditService {
         })
         .await
     }
+    
     async fn execute_db_operation<T, F, R>(
         conn: Db,
         db_op: F,
@@ -197,3 +198,5 @@ impl ConsumerCreditService {
         })
         .await
     }
+
+}
