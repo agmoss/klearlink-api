@@ -46,12 +46,9 @@ impl ConsumerCreditService {
         }
     }
 
-    pub async fn delete_consumer_credits_by_username(
-        username: String,
-        conn: Db,
-    ) -> RestResult<()> {
+    pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
         use crate::schema::consumer_credit::dsl::*;
-        use crate::schema::users::dsl::{users, username as user_username};
+        use crate::schema::users::dsl::{username as user_username, users};
 
         let user_id_result = conn
             .run(move |c| {
@@ -63,10 +60,10 @@ impl ConsumerCreditService {
             .await;
 
         match user_id_result {
-            Ok(user_id) => {
+            Ok(_user_id) => {
                 let delete_result = conn
                     .run(move |c| {
-                        diesel::delete(consumer_credit.filter(user_id.eq(user_id))).execute(c)
+                        diesel::delete(consumer_credit.filter(user_id.eq(_user_id))).execute(c)
                     })
                     .await;
 

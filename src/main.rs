@@ -24,6 +24,7 @@ fn create_rocket() -> Rocket<Build> {
                 consumer_credit::routes::update_consumer_credit,
                 consumer_credit::routes::view_consumer_credit,
                 consumer_credit::routes::view_consumer_match,
+                consumer_credit::routes::delete_consumer_credits_by_username,
                 user::routes::create_user,
                 user::routes::view_user,
                 user::routes::delete_user,
