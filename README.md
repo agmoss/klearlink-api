@@ -369,6 +369,8 @@ For real-time updates on consumer matches, use the KlearWatch interface.
 
 | Data Type        | Standard            | Format Example                        | Description                                              |
 | ---------------- | ------------------- | ------------------------------------- | -------------------------------------------------------- |
+| First Name       | string              | `John`                                | Must be at least 2 characters long.                         |
+| Last Name        | string              | `Doe`                                 | Must be at least 2 characters long.                         |
 | Date             | ISO 8601            | `YYYY-MM-DD`                          | International date format. Dates must not be in the future. |
 | Email            | RFC 5322/822        | `john.doe@example.com`                | RFC 5322 and RFC 822 format email address. Must be between 5 and 254 characters. |
 | DateTime         | ISO 8601            | `YYYY-MM-DD HH:mm:ss.SSSSSS`          | International datetime format with microsecond precision. Must not be in the future. |
