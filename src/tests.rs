@@ -8,6 +8,7 @@ mod tests {
     };
     use serde_json::json;
     use serial_test::serial;
+    use std::sync::{Once, ONCE_INIT};
     use uuid::Uuid;
 
     static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
@@ -15,35 +16,70 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
+    static INIT: Once = Once::new();
+    static CLEANUP: Once = Once::new();
+
     fn setup_test_users(client: &Client) {
-        let users = vec![
-            json!({
-                "username": "test_user_1",
-                "api_key": API_KEY_1,
-                "role": "lender"
-            }),
-            json!({
-                "username": "test_user_2",
-                "api_key": API_KEY_2,
-                "role": "lender"
-            }),
-        ];
+        INIT.call_once(|| {
+            let users = vec![
+                json!({
+                    "username": "test_user_1",
+                    "api_key": API_KEY_1,
+                    "role": "lender"
+                }),
+                json!({
+                    "username": "test_user_2",
+                    "api_key": API_KEY_2,
+                    "role": "lender"
+                }),
+            ];
 
-        for user in users {
-            let response = client
-                .post("/users")
-                .header(ContentType::JSON)
-                .body(user.to_string())
-                .dispatch();
+            for user in users {
+                let response = client
+                    .post("/users")
+                    .header(ContentType::JSON)
+                    .body(user.to_string())
+                    .dispatch();
 
-            assert_eq!(response.status(), Status::Ok);
+                assert_eq!(response.status(), Status::Ok);
+            }
+
+            println!("Setup: Test users created.");
+        });
+    }
+
+    fn cleanup_test_users(client: &Client) {
+        CLEANUP.call_once(|| {
+            let usernames = vec!["test_user_1", "test_user_2"];
+            for username in usernames {
+                let response = client
+                    .delete(format!("/users/{}", username))
+                    .header(Header::new("X-API-Key", API_KEY_1)) // Auth if needed
+                    .dispatch();
+
+                assert_eq!(response.status(), Status::Ok);
+            }
+
+            println!("Cleanup: Test users deleted.");
+        });
+    }
+
+    struct TestGuard;
+
+    impl Drop for TestGuard {
+        fn drop(&mut self) {
+            let client = Client::tracked(rocket()).expect("valid rocket instance");
+            cleanup_test_users(&client);
         }
     }
 
     #[test]
     #[serial]
     fn test_create_user() {
+        let _guard = TestGuard; // Ensures cleanup runs after all tests
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        setup_test_users(&client);
+
         let response = client
             .post("/users")
             .header(ContentType::JSON)
@@ -62,7 +98,9 @@ mod tests {
     #[test]
     #[serial]
     fn test_submit_consumer_credit() {
+        let _guard = TestGuard; // Ensures cleanup runs after all tests
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        setup_test_users(&client);
 
         let dummy_payload = json!({
             "consumer_facts": {
@@ -88,6 +126,7 @@ mod tests {
             .header(Header::new("X-Username", "test_user_1"))
             .body(dummy_payload.to_string())
             .dispatch();
+
         assert_eq!(response.status(), Status::Ok);
     }
 
@@ -95,6 +134,7 @@ mod tests {
     #[serial]
     fn test_submit_consumer_credit_invalid_data() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        setup_test_users(&client); // Ensure setup runs before test
 
         let invalid_payload = json!({
             "consumer_facts": {
@@ -128,6 +168,7 @@ mod tests {
     #[serial]
     fn test_submit_consumer_credit_missing_fields() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        setup_test_users(&client); // Ensure setup runs before test
 
         let missing_fields_payload = json!({
             "consumer_facts": {
@@ -152,6 +193,7 @@ mod tests {
     #[serial]
     fn test_view_consumer_match_with_matches() {
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+        setup_test_users(&client); // Ensure setup runs before test
 
         let test_uuid_matches = Uuid::new_v4().to_string();
 
@@ -216,6 +258,8 @@ mod tests {
     fn test_duplicate_consumer_credit_insertion() {
         let test_uuid_duplicate = Uuid::new_v4().to_string();
         let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        setup_test_users(&client); // Ensure setup runs before test
 
         let dummy_payload = json!({
             "consumer_facts": {

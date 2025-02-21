@@ -11,6 +11,7 @@ pub struct UserDto {
     pub api_key: Uuid,
     #[validate(min_length = 5)]
     pub role: String,
+}
 
 impl UserDto {
     pub fn to_insert_user(&self) -> InsertUserModel {

@@ -18,4 +18,14 @@ pub struct InsertUserModel {
     pub username: String,
     pub api_key: Uuid,
     pub role: String,
+}
 
+impl InsertUserModel {
+    pub fn new(username: String, api_key: Uuid, role: String) -> Self {
+        Self {
+            username,
+            api_key,
+            role,
+        }
+    }
+}

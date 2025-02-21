@@ -25,8 +25,6 @@ diesel::table! {
         #[max_length = 20]
         credit_state -> Varchar,
         user_id -> Int4,
-        #[max_length = 10]
-        role -> Varchar,
     }
 }
 
@@ -36,6 +34,8 @@ diesel::table! {
         #[max_length = 100]
         username -> Varchar,
         api_key -> Uuid,
+        #[max_length = 100]
+        role -> Varchar,
     }
 }
 
