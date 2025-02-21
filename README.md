@@ -78,7 +78,7 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 | address           | string            | CAN/CSA-Z109.1-01 or USPS Publication 28 address format of the consumer |
 | phone_number      | string            | E.164 international format phone number of the consumer                 |
 | SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                |
-| institution_names | array             | List of associated institutions                                         |
+| institution_names | array             | List of associated institutions. Each name must be between 2 and 50 characters. |
 
 #### credit_facts
 
