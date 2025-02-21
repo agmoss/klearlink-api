@@ -48,25 +48,27 @@ impl<'r> FromRequest<'r> for UserModel {
         let username = req.headers().get_one("X-Username");
         let api_key = req.headers().get_one("X-API-Key");
 
-        if let (Some(user), Some(key)) = (username, api_key) {
+        if let (Some(_username), Some(_api_key)) = (username, api_key) {
             let conn = req.guard::<Db>().await.unwrap();
 
-            match Uuid::try_parse(key) {
-                Ok(okk) => match AuthStore::get_user(user.to_string(), okk, conn).await {
-                    Some(user_record) => Outcome::Success(UserModel {
-                        id: user_record.id,
-                        username: user_record.username,
-                        api_key: user_record.api_key,
-                        role: user_record.role,
-                    }),
-                    None => Outcome::Error((
-                        Status::UnprocessableEntity,
-                        ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
-                            "User '{}' not found",
-                            user
-                        )))),
-                    )),
-                },
+            match Uuid::try_parse(_api_key) {
+                Ok(ok_api_key) => {
+                    match AuthStore::get_user(_username.to_string(), ok_api_key, conn).await {
+                        Some(user_record) => Outcome::Success(UserModel {
+                            id: user_record.id,
+                            username: user_record.username,
+                            api_key: user_record.api_key,
+                            role: user_record.role,
+                        }),
+                        None => Outcome::Error((
+                            Status::NotFound,
+                            ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
+                                "User with credentials '{}' '{}' not found",
+                                _username, ok_api_key
+                            )))),
+                        )),
+                    }
+                }
                 Err(e) => Outcome::Error((Status::UnprocessableEntity, ErrorResponse::from(e))),
             }
         } else {

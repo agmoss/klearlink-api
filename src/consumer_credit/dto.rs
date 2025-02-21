@@ -14,20 +14,27 @@ pub struct ConsumerFactsDto {
     pub last_name: String,
     #[validate(custom = Validator::email_validation)]
     pub email: String,
+    #[validate(custom = Validator::past_or_present_date)]
     pub date_of_birth: NaiveDate,
     #[validate(custom = Validator::address_validation)]
     pub address: String,
     #[validate(custom = Validator::phone_validation)]
     pub phone_number: String,
+    #[validate(custom = Validator::sin_validation)]
     pub sin_ssn: Option<String>,
+    #[validate(unique_items)]
     pub institution_names: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct CreditFactsDto {
+    #[validate(custom = Validator::non_negative_bigdecimal)]
     pub amount: BigDecimal,
+    #[validate(custom = Validator::credit_type_validation)]
     pub credit_type: String,
+    #[validate(custom = Validator::past_or_present_datetime)]
     pub application_datetime: NaiveDateTime,
+    #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
 }
 
