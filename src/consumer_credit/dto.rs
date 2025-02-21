@@ -10,7 +10,7 @@ pub struct ConsumerFactsDto {
     pub first_name: String,
     #[validate(min_length = 2)]
     pub last_name: String,
-    #[validate(min_length = 2)]
+    #[validate(email)]
     pub email: String,
     pub date_of_birth: NaiveDate,
     #[validate(min_length = 5)]
