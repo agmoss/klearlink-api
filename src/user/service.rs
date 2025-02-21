@@ -11,14 +11,13 @@ pub struct UserService;
 
 impl UserService {
     pub async fn create_user<'r>(new_user: RestDto<'r, UserDto>, conn: Db) -> RestResult<UserDto> {
-        use crate::schema::users::dsl::*;
-
         let dto = new_user.map_err(ErrorResponse::from)?;
-
         dto.validate().map_err(ErrorResponse::from)?;
 
-        let result = conn
-            .run(move |c| {
+        Self::execute_db_operation(
+            conn,
+            move |c| {
+                use crate::schema::users::dsl::*;
                 diesel::insert_into(users)
                     .values(&InsertUserModel::new(
                         dto.username.clone(),
@@ -26,36 +25,40 @@ impl UserService {
                         dto.role.clone(),
                     ))
                     .get_result::<UserModel>(c)
-            })
-            .await;
-
-        match result {
-            Ok(user) => Ok(Json(user.into())),
-            // Err(diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _)) => {
-            //     Err(ErrorResponse::from("User with this username or API key already exists"))
-            // }
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+            },
+            |user| Ok(Json(user.into())),
+        )
+        .await
     }
 
     pub async fn delete_user(_username: String, conn: Db) -> RestResult<()> {
-        use crate::schema::users::dsl::*;
-
-        let result = conn
-            .run(move |c| diesel::delete(users.filter(username.eq(_username))).execute(c))
-            .await;
-
-        match result {
-            Ok(_) => Ok(Json(())),
-            Err(e) => Err(ErrorResponse::from(e)),
-        }
+        Self::execute_db_operation(
+            conn,
+            move |c| {
+                use crate::schema::users::dsl::*;
+                diesel::delete(users.filter(username.eq(_username))).execute(c)
+            },
+            |_| Ok(Json(())),
+        )
+        .await
     }
 
     pub async fn view_user(_username: String, conn: Db) -> RestResult<UserDto> {
         let target_record = Self::get_target_record(_username, &conn).await;
+        target_record.map(|record| Json(record.into())).map_err(ErrorResponse::from)
+    }
 
-        match target_record {
-            Ok(record) => Ok(Json(record.into())),
+    async fn execute_db_operation<T, F, R>(
+        conn: Db,
+        db_op: F,
+        success_handler: impl Fn(T) -> RestResult<R>,
+    ) -> RestResult<R>
+    where
+        F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+    {
+        let result = conn.run(db_op).await;
+        match result {
+            Ok(value) => success_handler(value),
             Err(e) => Err(ErrorResponse::from(e)),
         }
     }
