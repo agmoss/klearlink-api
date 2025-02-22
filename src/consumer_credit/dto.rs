@@ -53,6 +53,19 @@ pub struct ConsumerMatchDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerMatchesDto {
+    pub credit_facts: CreditFactsDto,
+    pub matched_on: MatchedOnDto,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerMatchDtoAlt {
+    pub consumer_facts: ConsumerFactsDto,
+    pub credit_facts: CreditFactsDto,
+    pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MatchedOnDto {
     pub first_name: bool,
     pub last_name: bool,
