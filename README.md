@@ -80,7 +80,7 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 | SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                        |
 | institution_names | array             | List of associated institutions. Each name must be between 2 and 50 characters. |
 
-#### credit_facts
+#### credit_facts (required)
 
 | Field                | Type   | Description                              |
 | -------------------- | ------ | ---------------------------------------- |
@@ -151,6 +151,8 @@ The KlearSync Data ETL interface automatically populates new consumer credit rec
 **Request Body**:
 
 Same schema as Submit endpoint, with additional optional fields in credit_facts:
+
+credit_facts (optional - only present on credit states of 'originated', 'compliant', 'non-compliant')
 
 | Field               | Type   | Description                           |
 | ------------------- | ------ | ------------------------------------- |
@@ -310,6 +312,9 @@ Includes consumer_facts and credit_facts from original record, plus:
     "payment_amount_due": 1000,
     "credit_state": "originated"
   },
+  "created_at": "datetime",
+  "updated_at": "datetime",
+  "processed": true,
   "consumer_match": [
     {
       "matched_on": {

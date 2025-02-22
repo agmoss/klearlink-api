@@ -22,6 +22,9 @@ diesel::table! {
         #[max_length = 10]
         credit_type -> Varchar,
         application_datetime -> Timestamp,
+        originated_datetime -> Nullable<Timestamp>,
+        payment_due_date -> Nullable<Timestamp>,
+        payment_due_amount -> Nullable<Timestamp>,
         #[max_length = 20]
         credit_state -> Varchar,
         user_id -> Int4,

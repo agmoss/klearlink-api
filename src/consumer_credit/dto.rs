@@ -36,6 +36,9 @@ pub struct CreditFactsDto {
     pub application_datetime: NaiveDateTime,
     #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
+    pub originated_datetime: Option<NaiveDateTime>,
+    pub payment_due_date: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -66,6 +69,9 @@ pub struct MatchedCreditFactsDto {
     pub application_datetime: NaiveDateTime,
     pub credit_state: String,
     pub institution_names: Vec<Option<String>>,
+    pub originated_datetime: Option<NaiveDateTime>,
+    pub payment_due_date: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -97,6 +103,9 @@ impl ConsumerCreditDto {
             amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
             application_datetime: self.credit_facts.application_datetime,
+            originated_datetime: self.credit_facts.originated_datetime.clone(),
+            payment_due_date: self.credit_facts.payment_due_date.clone(),
+            payment_due_amount: self.credit_facts.payment_due_amount.clone(),
             credit_state: self.credit_facts.credit_state.clone(),
             user_id: *user_id,
         }
@@ -118,7 +127,10 @@ impl ConsumerCreditDto {
             institution_names: self.consumer_facts.institution_names.clone(),
             amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
-            application_datetime: self.credit_facts.application_datetime,
+            application_datetime: self.credit_facts.application_datetime.clone(),
+            originated_datetime: self.credit_facts.originated_datetime.clone(),
+            payment_due_date: self.credit_facts.payment_due_date.clone(),
+            payment_due_amount: self.credit_facts.payment_due_amount.clone(),
             credit_state: self.credit_facts.credit_state.clone(),
         }
     }
@@ -141,6 +153,9 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 amount: consumer_credit.amount,
                 credit_type: consumer_credit.credit_type,
                 application_datetime: consumer_credit.application_datetime,
+                originated_datetime: consumer_credit.originated_datetime,
+                payment_due_date: consumer_credit.payment_due_date,
+                payment_due_amount: consumer_credit.payment_due_amount,
                 credit_state: consumer_credit.credit_state,
             },
         }

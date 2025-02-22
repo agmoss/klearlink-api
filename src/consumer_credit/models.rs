@@ -25,6 +25,9 @@ pub struct ConsumerCreditModel {
     pub credit_type: String,
     #[diesel(sql_type = Timestamp)]
     pub application_datetime: NaiveDateTime,
+    pub originated_datetime: Option<NaiveDateTime>,
+    pub payment_due_date: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<NaiveDateTime>,
     pub credit_state: String,
     pub user_id: i32,
 }
@@ -45,6 +48,9 @@ pub struct InsertConsumerCreditModel {
     pub amount: BigDecimal,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
+    pub originated_datetime: Option<NaiveDateTime>,
+    pub payment_due_date: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<NaiveDateTime>,
     pub credit_state: String,
     pub user_id: i32,
 }
@@ -65,5 +71,8 @@ pub struct UpdateConsumerCreditModel {
     pub amount: BigDecimal,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
+    pub originated_datetime: Option<NaiveDateTime>,
+    pub payment_due_date: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<NaiveDateTime>,
     pub credit_state: String,
 }
