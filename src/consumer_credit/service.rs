@@ -103,7 +103,7 @@ impl ConsumerCreditService {
         _consumer_credit_id: String,
         auth: AuthResponse,
         conn: Db,
-    ) -> RestResult<Vec<ConsumerMatchDto>> {
+    ) -> RestResult<ConsumerMatchDtoAlt> {
         use crate::schema::consumer_credit::dsl::*;
 
         let auth_result = auth?;
@@ -129,25 +129,53 @@ impl ConsumerCreditService {
                             .load::<ConsumerCreditModel>(c)
                     },
                     |records| {
-                        let matched_records: Vec<ConsumerMatchDto> = records
+                        let matched_records: Vec<ConsumerMatchesDtoAlt> = records
                             .into_iter()
                             .map(|r| {
-                                let matched_on = MatchedOnDto {
-                                    first_name: r.first_name == copied.first_name,
-                                    last_name: r.last_name == copied.last_name,
-                                    email: r.email == copied.email,
-                                    date_of_birth: r.date_of_birth == copied.date_of_birth,
-                                    address: r.address == copied.address,
-                                    phone_number: r.phone_number == copied.phone_number,
-                                };
-                                let consumer_credit_dto: ConsumerCreditDto = r.into();
-                                ConsumerMatchDto {
-                                    consumer_credit: consumer_credit_dto,
-                                    matched_on,
+                                ConsumerMatchesDtoAlt {
+                                    matched_on: MatchedOnDto {
+                                        first_name: r.first_name == copied.first_name,
+                                        last_name: r.last_name == copied.last_name,
+                                        email: r.email == copied.email,
+                                        date_of_birth: r.date_of_birth == copied.date_of_birth,
+                                        address: r.address == copied.address,
+                                        phone_number: r.phone_number == copied.phone_number,
+                                    },
+                                    credit_facts: CreditFactsDtoAlt {
+                                        amount: r.amount,
+                                        credit_type: r.credit_type,
+                                        application_datetime: r.application_datetime,
+                                        originated_datetime: r.originated_datetime,
+                                        payment_due_date: r.payment_due_date,
+                                        payment_amount_due: r.payment_amount_due,
+                                        credit_state: r.credit_state,
+                                    },
                                 }
                             })
                             .collect();
-                        Ok(Json(matched_records))
+
+                        Ok(Json(ConsumerMatchDtoAlt {
+                            consumer_facts: ConsumerFactsDto {
+                                first_name: copied.first_name,
+                                last_name: copied.last_name,
+                                email: copied.email,
+                                date_of_birth: copied.date_of_birth,
+                                address: copied.address,
+                                phone_number: copied.phone_number,
+                                sin_ssn: copied.sin_ssn,
+                                institution_names: copied.institution_names,
+                            },
+                            credit_facts: CreditFactsDtoAlt {
+                                amount: copied.amount,
+                                credit_type: copied.credit_type,
+                                application_datetime: copied.application_datetime,
+                                originated_datetime: copied.originated_datetime,
+                                payment_due_date: copied.payment_due_date,
+                                payment_amount_due: copied.payment_amount_due,
+                                credit_state: copied.credit_state,
+                            },
+                            consumer_match: Some(matched_records),
+                        }))
                     },
                 )
                 .await
