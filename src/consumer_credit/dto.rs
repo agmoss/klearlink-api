@@ -138,11 +138,7 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 address: consumer_credit.address,
                 phone_number: consumer_credit.phone_number,
                 sin_ssn: consumer_credit.sin_ssn,
-                institution_names: consumer_credit
-                    .institution_names
-                    .into_iter()
-                    .flatten()
-                    .collect(),
+                institution_names: consumer_credit.institution_names,
             },
             credit_facts: CreditFactsDto {
                 amount: consumer_credit.amount,
