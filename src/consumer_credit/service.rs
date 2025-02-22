@@ -1,4 +1,7 @@
-use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto, MatchedOnDto};
+use crate::consumer_credit::dto::{
+    ConsumerCreditDto, ConsumerFactsDto, ConsumerMatchDto, ConsumerMatchDtoAlt,
+    ConsumerMatchesDtoAlt, CreditFactsDto, MatchedOnDto,
+};
 use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::execute_db_operation;
@@ -131,48 +134,40 @@ impl ConsumerCreditService {
                     |records| {
                         let matched_records: Vec<ConsumerMatchesDtoAlt> = records
                             .into_iter()
-                            .map(|r| {
-                                ConsumerMatchesDtoAlt {
-                                    matched_on: MatchedOnDto {
-                                        first_name: r.first_name == copied.first_name,
-                                        last_name: r.last_name == copied.last_name,
-                                        email: r.email == copied.email,
-                                        date_of_birth: r.date_of_birth == copied.date_of_birth,
-                                        address: r.address == copied.address,
-                                        phone_number: r.phone_number == copied.phone_number,
-                                    },
-                                    credit_facts: CreditFactsDtoAlt {
-                                        amount: r.amount,
-                                        credit_type: r.credit_type,
-                                        application_datetime: r.application_datetime,
-                                        originated_datetime: r.originated_datetime,
-                                        payment_due_date: r.payment_due_date,
-                                        payment_amount_due: r.payment_amount_due,
-                                        credit_state: r.credit_state,
-                                    },
-                                }
+                            .map(|r| ConsumerMatchesDtoAlt {
+                                matched_on: MatchedOnDto {
+                                    first_name: r.first_name == copied.first_name,
+                                    last_name: r.last_name == copied.last_name,
+                                    email: r.email == copied.email,
+                                    date_of_birth: r.date_of_birth == copied.date_of_birth,
+                                    address: r.address == copied.address,
+                                    phone_number: r.phone_number == copied.phone_number,
+                                },
+                                credit_facts: CreditFactsDto {
+                                    amount: r.amount,
+                                    credit_type: r.credit_type,
+                                    application_datetime: r.application_datetime,
+                                    credit_state: r.credit_state,
+                                },
                             })
                             .collect();
 
                         Ok(Json(ConsumerMatchDtoAlt {
                             consumer_facts: ConsumerFactsDto {
-                                first_name: copied.first_name,
-                                last_name: copied.last_name,
-                                email: copied.email,
+                                first_name: copied.first_name.clone(),
+                                last_name: copied.last_name.clone(),
+                                email: copied.email.clone(),
                                 date_of_birth: copied.date_of_birth,
-                                address: copied.address,
-                                phone_number: copied.phone_number,
-                                sin_ssn: copied.sin_ssn,
-                                institution_names: copied.institution_names,
+                                address: copied.address.clone(),
+                                phone_number: copied.phone_number.clone(),
+                                sin_ssn: copied.sin_ssn.clone(),
+                                institution_names: copied.institution_names.clone(),
                             },
-                            credit_facts: CreditFactsDtoAlt {
-                                amount: copied.amount,
-                                credit_type: copied.credit_type,
+                            credit_facts: CreditFactsDto {
+                                amount: copied.amount.clone(),
+                                credit_type: copied.credit_type.clone(),
                                 application_datetime: copied.application_datetime,
-                                originated_datetime: copied.originated_datetime,
-                                payment_due_date: copied.payment_due_date,
-                                payment_amount_due: copied.payment_amount_due,
-                                credit_state: copied.credit_state,
+                                credit_state: copied.credit_state.clone(),
                             },
                             consumer_match: Some(matched_records),
                         }))

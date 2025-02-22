@@ -40,7 +40,7 @@ pub struct InsertConsumerCreditModel {
     pub address: String,
     pub phone_number: String,
     pub sin_ssn: Option<String>,
-    pub institution_names: Vec<String>,
+    pub institution_names: Vec<Option<String>>,
     #[diesel(sql_type = Numeric)]
     pub amount: BigDecimal,
     pub credit_type: String,
@@ -60,7 +60,7 @@ pub struct UpdateConsumerCreditModel {
     pub address: String,
     pub phone_number: String,
     pub sin_ssn: Option<String>,
-    pub institution_names: Vec<String>,
+    pub institution_names: Vec<Option<String>>,
     #[diesel(sql_type = Numeric)]
     pub amount: BigDecimal,
     pub credit_type: String,

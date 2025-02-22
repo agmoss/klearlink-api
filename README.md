@@ -310,9 +310,6 @@ Includes consumer_facts and credit_facts from original record, plus:
     "payment_amount_due": 1000,
     "credit_state": "originated"
   },
-  "created_at": "datetime",
-  "updated_at": "datetime",
-  "processed": true,
   "consumer_match": [
     {
       "matched_on": {

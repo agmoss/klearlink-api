@@ -23,7 +23,7 @@ pub struct ConsumerFactsDto {
     #[validate(custom = Validator::sin_validation)]
     pub sin_ssn: Option<String>,
     #[validate(unique_items)]
-    pub institution_names: Vec<String>,
+    pub institution_names: Vec<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -61,25 +61,14 @@ pub struct ConsumerMatchesDto {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchDtoAlt {
     pub consumer_facts: ConsumerFactsDto,
-    pub credit_facts: CreditFactsDtoAlt,
+    pub credit_facts: CreditFactsDto,
     pub consumer_match: Option<Vec<ConsumerMatchesDtoAlt>>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct CreditFactsDtoAlt {
-    pub amount: BigDecimal,
-    pub credit_type: String,
-    pub application_datetime: NaiveDateTime,
-    pub originated_datetime: NaiveDateTime,
-    pub payment_due_date: NaiveDateTime,
-    pub payment_amount_due: BigDecimal,
-    pub credit_state: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchesDtoAlt {
     pub matched_on: MatchedOnDto,
-    pub credit_facts: CreditFactsDtoAlt,
+    pub credit_facts: CreditFactsDto,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

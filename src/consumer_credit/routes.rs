@@ -1,6 +1,6 @@
 use rocket::{delete, get, post, put};
 
-use super::dto::ConsumerCreditDto;
+use super::dto::{ConsumerCreditDto, ConsumerMatchDtoAlt};
 use super::service::ConsumerCreditService;
 use crate::consumer_credit::dto::ConsumerMatchDto;
 
@@ -47,6 +47,6 @@ pub async fn view_consumer_match(
     consumer_credit_id: String,
     auth: AuthResponse,
     conn: Db,
-) -> RestResult<Vec<ConsumerMatchDto>> {
+) -> RestResult<ConsumerMatchDtoAlt> {
     ConsumerCreditService::view_consumer_match(consumer_credit_id, auth, conn).await
 }
