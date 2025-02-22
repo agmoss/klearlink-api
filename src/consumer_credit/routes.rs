@@ -1,8 +1,7 @@
 use rocket::{delete, get, post, put};
 
-use super::dto::{ConsumerCreditDto, ConsumerMatchDtoAlt};
+use super::dto::{ConsumerCreditDto, ConsumerMatchDto};
 use super::service::ConsumerCreditService;
-use crate::consumer_credit::dto::ConsumerMatchDto;
 
 use crate::core::auth::AuthResponse;
 use crate::core::pool::Db;
@@ -47,6 +46,6 @@ pub async fn view_consumer_match(
     consumer_credit_id: String,
     auth: AuthResponse,
     conn: Db,
-) -> RestResult<ConsumerMatchDtoAlt> {
+) -> RestResult<ConsumerMatchDto> {
     ConsumerCreditService::view_consumer_match(consumer_credit_id, auth, conn).await
 }

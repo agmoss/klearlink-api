@@ -1,6 +1,6 @@
 use crate::consumer_credit::dto::{
-    ConsumerCreditDto, ConsumerFactsDto, ConsumerMatchDto, ConsumerMatchDtoAlt,
-    ConsumerMatchesDtoAlt, CreditFactsDto, MatchedOnDto,
+    ConsumerCreditDto, ConsumerFactsDto, ConsumerMatchDto, ConsumerMatchesDto, CreditFactsDto,
+    CreditFactsMatchDto, MatchedOnDto,
 };
 use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
@@ -106,7 +106,7 @@ impl ConsumerCreditService {
         _consumer_credit_id: String,
         auth: AuthResponse,
         conn: Db,
-    ) -> RestResult<ConsumerMatchDtoAlt> {
+    ) -> RestResult<ConsumerMatchDto> {
         use crate::schema::consumer_credit::dsl::*;
 
         let auth_result = auth?;
@@ -132,9 +132,9 @@ impl ConsumerCreditService {
                             .load::<ConsumerCreditModel>(c)
                     },
                     |records| {
-                        let matched_records: Vec<ConsumerMatchesDtoAlt> = records
+                        let matched_records: Vec<ConsumerMatchesDto> = records
                             .into_iter()
-                            .map(|r| ConsumerMatchesDtoAlt {
+                            .map(|r| ConsumerMatchesDto {
                                 matched_on: MatchedOnDto {
                                     first_name: r.first_name == copied.first_name,
                                     last_name: r.last_name == copied.last_name,
@@ -143,16 +143,17 @@ impl ConsumerCreditService {
                                     address: r.address == copied.address,
                                     phone_number: r.phone_number == copied.phone_number,
                                 },
-                                credit_facts: CreditFactsDto {
+                                credit_facts: CreditFactsMatchDto {
                                     amount: r.amount,
                                     credit_type: r.credit_type,
                                     application_datetime: r.application_datetime,
                                     credit_state: r.credit_state,
+                                    institution_names: r.institution_names,
                                 },
                             })
                             .collect();
 
-                        Ok(Json(ConsumerMatchDtoAlt {
+                        Ok(Json(ConsumerMatchDto {
                             consumer_facts: ConsumerFactsDto {
                                 first_name: copied.first_name.clone(),
                                 last_name: copied.last_name.clone(),

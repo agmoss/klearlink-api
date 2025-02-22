@@ -48,27 +48,24 @@ pub struct ConsumerCreditDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchDto {
-    pub consumer_credit: ConsumerCreditDto,
-    pub matched_on: MatchedOnDto,
+    pub consumer_facts: ConsumerFactsDto,
+    pub credit_facts: CreditFactsDto,
+    pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct CreditFactsMatchDto {
+    pub amount: BigDecimal,
+    pub credit_type: String,
+    pub application_datetime: NaiveDateTime,
+    pub credit_state: String,
+    pub institution_names: Vec<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchesDto {
-    pub credit_facts: CreditFactsDto,
     pub matched_on: MatchedOnDto,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ConsumerMatchDtoAlt {
-    pub consumer_facts: ConsumerFactsDto,
-    pub credit_facts: CreditFactsDto,
-    pub consumer_match: Option<Vec<ConsumerMatchesDtoAlt>>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ConsumerMatchesDtoAlt {
-    pub matched_on: MatchedOnDto,
-    pub credit_facts: CreditFactsDto,
+    pub credit_facts: CreditFactsMatchDto,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
