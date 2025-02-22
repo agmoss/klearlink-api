@@ -1,6 +1,6 @@
 use crate::consumer_credit::dto::{
     ConsumerCreditDto, ConsumerFactsDto, ConsumerMatchDto, ConsumerMatchesDto, CreditFactsDto,
-    CreditFactsMatchDto, MatchedOnDto,
+    MatchedCreditFactsDto, MatchedOnDto,
 };
 use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
@@ -143,7 +143,7 @@ impl ConsumerCreditService {
                                     address: r.address == copied.address,
                                     phone_number: r.phone_number == copied.phone_number,
                                 },
-                                credit_facts: CreditFactsMatchDto {
+                                credit_facts: MatchedCreditFactsDto {
                                     amount: r.amount,
                                     credit_type: r.credit_type,
                                     application_datetime: r.application_datetime,
