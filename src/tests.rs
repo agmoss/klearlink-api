@@ -4,9 +4,9 @@ mod tests {
     use once_cell::sync::Lazy;
     use rocket::{
         http::{ContentType, Header, Status},
-        local::blocking::Client,
+        local::blocking::{Client, LocalResponse},
     };
-    use serde_json::json;
+    use serde_json::{json, Value};
     use serial_test::serial;
     use uuid::Uuid;
 
@@ -15,6 +15,11 @@ mod tests {
     static API_KEY_ADMIN: &str = "c491a813-234a-4bea-b6c4-7413b244dea4";
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
+
+    pub fn response_json_value<'a>(response: LocalResponse<'a>) -> Value {
+        let body = response.into_string().unwrap();
+        serde_json::from_str(&body).expect("can't parse value")
+    }
 
     // #[test]
     fn global_setup() {
@@ -134,14 +139,26 @@ mod tests {
             }
         });
 
-        let response = client
-            .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
-            .body(dummy_payload.to_string())
-            .dispatch();
+        let response = create_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &dummy_payload,
+        );
 
         assert_eq!(response.status(), Status::Ok);
+
+        let value = response_json_value(response);
+
+        let title = value
+            .get("consumer_facts")
+            .expect("must have an 'consumer_facts' field")
+            .get("first_name")
+            .expect("must have a 'first_name' field")
+            .as_str();
+
+        assert_eq!(title, Some("John"));
     }
 
     #[test]
@@ -167,12 +184,13 @@ mod tests {
             }
         });
 
-        let response = client
-            .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
-            .body(invalid_payload.to_string())
-            .dispatch();
+        let response = create_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &invalid_payload,
+        );
 
         assert_eq!(response.status(), Status::UnprocessableEntity);
     }
@@ -192,12 +210,14 @@ mod tests {
             }
         });
 
-        let response = client
-            .put(format!("/consumer-credit/{}", *TEST_UUID))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
-            .body(missing_fields_payload.to_string())
-            .dispatch();
+        let response = create_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &missing_fields_payload,
+        );
+
         assert_eq!(response.status(), Status::UnprocessableEntity);
     }
 
@@ -246,20 +266,23 @@ mod tests {
         ];
 
         for (i, payload) in test_payloads.iter().enumerate() {
-            let response = client
-                .put(format!("/consumer-credit/{}_{}", test_uuid_matches, i + 1))
-                .header(Header::new("X-API-Key", API_KEY_2))
-                .header(Header::new("X-Username", format!("test_user_2")))
-                .body(payload.to_string())
-                .dispatch();
+            let consumer_credit_id = format!("{}_{}", test_uuid_matches, i + 1);
+            let response = create_consumer_credit(
+                &client,
+                &consumer_credit_id,
+                API_KEY_2.to_string(),
+                "test_user_2".to_string(),
+                &payload,
+            );
             assert_eq!(response.status(), Status::Ok);
         }
 
-        let response = client
-            .get(format!("/consumer-credit/{}/consumer-match", *TEST_UUID))
-            .header(Header::new("X-Username", "test_user_1"))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .dispatch();
+        let response = view_consumer_match(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+        );
 
         assert_eq!(response.status(), Status::Ok);
     }
@@ -289,21 +312,60 @@ mod tests {
         });
 
         // First insertion should succeed
-        let response = client
-            .put(format!("/consumer-credit/{}", test_uuid_duplicate))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
-            .body(dummy_payload.to_string())
-            .dispatch();
+        let response = create_consumer_credit(
+            &client,
+            &test_uuid_duplicate,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &dummy_payload,
+        );
         assert_eq!(response.status(), Status::Ok);
 
         // Second insertion with the same UUID should fail
-        let response = client
-            .put(format!("/consumer-credit/{}", test_uuid_duplicate))
-            .header(Header::new("X-API-Key", API_KEY_1))
-            .header(Header::new("X-Username", "test_user_1"))
-            .body(dummy_payload.to_string())
-            .dispatch();
+        let response = create_consumer_credit(
+            &client,
+            &test_uuid_duplicate,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &dummy_payload,
+        );
         assert_eq!(response.status(), Status::Conflict);
+    }
+
+    // Util
+
+    fn create_consumer_credit<'a>(
+        client: &'a Client,
+        consumer_credit_id: &'a String,
+        api_key: String,
+        username: String,
+        payload: &Value,
+    ) -> LocalResponse<'a> {
+        let response = client
+            .put(format!("/consumer-credit/{}", consumer_credit_id))
+            .header(Header::new("X-API-Key", api_key))
+            .header(Header::new("X-Username", username))
+            .body(payload.to_string())
+            .dispatch();
+
+        response
+    }
+
+    fn view_consumer_match<'a>(
+        client: &'a Client,
+        consumer_credit_id: &'a String,
+        api_key: String,
+        username: String,
+    ) -> LocalResponse<'a> {
+        let response = client
+            .get(format!(
+                "/consumer-credit/{}/consumer-match",
+                consumer_credit_id
+            ))
+            .header(Header::new("X-API-Key", api_key))
+            .header(Header::new("X-Username", username))
+            .dispatch();
+
+        response
     }
 }
