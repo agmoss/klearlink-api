@@ -1,32 +1,17 @@
 pub mod schema;
 
+use base::routes::base_route;
 use core::{cors::CORS, pool::Db};
 use dotenvy::dotenv;
 
-use rocket::{launch, routes, Build, Rocket, get};
-use rocket::serde::json::Json;
-use serde::Serialize;
+use rocket::{launch, routes, Build, Rocket};
 
+mod base;
 mod consumer_credit;
 mod core;
 mod error;
 mod user;
 
-#[derive(Serialize)]
-struct ApiInfo {
-    version: &'static str,
-    description: &'static str,
-    help_link: &'static str,
-}
-
-#[get("/")]
-fn base_route() -> Json<ApiInfo> {
-    Json(ApiInfo {
-        version: env!("CARGO_PKG_VERSION"),
-        description: env!("CARGO_PKG_DESCRIPTION"),
-        help_link: "https://klearlink.io/help",
-    })
-}
 mod tests;
 
 fn create_rocket() -> Rocket<Build> {

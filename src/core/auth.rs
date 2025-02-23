@@ -6,15 +6,34 @@ use rocket::{
     request::{FromRequest, Outcome, Request},
     serde::json::Json,
 };
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::response::{ErrorMessage, ErrorResponse};
 
-pub type AuthResponse = Result<UserModel, ErrorResponse>;
+pub type AuthResponse = Result<AuthDto, ErrorResponse>;
 
-pub struct AuthStore;
+#[derive(Deserialize, Serialize)]
+pub struct AuthDto {
+    /// user id
+    pub id: i32,
+    pub username: String,
+    pub api_key: Uuid,
+    pub role: String,
+}
 
-impl AuthStore {
+impl From<UserModel> for AuthDto {
+    fn from(user_model: UserModel) -> Self {
+        AuthDto {
+            id: user_model.id,
+            username: user_model.username,
+            api_key: user_model.api_key,
+            role: user_model.role,
+        }
+    }
+}
+
+impl AuthDto {
     pub async fn get_user(u_name: String, a_key: Uuid, conn: Db) -> Option<UserModel> {
         use crate::schema::users::dsl::*;
         conn.run(move |c| {
@@ -26,9 +45,7 @@ impl AuthStore {
         })
         .await
     }
-}
 
-impl UserModel {
     pub fn ensure_admin(&self) -> Result<(), ErrorResponse> {
         if self.role == "admin" {
             Ok(())
@@ -41,9 +58,12 @@ impl UserModel {
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for UserModel {
+impl<'r> FromRequest<'r> for AuthDto {
     type Error = ErrorResponse;
 
+    /// Extract Auth username and API_KEY from the "Authorization" header.
+    ///
+    /// Handlers with AuthResponse guard will fail with 401, 404, or 422 error.
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         let username = req.headers().get_one("X-Username");
         let api_key = req.headers().get_one("X-API-Key");
@@ -53,16 +73,8 @@ impl<'r> FromRequest<'r> for UserModel {
 
             match Uuid::try_parse(_api_key) {
                 Ok(ok_api_key) => {
-                    match AuthStore::get_user(_username.to_string(), ok_api_key, conn).await {
-                        Some(user_record) => Outcome::Success(UserModel {
-                            id: user_record.id,
-                            username: user_record.username,
-                            api_key: user_record.api_key,
-                            role: user_record.role,
-                            created_at: user_record.created_at,
-                            updated_at: user_record.updated_at,
-                            deleted_at: user_record.deleted_at,
-                        }),
+                    match AuthDto::get_user(_username.to_string(), ok_api_key, conn).await {
+                        Some(user_record) => Outcome::Success(user_record.into()),
                         None => Outcome::Error((
                             Status::NotFound,
                             ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
