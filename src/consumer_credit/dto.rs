@@ -117,6 +117,37 @@ impl ConsumerCreditDto {
         }
     }
 
+    pub fn from_model_and_matches(
+        model: ConsumerCreditModel,
+        matches: Vec<ConsumerMatchesDto>,
+    ) -> ConsumerMatchDto {
+        ConsumerMatchDto {
+            consumer_facts: ConsumerFactsDto {
+                first_name: model.first_name.clone(),
+                last_name: model.last_name.clone(),
+                email: model.email.clone(),
+                date_of_birth: model.date_of_birth,
+                address: model.address.clone(),
+                phone_number: model.phone_number.clone(),
+                sin_ssn: model.sin_ssn.clone(),
+                institution_names: model.institution_names.clone(),
+            },
+            credit_facts: CreditFactsDto {
+                amount: model.amount.clone(),
+                credit_type: model.credit_type.clone(),
+                application_datetime: model.application_datetime,
+                originated_datetime: model.originated_datetime.clone(),
+                payment_due_date: model.payment_due_date.clone(),
+                payment_due_amount: model.payment_due_amount.clone(),
+                credit_state: model.credit_state.clone(),
+            },
+            created_at: model.created_at,
+            updated_at: model.updated_at,
+            processed: true,
+            consumer_match: Some(matches),
+        }
+    }
+
     pub fn to_update_consumer_credit_model(
         &self,
         consumer_credit_id_dto: &str,
