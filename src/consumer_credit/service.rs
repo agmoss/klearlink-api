@@ -131,7 +131,7 @@ impl ConsumerCreditService {
                             .filter(user_id.ne(&auth_result.id))
                             .load::<ConsumerCreditModel>(c)
                     },
-                    |records| {
+                    |records: Vec<ConsumerCreditModel>| {
                         let matched_records: Vec<ConsumerMatchesDto> = records
                             .into_iter()
                             .map(|r| ConsumerMatchesDto {
