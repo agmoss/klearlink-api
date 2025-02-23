@@ -22,44 +22,60 @@ impl ErrorMessage {
     }
 }
 
+/// Enumeration containing many kinds of error responses to a REST request that
+/// was received. All of these responses contain a JSON structure with a root key of "error".
+/// These error responses are modelled after HTTP response codes.
 #[derive(Responder, Debug, Clone)]
 pub enum ErrorResponse {
+    /// 400 Bad Request
     #[response(status = 400, content_type = "json")]
     BadRequest(Json<ErrorMessage>),
 
+    /// 401 Unauthorized
     #[response(status = 401, content_type = "json")]
     Unauthorized(Json<ErrorMessage>),
 
+    /// 404 Not Found
     #[response(status = 404, content_type = "json")]
     NotFound(Json<ErrorMessage>),
 
+    /// 408 Request Timeout
     #[response(status = 408, content_type = "json")]
     RequestTimeout(Json<ErrorMessage>),
 
+    /// 409 Conflict
     #[response(status = 409, content_type = "json")]
     Conflict(Json<ErrorMessage>),
 
+    /// 412 Precondition Failed
     #[response(status = 412, content_type = "json")]
     PreconditionFailed(Json<ErrorMessage>),
 
+    /// 422 Unprocessable Entity
     #[response(status = 422, content_type = "json")]
     UnprocessableEntity(Json<ErrorMessage>),
 
+    /// 444 No Response
     #[response(status = 444, content_type = "json")]
     NoResponse(Json<ErrorMessage>),
 
+    /// 499 Client Closed Request
     #[response(status = 499, content_type = "json")]
     ClientClosedRequest(Json<ErrorMessage>),
 
+    /// 500 Internal Server Error
     #[response(status = 500, content_type = "json")]
     InternalServerError(Json<ErrorMessage>),
 
+    /// 501 Not Implemented
     #[response(status = 501, content_type = "json")]
     NotImplemented(Json<ErrorMessage>),
 
+    /// 503 Service Unavailable
     #[response(status = 503, content_type = "json")]
     ServiceUnavailable(Json<ErrorMessage>),
 
+    /// 511 Network Authentication Required
     #[response(status = 511, content_type = "json")]
     NetworkAuthenticationRequired(Json<ErrorMessage>),
 }
@@ -71,6 +87,15 @@ pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
 
 impl ErrorResponse {
+    /// Actual internal conversion function for generating an error `Response`
+    /// from a http `Status`. The `Status` message will be converted into a JSON
+    /// object containing a single `"error"` field, which will be the response
+    /// body.
+    ///
+    /// # Panics
+    /// This function will panic if using an unhandled status code or if the
+    /// status code is "`Ok`", in which case it should have been a successful
+    /// response instead.
     fn convert(status: Status) -> Self {
         let message = ErrorMessage::from_str(status.message());
         match status.code() {

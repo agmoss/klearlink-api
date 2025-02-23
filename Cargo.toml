@@ -1,7 +1,10 @@
 [package]
 name = "klearlink-api"
+description = "klearlink.io API"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
+license = "unlicensed"
 
 [dependencies]
 rocket = { version = "0.5.1", features = ["json"] }
