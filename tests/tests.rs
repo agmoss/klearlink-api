@@ -1,14 +1,17 @@
+mod common;
+
 #[cfg(test)]
 mod tests {
-    use crate::rocket;
+
     use once_cell::sync::Lazy;
-    use rocket::{
-        http::{ContentType, Header, Status},
-        local::blocking::{Client, LocalResponse},
-    };
-    use serde_json::{json, Value};
+    use rocket::http::{ContentType, Header, Status};
+    use serde_json::json;
     use serial_test::serial;
     use uuid::Uuid;
+
+    use crate::common::{
+        create_consumer_credit, response_json_value, test_client, view_consumer_match,
+    };
 
     static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
 
@@ -16,14 +19,9 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
-    pub fn response_json_value<'a>(response: LocalResponse<'a>) -> Value {
-        let body = response.into_string().unwrap();
-        serde_json::from_str(&body).expect("can't parse value")
-    }
-
     // #[test]
     fn global_setup() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let users = vec![
             //json!({
@@ -60,7 +58,7 @@ mod tests {
 
     // #[test]
     fn global_teardown() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let usernames = vec!["test_admin_user", "test_user_1", "test_user_2"];
         for username in usernames {
@@ -83,7 +81,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_create_user() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let new_user = json!({
             "username": Uuid::new_v4().to_string(),
@@ -105,7 +103,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_delete_user() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let response = client
             .delete("/users/new_user")
@@ -119,7 +117,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_submit_consumer_credit() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let dummy_payload = json!({
             "consumer_facts": {
@@ -164,7 +162,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_submit_consumer_credit_invalid_data() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let invalid_payload = json!({
             "consumer_facts": {
@@ -198,7 +196,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_submit_consumer_credit_missing_fields() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let missing_fields_payload = json!({
             "consumer_facts": {
@@ -224,7 +222,7 @@ mod tests {
     #[test]
     #[serial]
     fn test_view_consumer_match_with_matches() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let test_uuid_matches = Uuid::new_v4().to_string();
 
@@ -291,7 +289,7 @@ mod tests {
     #[serial]
     fn test_duplicate_consumer_credit_insertion() {
         let test_uuid_duplicate = Uuid::new_v4().to_string();
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = test_client().lock().unwrap();
 
         let dummy_payload = json!({
             "consumer_facts": {
@@ -330,42 +328,5 @@ mod tests {
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Conflict);
-    }
-
-    // Util
-
-    fn create_consumer_credit<'a>(
-        client: &'a Client,
-        consumer_credit_id: &'a String,
-        api_key: String,
-        username: String,
-        payload: &Value,
-    ) -> LocalResponse<'a> {
-        let response = client
-            .put(format!("/consumer-credit/{}", consumer_credit_id))
-            .header(Header::new("X-API-Key", api_key))
-            .header(Header::new("X-Username", username))
-            .body(payload.to_string())
-            .dispatch();
-
-        response
-    }
-
-    fn view_consumer_match<'a>(
-        client: &'a Client,
-        consumer_credit_id: &'a String,
-        api_key: String,
-        username: String,
-    ) -> LocalResponse<'a> {
-        let response = client
-            .get(format!(
-                "/consumer-credit/{}/consumer-match",
-                consumer_credit_id
-            ))
-            .header(Header::new("X-API-Key", api_key))
-            .header(Header::new("X-Username", username))
-            .dispatch();
-
-        response
     }
 }

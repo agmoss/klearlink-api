@@ -1,4 +1,5 @@
 use rocket::get;
+use rocket::http::Status;
 use rocket::serde::json::Json;
 use serde::Serialize;
 
@@ -16,4 +17,9 @@ pub fn base_route() -> Json<ApiInfo> {
         description: env!("CARGO_PKG_DESCRIPTION"),
         help_link: "https://klearlink.io/",
     })
+}
+
+#[get("/favicon.ico")]
+pub fn favicon() -> Status {
+    Status::NoContent
 }
