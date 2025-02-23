@@ -47,12 +47,16 @@ pub struct ConsumerCreditDto {
     pub consumer_facts: ConsumerFactsDto,
     #[validate]
     pub credit_facts: CreditFactsDto,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchDto {
     pub consumer_facts: ConsumerFactsDto,
     pub credit_facts: CreditFactsDto,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
     pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
 }
 
@@ -158,6 +162,8 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 payment_due_amount: consumer_credit.payment_due_amount,
                 credit_state: consumer_credit.credit_state,
             },
+            created_at: consumer_credit.created_at,
+            updated_at: consumer_credit.updated_at,
         }
     }
 }

@@ -115,7 +115,7 @@ impl ConsumerCreditService {
 
         match target_record {
             Ok(target) => {
-                let copied: ConsumerCreditModel =
+                let _target: ConsumerCreditModel =
                     serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
 
                 execute_db_operation(
@@ -136,12 +136,12 @@ impl ConsumerCreditService {
                             .into_iter()
                             .map(|r| ConsumerMatchesDto {
                                 matched_on: MatchedOnDto {
-                                    first_name: r.first_name == copied.first_name,
-                                    last_name: r.last_name == copied.last_name,
-                                    email: r.email == copied.email,
-                                    date_of_birth: r.date_of_birth == copied.date_of_birth,
-                                    address: r.address == copied.address,
-                                    phone_number: r.phone_number == copied.phone_number,
+                                    first_name: r.first_name == _target.first_name,
+                                    last_name: r.last_name == _target.last_name,
+                                    email: r.email == _target.email,
+                                    date_of_birth: r.date_of_birth == _target.date_of_birth,
+                                    address: r.address == _target.address,
+                                    phone_number: r.phone_number == _target.phone_number,
                                 },
                                 credit_facts: MatchedCreditFactsDto {
                                     amount: r.amount,
@@ -158,24 +158,26 @@ impl ConsumerCreditService {
 
                         Ok(Json(ConsumerMatchDto {
                             consumer_facts: ConsumerFactsDto {
-                                first_name: copied.first_name.clone(),
-                                last_name: copied.last_name.clone(),
-                                email: copied.email.clone(),
-                                date_of_birth: copied.date_of_birth,
-                                address: copied.address.clone(),
-                                phone_number: copied.phone_number.clone(),
-                                sin_ssn: copied.sin_ssn.clone(),
-                                institution_names: copied.institution_names.clone(),
+                                first_name: _target.first_name.clone(),
+                                last_name: _target.last_name.clone(),
+                                email: _target.email.clone(),
+                                date_of_birth: _target.date_of_birth,
+                                address: _target.address.clone(),
+                                phone_number: _target.phone_number.clone(),
+                                sin_ssn: _target.sin_ssn.clone(),
+                                institution_names: _target.institution_names.clone(),
                             },
                             credit_facts: CreditFactsDto {
-                                amount: copied.amount.clone(),
-                                credit_type: copied.credit_type.clone(),
-                                application_datetime: copied.application_datetime,
-                                originated_datetime: copied.originated_datetime.clone(),
-                                payment_due_date: copied.payment_due_date.clone(),
-                                payment_due_amount: copied.payment_due_amount.clone(),
-                                credit_state: copied.credit_state.clone(),
+                                amount: _target.amount.clone(),
+                                credit_type: _target.credit_type.clone(),
+                                application_datetime: _target.application_datetime,
+                                originated_datetime: _target.originated_datetime.clone(),
+                                payment_due_date: _target.payment_due_date.clone(),
+                                payment_due_amount: _target.payment_due_amount.clone(),
+                                credit_state: _target.credit_state.clone(),
                             },
+                            created_at: _target.created_at,
+                            updated_at: _target.updated_at,
                             consumer_match: Some(matched_records),
                         }))
                     },
