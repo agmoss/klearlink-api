@@ -42,10 +42,16 @@ pub struct CreditFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
-pub struct ConsumerCreditDto {
+pub struct InsertConsumerCreditDto {
     #[validate]
     pub consumer_facts: ConsumerFactsDto,
     #[validate]
+    pub credit_facts: CreditFactsDto,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerCreditDto {
+    pub consumer_facts: ConsumerFactsDto,
     pub credit_facts: CreditFactsDto,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -90,7 +96,7 @@ pub struct MatchedOnDto {
     pub phone_number: bool,
 }
 
-impl ConsumerCreditDto {
+impl InsertConsumerCreditDto {
     pub fn to_insert_consumer_credit(
         &self,
         consumer_credit_id_dto: &str,
@@ -109,45 +115,16 @@ impl ConsumerCreditDto {
             amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
             application_datetime: self.credit_facts.application_datetime,
-            originated_datetime: self.credit_facts.originated_datetime.clone(),
-            payment_due_date: self.credit_facts.payment_due_date.clone(),
-            payment_due_amount: self.credit_facts.payment_due_amount.clone(),
+            originated_datetime: self.credit_facts.originated_datetime,
+            payment_due_date: self.credit_facts.payment_due_date,
+            payment_due_amount: self.credit_facts.payment_due_amount,
             credit_state: self.credit_facts.credit_state.clone(),
             user_id: *user_id,
         }
     }
+}
 
-    pub fn from_model_and_matches(
-        model: ConsumerCreditModel,
-        matches: Vec<ConsumerMatchesDto>,
-    ) -> ConsumerMatchDto {
-        ConsumerMatchDto {
-            consumer_facts: ConsumerFactsDto {
-                first_name: model.first_name.clone(),
-                last_name: model.last_name.clone(),
-                email: model.email.clone(),
-                date_of_birth: model.date_of_birth,
-                address: model.address.clone(),
-                phone_number: model.phone_number.clone(),
-                sin_ssn: model.sin_ssn.clone(),
-                institution_names: model.institution_names.clone(),
-            },
-            credit_facts: CreditFactsDto {
-                amount: model.amount.clone(),
-                credit_type: model.credit_type.clone(),
-                application_datetime: model.application_datetime,
-                originated_datetime: model.originated_datetime.clone(),
-                payment_due_date: model.payment_due_date.clone(),
-                payment_due_amount: model.payment_due_amount.clone(),
-                credit_state: model.credit_state.clone(),
-            },
-            created_at: model.created_at,
-            updated_at: model.updated_at,
-            processed: true,
-            consumer_match: Some(matches),
-        }
-    }
-
+impl ConsumerCreditDto {
     pub fn to_update_consumer_credit_model(
         &self,
         consumer_credit_id_dto: &str,
@@ -164,10 +141,10 @@ impl ConsumerCreditDto {
             institution_names: self.consumer_facts.institution_names.clone(),
             amount: self.credit_facts.amount.clone(),
             credit_type: self.credit_facts.credit_type.clone(),
-            application_datetime: self.credit_facts.application_datetime.clone(),
-            originated_datetime: self.credit_facts.originated_datetime.clone(),
-            payment_due_date: self.credit_facts.payment_due_date.clone(),
-            payment_due_amount: self.credit_facts.payment_due_amount.clone(),
+            application_datetime: self.credit_facts.application_datetime,
+            originated_datetime: self.credit_facts.originated_datetime,
+            payment_due_date: self.credit_facts.payment_due_date,
+            payment_due_amount: self.credit_facts.payment_due_amount,
             credit_state: self.credit_facts.credit_state.clone(),
         }
     }
@@ -198,6 +175,59 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
             processed: true,
             created_at: consumer_credit.created_at,
             updated_at: consumer_credit.updated_at,
+        }
+    }
+}
+
+impl ConsumerCreditModel {
+    pub fn to_consumer_match_dto(&self, matches: Vec<ConsumerMatchesDto>) -> ConsumerMatchDto {
+        ConsumerMatchDto {
+            consumer_facts: ConsumerFactsDto {
+                first_name: self.first_name.clone(),
+                last_name: self.last_name.clone(),
+                email: self.email.clone(),
+                date_of_birth: self.date_of_birth,
+                address: self.address.clone(),
+                phone_number: self.phone_number.clone(),
+                sin_ssn: self.sin_ssn.clone(),
+                institution_names: self.institution_names.clone(),
+            },
+            credit_facts: CreditFactsDto {
+                amount: self.amount.clone(),
+                credit_type: self.credit_type.clone(),
+                application_datetime: self.application_datetime,
+                originated_datetime: self.originated_datetime,
+                payment_due_date: self.payment_due_date,
+                payment_due_amount: self.payment_due_amount,
+                credit_state: self.credit_state.clone(),
+            },
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            processed: true,
+            consumer_match: Some(matches),
+        }
+    }
+
+    pub fn to_consumer_matches_dto(&self, _target: &ConsumerCreditModel) -> ConsumerMatchesDto {
+        ConsumerMatchesDto {
+            matched_on: MatchedOnDto {
+                first_name: self.first_name == _target.first_name,
+                last_name: self.last_name == _target.last_name,
+                email: self.email == _target.email,
+                date_of_birth: self.date_of_birth == _target.date_of_birth,
+                address: self.address == _target.address,
+                phone_number: self.phone_number == _target.phone_number,
+            },
+            credit_facts: MatchedCreditFactsDto {
+                amount: self.amount.clone(),
+                credit_type: self.credit_type.clone(),
+                application_datetime: self.application_datetime,
+                originated_datetime: self.originated_datetime,
+                payment_due_date: self.payment_due_date,
+                payment_due_amount: self.payment_due_amount,
+                credit_state: self.credit_state.clone(),
+                institution_names: self.institution_names.clone(),
+            },
         }
     }
 }

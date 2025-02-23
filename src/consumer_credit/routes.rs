@@ -1,6 +1,6 @@
 use rocket::{delete, get, post, put};
 
-use super::dto::{ConsumerCreditDto, ConsumerMatchDto};
+use super::dto::{ConsumerCreditDto, ConsumerMatchDto, InsertConsumerCreditDto};
 use super::service::ConsumerCreditService;
 
 use crate::core::auth::AuthResponse;
@@ -10,7 +10,7 @@ use crate::core::response::{RestDto, RestResult};
 #[put("/consumer-credit/<consumer_credit_id>", data = "<record>")]
 pub async fn submit_consumer_credit<'r>(
     consumer_credit_id: String,
-    record: RestDto<'r, ConsumerCreditDto>,
+    record: RestDto<'r, InsertConsumerCreditDto>,
     auth: AuthResponse,
     conn: Db,
 ) -> RestResult<ConsumerCreditDto> {

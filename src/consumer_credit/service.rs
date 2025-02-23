@@ -1,7 +1,4 @@
-use crate::consumer_credit::dto::{
-    ConsumerCreditDto, ConsumerFactsDto, ConsumerMatchDto, ConsumerMatchesDto, CreditFactsDto,
-    MatchedCreditFactsDto, MatchedOnDto,
-};
+use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto};
 use crate::consumer_credit::models::ConsumerCreditModel;
 use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::execute_db_operation;
@@ -11,12 +8,14 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 use serde_valid::Validate;
 
+use super::dto::InsertConsumerCreditDto;
+
 pub struct ConsumerCreditService;
 
 impl ConsumerCreditService {
     pub async fn submit_consumer_credit<'r>(
         _consumer_credit_id: String,
-        record: RestDto<'r, ConsumerCreditDto>,
+        record: RestDto<'r, InsertConsumerCreditDto>,
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
@@ -131,56 +130,15 @@ impl ConsumerCreditService {
                             .filter(user_id.ne(&auth_result.id))
                             .load::<ConsumerCreditModel>(c)
                     },
-                    |records: Vec<ConsumerCreditModel>| {
-                        let matched_records: Vec<ConsumerMatchesDto> = records
-                            .into_iter()
-                            .map(|r| ConsumerMatchesDto {
-                                matched_on: MatchedOnDto {
-                                    first_name: r.first_name == _target.first_name,
-                                    last_name: r.last_name == _target.last_name,
-                                    email: r.email == _target.email,
-                                    date_of_birth: r.date_of_birth == _target.date_of_birth,
-                                    address: r.address == _target.address,
-                                    phone_number: r.phone_number == _target.phone_number,
-                                },
-                                credit_facts: MatchedCreditFactsDto {
-                                    amount: r.amount,
-                                    credit_type: r.credit_type,
-                                    application_datetime: r.application_datetime,
-                                    originated_datetime: r.originated_datetime,
-                                    payment_due_date: r.payment_due_date,
-                                    payment_due_amount: r.payment_due_amount,
-                                    credit_state: r.credit_state,
-                                    institution_names: r.institution_names,
-                                },
-                            })
-                            .collect();
-
-                        Ok(Json(ConsumerMatchDto {
-                            consumer_facts: ConsumerFactsDto {
-                                first_name: _target.first_name.clone(),
-                                last_name: _target.last_name.clone(),
-                                email: _target.email.clone(),
-                                date_of_birth: _target.date_of_birth,
-                                address: _target.address.clone(),
-                                phone_number: _target.phone_number.clone(),
-                                sin_ssn: _target.sin_ssn.clone(),
-                                institution_names: _target.institution_names.clone(),
-                            },
-                            credit_facts: CreditFactsDto {
-                                amount: _target.amount.clone(),
-                                credit_type: _target.credit_type.clone(),
-                                application_datetime: _target.application_datetime,
-                                originated_datetime: _target.originated_datetime.clone(),
-                                payment_due_date: _target.payment_due_date.clone(),
-                                payment_due_amount: _target.payment_due_amount.clone(),
-                                credit_state: _target.credit_state.clone(),
-                            },
-                            created_at: _target.created_at,
-                            updated_at: _target.updated_at,
-                            processed: true,
-                            consumer_match: Some(matched_records),
-                        }))
+                    |matched_records: Vec<ConsumerCreditModel>| {
+                        Ok(Json(
+                            _target.to_consumer_match_dto(
+                                matched_records
+                                    .into_iter()
+                                    .map(|r| r.to_consumer_matches_dto(&_target))
+                                    .collect(),
+                            ),
+                        ))
                     },
                 )
                 .await

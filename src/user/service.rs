@@ -51,7 +51,6 @@ impl UserService {
 
     async fn get_target_record(_username: String, conn: &Db) -> Result<UserModel, DbError> {
         use crate::schema::users::dsl::*;
-
         conn.run(move |c| users.filter(username.eq(_username)).first::<UserModel>(c))
             .await
     }
