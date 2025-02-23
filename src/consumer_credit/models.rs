@@ -30,6 +30,9 @@ pub struct ConsumerCreditModel {
     pub payment_due_amount: Option<NaiveDateTime>,
     pub credit_state: String,
     pub user_id: i32,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
 #[derive(Insertable)]

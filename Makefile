@@ -43,7 +43,7 @@ migrate-down:
 
 create-migration:
 	$(PRINT_CMD)
-	diesel migration generate create_posts
+	diesel migration generate seed-user
 	$(PRINT_DONE)
 
 # Code Quality

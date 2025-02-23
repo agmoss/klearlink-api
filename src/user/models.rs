@@ -1,4 +1,5 @@
 use crate::schema::users;
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,6 +11,9 @@ pub struct UserModel {
     pub username: String,
     pub api_key: Uuid,
     pub role: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
 
 #[derive(Deserialize, Serialize, Queryable, Insertable)]

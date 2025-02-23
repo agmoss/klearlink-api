@@ -59,6 +59,9 @@ impl<'r> FromRequest<'r> for UserModel {
                             username: user_record.username,
                             api_key: user_record.api_key,
                             role: user_record.role,
+                            created_at: user_record.created_at,
+                            updated_at: user_record.updated_at,
+                            deleted_at: user_record.deleted_at,
                         }),
                         None => Outcome::Error((
                             Status::NotFound,

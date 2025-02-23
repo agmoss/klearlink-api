@@ -5,6 +5,9 @@ CREATE TABLE users (
     username VARCHAR(100) NOT NULL,
     api_key UUID NOT NULL,
     role VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
     UNIQUE (username)
 );
 
@@ -40,8 +43,11 @@ CREATE TABLE consumer_credit (
             'bankrupt/insolvent'
         )
     ),
-    UNIQUE (consumer_credit_id, user_id),
-    user_id INTEGER NOT NULL REFERENCES users (id)
+    user_id INTEGER NOT NULL REFERENCES users (id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
+    UNIQUE (consumer_credit_id, user_id)
 );
 
 CREATE INDEX idx_users_username ON users (username);
@@ -49,3 +55,6 @@ CREATE INDEX idx_consumer_credit_consumer_credit_id ON consumer_credit (
     consumer_credit_id
 );
 CREATE INDEX idx_consumer_credit_user_id ON consumer_credit (user_id);
+
+SELECT DIESEL_MANAGE_UPDATED_AT('users');
+SELECT DIESEL_MANAGE_UPDATED_AT('consumer_credit');

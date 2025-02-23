@@ -478,7 +478,7 @@ This regex validates email addresses according to the **RFC 5322/822** standard,
 
 ### **Rules:**
 
-- The local part may contain alphanumeric characters, dots, and special characters (`!#$%&'*+/=?^_`{|}~-`).
+- The local part may contain alphanumeric characters, dots, and special characters `(!#$%&'*+/=?^_{|}~-)`.
 - The local part may be enclosed in quotes (`"..."`) if special characters are used.
 - The domain must contain alphanumeric characters and hyphens, but not start or end with a hyphen.
 - The domain must end with a valid top-level domain (2-63 characters in length).

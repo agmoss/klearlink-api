@@ -28,6 +28,9 @@ diesel::table! {
         #[max_length = 20]
         credit_state -> Varchar,
         user_id -> Int4,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        deleted_at -> Nullable<Timestamp>,
     }
 }
 
@@ -39,6 +42,9 @@ diesel::table! {
         api_key -> Uuid,
         #[max_length = 100]
         role -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        deleted_at -> Nullable<Timestamp>,
     }
 }
 
