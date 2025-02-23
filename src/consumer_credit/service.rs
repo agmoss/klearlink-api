@@ -178,6 +178,7 @@ impl ConsumerCreditService {
                             },
                             created_at: _target.created_at,
                             updated_at: _target.updated_at,
+                            processed: true,
                             consumer_match: Some(matched_records),
                         }))
                     },

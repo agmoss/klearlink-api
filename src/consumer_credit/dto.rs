@@ -34,11 +34,11 @@ pub struct CreditFactsDto {
     pub credit_type: String,
     #[validate(custom = Validator::past_or_present_datetime)]
     pub application_datetime: NaiveDateTime,
-    #[validate(custom = Validator::credit_state_validation)]
-    pub credit_state: String,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
     pub payment_due_amount: Option<NaiveDateTime>,
+    #[validate(custom = Validator::credit_state_validation)]
+    pub credit_state: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -49,6 +49,7 @@ pub struct ConsumerCreditDto {
     pub credit_facts: CreditFactsDto,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub processed: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -57,6 +58,7 @@ pub struct ConsumerMatchDto {
     pub credit_facts: CreditFactsDto,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub processed: bool,
     pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
 }
 
@@ -71,11 +73,11 @@ pub struct MatchedCreditFactsDto {
     pub amount: BigDecimal,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
-    pub credit_state: String,
-    pub institution_names: Vec<Option<String>>,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
     pub payment_due_amount: Option<NaiveDateTime>,
+    pub credit_state: String,
+    pub institution_names: Vec<Option<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -162,6 +164,7 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 payment_due_amount: consumer_credit.payment_due_amount,
                 credit_state: consumer_credit.credit_state,
             },
+            processed: true,
             created_at: consumer_credit.created_at,
             updated_at: consumer_credit.updated_at,
         }

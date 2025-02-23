@@ -1,6 +1,6 @@
 pub mod schema;
 
-use core::pool::Db;
+use core::{cors::CORS, pool::Db};
 use dotenvy::dotenv;
 
 use rocket::{launch, routes, Build, Rocket};
@@ -17,6 +17,7 @@ fn create_rocket() -> Rocket<Build> {
     rocket::build()
         .register("/", error::catchers())
         .attach(Db::fairing())
+        .attach(CORS)
         .mount(
             "/",
             routes![
