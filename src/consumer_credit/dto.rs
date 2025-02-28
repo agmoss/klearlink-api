@@ -118,23 +118,26 @@ impl UpdateConsumerCreditDto {
         &self,
         consumer_credit_id: &str
     ) -> UpdateConsumerCreditModel {
+        let consumer_facts = self.consumer_facts.as_ref();
+        let credit_facts = self.credit_facts.as_ref();
+
         UpdateConsumerCreditModel {
             consumer_credit_id: Some(consumer_credit_id.to_string()),
-            first_name: None,
-            last_name: None,
-            email: None,
-            date_of_birth: None,
-            address: None,
-            phone_number: None,
-            sin_ssn: None,
-            institution_names: None,
-            amount: None,
-            credit_type: None,
-            application_datetime: None,
-            originated_datetime: None,
-            payment_due_date: None,
-            payment_due_amount: None,
-            credit_state: None
+            first_name: consumer_facts.and_then(|facts| Some(facts.first_name.clone())),
+            last_name: consumer_facts.and_then(|facts| Some(facts.last_name.clone())),
+            email: consumer_facts.and_then(|facts| Some(facts.email.clone())),
+            date_of_birth: consumer_facts.and_then(|facts| Some(facts.date_of_birth)),
+            address: consumer_facts.and_then(|facts| Some(facts.address.clone())),
+            phone_number: consumer_facts.and_then(|facts| Some(facts.phone_number.clone())),
+            sin_ssn: consumer_facts.and_then(|facts| facts.sin_ssn.clone()),
+            institution_names: consumer_facts.and_then(|facts| Some(facts.institution_names.clone())),
+            amount: credit_facts.and_then(|facts| Some(facts.amount.clone())),
+            credit_type: credit_facts.and_then(|facts| Some(facts.credit_type.clone())),
+            application_datetime: credit_facts.and_then(|facts| Some(facts.application_datetime)),
+            originated_datetime: credit_facts.and_then(|facts| facts.originated_datetime),
+            payment_due_date: credit_facts.and_then(|facts| facts.payment_due_date),
+            payment_due_amount: credit_facts.and_then(|facts| facts.payment_due_amount),
+            credit_state: credit_facts.and_then(|facts| Some(facts.credit_state.clone())),
         }
     }
 }
