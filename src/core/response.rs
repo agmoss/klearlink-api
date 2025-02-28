@@ -1,9 +1,9 @@
-use diesel::result::{DatabaseErrorKind, Error as _DieselError};
+use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_valid::validation::Errors as SerdeValidErrors;
-use std::fmt::Debug;
+use std::{error::Error, fmt::Debug};
 use tonic::{Code, Status};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Responder)]
@@ -80,11 +80,21 @@ pub enum ErrorResponse {
     NetworkAuthenticationRequired(Json<ErrorMessage>),
 }
 
-pub type DbError = _DieselError;
+pub type DbError = DieselError;
 
 pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
 
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
+
+fn get_constraint_name(error: &DieselError) -> Option<&str> {
+    if let DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, info) = error {
+        return info.constraint_name();
+    }
+    if let DieselError::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, info) = error {
+        return info.constraint_name();
+    }
+    None
+}
 
 impl ErrorResponse {
     /// Actual internal conversion function for generating an error `Response`
@@ -125,7 +135,10 @@ impl ErrorResponse {
             DbError::NotFound => Self::NotFound(Json(message)),
             DbError::DatabaseError(error_kind, _) => match error_kind {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
-                DatabaseErrorKind::UniqueViolation => Self::Conflict(Json(message)),
+                DatabaseErrorKind::UniqueViolation => {
+                    let constraint_name = get_constraint_name(&err);
+                    Self::Conflict(Json(message))
+                },
                 _ => Self::InternalServerError(Json(message)),
             },
             _ => Self::InternalServerError(Json(message)),
