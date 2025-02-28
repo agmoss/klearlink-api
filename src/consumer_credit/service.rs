@@ -29,7 +29,9 @@ impl ConsumerCreditService {
             conn,
             move |c| {
                 diesel::insert_into(consumer_credit)
-                    .values(dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id))
+                    .values(
+                        dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id),
+                    )
                     .get_result::<ConsumerCreditModel>(c)
             },
             |ok| Ok(Json(ok.into())),
@@ -62,6 +64,7 @@ impl ConsumerCreditService {
 
         auth?;
         let dto = record.map_err(ErrorResponse::from)?;
+        dto.validate().map_err(ErrorResponse::from)?;
         let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
         execute_db_operation(

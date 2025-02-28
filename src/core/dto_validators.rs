@@ -1,7 +1,5 @@
 use bigdecimal::BigDecimal;
-use chrono::Local;
-use chrono::NaiveDate;
-use chrono::NaiveDateTime;
+use chrono::{Local, NaiveDate, NaiveDateTime};
 use regex::Regex;
 use serde_valid::validation::Error;
 
@@ -20,6 +18,14 @@ impl Validator {
         }
     }
 
+    pub fn optional_email_validation(val: &Option<String>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::email_validation(value)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn phone_validation(val: &str) -> Result<(), Error> {
         let phone_regex = Regex::new(r"^\+?[1-9]\d{1,14}$").unwrap();
         if phone_regex.is_match(val) {
@@ -29,6 +35,14 @@ impl Validator {
                 "Invalid E.164 phone number: {}",
                 val
             )))
+        }
+    }
+
+    pub fn optional_phone_validation(val: &Option<String>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::phone_validation(value)
+        } else {
+            Ok(())
         }
     }
 
@@ -44,6 +58,14 @@ impl Validator {
         }
     }
 
+    pub fn optional_address_validation(val: &Option<String>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::address_validation(value)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn credit_type_validation(val: &str) -> Result<(), Error> {
         match val {
             "PDL" | "BNPL" => Ok(()),
@@ -51,6 +73,14 @@ impl Validator {
                 "Invalid credit_type: {}. Must be 'PDL' or 'BNPL'.",
                 val
             ))),
+        }
+    }
+
+    pub fn optional_credit_type_validation(val: &Option<String>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::credit_type_validation(value)
+        } else {
+            Ok(())
         }
     }
 
@@ -64,6 +94,14 @@ impl Validator {
         }
     }
 
+    pub fn optional_credit_state_validation(val: &Option<String>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::credit_state_validation(value)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn non_negative_bigdecimal(val: &BigDecimal) -> Result<(), Error> {
         if val >= &BigDecimal::from(0) {
             Ok(())
@@ -72,6 +110,14 @@ impl Validator {
                 "Invalid value: {}. Must be a non-negative number.",
                 val
             )))
+        }
+    }
+
+    pub fn optional_non_negative_bigdecimal(val: &Option<BigDecimal>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::non_negative_bigdecimal(&value)
+        } else {
+            Ok(())
         }
     }
 
@@ -87,6 +133,14 @@ impl Validator {
         }
     }
 
+    pub fn optional_past_or_present_date(val: &Option<NaiveDate>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::past_or_present_date(&value)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn past_or_present_datetime(val: &NaiveDateTime) -> Result<(), Error> {
         let now = Local::now().naive_local();
         if val <= &now {
@@ -99,25 +153,28 @@ impl Validator {
         }
     }
 
+    pub fn optional_past_or_present_datetime(val: &Option<NaiveDateTime>) -> Result<(), Error> {
+        if let Some(value) = val {
+            Self::past_or_present_datetime(&value)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn sin_validation(val: &Option<String>) -> Result<(), Error> {
         if let Some(sin) = val {
-            // Ensure SIN contains exactly 9 digits
             if sin.len() != 9 || !sin.chars().all(|c| c.is_ascii_digit()) {
                 return Err(Error::Custom(format!(
                     "Invalid SIN: {}. Must be exactly 9 digits.",
                     sin
                 )));
             }
-
-            // First digit must be 1-9 (no leading zero)
             if sin.starts_with('0') {
                 return Err(Error::Custom(format!(
                     "Invalid SIN: {}. Cannot start with 0.",
                     sin
                 )));
             }
-
-            // Validate using Luhn Algorithm
             if !Self::luhn_check(sin) {
                 return Err(Error::Custom(format!(
                     "Invalid SIN: {}. Failed Luhn checksum validation.",

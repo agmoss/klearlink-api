@@ -27,7 +27,7 @@ pub struct ConsumerCreditModel {
     pub application_datetime: NaiveDateTime,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
-    pub payment_due_amount: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<f64>,
     pub credit_state: String,
     pub user_id: i32,
     pub created_at: NaiveDateTime,
@@ -53,7 +53,7 @@ pub struct InsertConsumerCreditModel {
     pub application_datetime: NaiveDateTime,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
-    pub payment_due_amount: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<f64>,
     pub credit_state: String,
     pub user_id: i32,
 }
@@ -76,9 +76,6 @@ pub struct UpdateConsumerCreditModel {
     pub application_datetime: Option<NaiveDateTime>,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
-    pub payment_due_amount: Option<NaiveDateTime>,
+    pub payment_due_amount: Option<f64>,
     pub credit_state: Option<String>,
 }
-
-// title: Option<&'a str>,
-// body: Option<&'a str>,

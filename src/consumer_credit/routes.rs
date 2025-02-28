@@ -1,6 +1,8 @@
 use rocket::{delete, get, post, put};
 
-use super::dto::{ConsumerCreditDto, ConsumerMatchDto, InsertConsumerCreditDto, UpdateConsumerCreditDto};
+use super::dto::{
+    ConsumerCreditDto, ConsumerMatchDto, InsertConsumerCreditDto, UpdateConsumerCreditDto,
+};
 use super::service::ConsumerCreditService;
 
 use crate::core::auth::AuthResponse;

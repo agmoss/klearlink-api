@@ -32,7 +32,7 @@ CREATE TABLE consumer_credit (
     application_datetime TIMESTAMP NOT NULL,
     originated_datetime TIMESTAMP,
     payment_due_date TIMESTAMP,
-    payment_due_amount TIMESTAMP,
+    payment_due_amount FLOAT,
     credit_state VARCHAR(20) NOT NULL CHECK (
         credit_state IN (
             'application',

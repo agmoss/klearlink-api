@@ -24,7 +24,7 @@ diesel::table! {
         application_datetime -> Timestamp,
         originated_datetime -> Nullable<Timestamp>,
         payment_due_date -> Nullable<Timestamp>,
-        payment_due_amount -> Nullable<Timestamp>,
+        payment_due_amount -> Nullable<Float8>,
         #[max_length = 20]
         credit_state -> Varchar,
         user_id -> Int4,
