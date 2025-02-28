@@ -62,17 +62,17 @@ mod tests {
 
         let usernames = vec!["test_admin_user", "test_user_1", "test_user_2"];
         for username in usernames {
-            let resp1 = client
+            let r1 = client
                 .delete(format!("/consumer-credit/user/{}", username))
                 .dispatch();
 
-            assert_eq!(resp1.status(), Status::Ok);
-            let response = client
+            assert_eq!(r1.status(), Status::Ok);
+            let r2 = client
                 .delete(format!("/users/{}", username))
                 .header(ContentType::JSON)
                 .dispatch();
 
-            assert_eq!(response.status(), Status::Ok);
+            assert_eq!(r2.status(), Status::Ok);
         }
 
         println!("🧹 Global Cleanup: Test users deleted.");

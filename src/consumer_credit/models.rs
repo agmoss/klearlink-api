@@ -58,24 +58,27 @@ pub struct InsertConsumerCreditModel {
     pub user_id: i32,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[diesel(table_name = consumer_credit)]
 pub struct UpdateConsumerCreditModel {
-    pub consumer_credit_id: String,
-    pub first_name: String,
-    pub last_name: String,
-    pub email: String,
-    pub date_of_birth: NaiveDate,
-    pub address: String,
-    pub phone_number: String,
+    pub consumer_credit_id: Option<String>,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: Option<String>,
+    pub date_of_birth: Option<NaiveDate>,
+    pub address: Option<String>,
+    pub phone_number: Option<String>,
     pub sin_ssn: Option<String>,
-    pub institution_names: Vec<Option<String>>,
+    pub institution_names: Option<Vec<Option<String>>>,
     #[diesel(sql_type = Numeric)]
-    pub amount: BigDecimal,
-    pub credit_type: String,
-    pub application_datetime: NaiveDateTime,
+    pub amount: Option<BigDecimal>,
+    pub credit_type: Option<String>,
+    pub application_datetime: Option<NaiveDateTime>,
     pub originated_datetime: Option<NaiveDateTime>,
     pub payment_due_date: Option<NaiveDateTime>,
     pub payment_due_amount: Option<NaiveDateTime>,
-    pub credit_state: String,
+    pub credit_state: Option<String>,
 }
+
+// title: Option<&'a str>,
+// body: Option<&'a str>,

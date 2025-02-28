@@ -3,7 +3,7 @@ use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json:
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_valid::validation::Errors as SerdeValidErrors;
-use std::{error::Error, fmt::Debug};
+use std::fmt::Debug;
 use tonic::{Code, Status};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Responder)]
@@ -137,7 +137,7 @@ impl ErrorResponse {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
                 DatabaseErrorKind::UniqueViolation => {
                     let constraint_name = get_constraint_name(&err);
-                    let custom_message = if constraint_name == Some("idx_consumer_credit_consumer_credit_id") {
+                    let custom_message = if constraint_name == Some("consumer_credit_consumer_credit_id_user_id_key") {
                         ErrorMessage::from_str("Duplicate consumer credit record error")
                     } else {
                         message

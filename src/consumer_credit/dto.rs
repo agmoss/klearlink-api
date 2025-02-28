@@ -21,6 +21,7 @@ pub struct ConsumerFactsDto {
     #[validate(custom = Validator::phone_validation)]
     pub phone_number: String,
     #[validate(custom = Validator::sin_validation)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sin_ssn: Option<String>,
     #[validate(unique_items)]
     pub institution_names: Vec<Option<String>>,
@@ -34,8 +35,11 @@ pub struct CreditFactsDto {
     pub credit_type: String,
     #[validate(custom = Validator::past_or_present_datetime)]
     pub application_datetime: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub originated_datetime: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_date: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_amount: Option<NaiveDateTime>,
     #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
@@ -48,6 +52,16 @@ pub struct InsertConsumerCreditDto {
     #[validate]
     pub credit_facts: CreditFactsDto,
 }
+
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct UpdateConsumerCreditDto {
+    #[validate]
+    pub consumer_facts: Option<ConsumerFactsDto>,
+    #[validate]
+    pub credit_facts: Option<CreditFactsDto>,
+}
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerCreditDto {
@@ -79,8 +93,11 @@ pub struct MatchedCreditFactsDto {
     pub amount: BigDecimal,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub originated_datetime: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_date: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_amount: Option<NaiveDateTime>,
     pub credit_state: String,
     pub institution_names: Vec<Option<String>>,
@@ -96,14 +113,40 @@ pub struct MatchedOnDto {
     pub phone_number: bool,
 }
 
-impl InsertConsumerCreditDto {
-    pub fn to_insert_consumer_credit(
+impl UpdateConsumerCreditDto {
+    pub fn to_update_consumer_credit_model(
         &self,
-        consumer_credit_id_dto: &str,
+        consumer_credit_id: &str
+    ) -> UpdateConsumerCreditModel {
+        UpdateConsumerCreditModel {
+            consumer_credit_id: Some(consumer_credit_id.to_string()),
+            first_name: None,
+            last_name: None,
+            email: None,
+            date_of_birth: None,
+            address: None,
+            phone_number: None,
+            sin_ssn: None,
+            institution_names: None,
+            amount: None,
+            credit_type: None,
+            application_datetime: None,
+            originated_datetime: None,
+            payment_due_date: None,
+            payment_due_amount: None,
+            credit_state: None
+        }
+    }
+}
+
+impl InsertConsumerCreditDto {
+    pub fn to_insert_consumer_credit_model(
+        &self,
+        consumer_credit_id: &str,
         user_id: &i32,
     ) -> InsertConsumerCreditModel {
         InsertConsumerCreditModel {
-            consumer_credit_id: consumer_credit_id_dto.to_string(),
+            consumer_credit_id: consumer_credit_id.to_string(),
             first_name: self.consumer_facts.first_name.clone(),
             last_name: self.consumer_facts.last_name.clone(),
             email: self.consumer_facts.email.clone(),
@@ -122,33 +165,9 @@ impl InsertConsumerCreditDto {
             user_id: *user_id,
         }
     }
+
 }
 
-impl ConsumerCreditDto {
-    pub fn to_update_consumer_credit_model(
-        &self,
-        consumer_credit_id_dto: &str,
-    ) -> UpdateConsumerCreditModel {
-        UpdateConsumerCreditModel {
-            consumer_credit_id: consumer_credit_id_dto.to_string(),
-            first_name: self.consumer_facts.first_name.clone(),
-            last_name: self.consumer_facts.last_name.clone(),
-            email: self.consumer_facts.email.clone(),
-            date_of_birth: self.consumer_facts.date_of_birth,
-            address: self.consumer_facts.address.clone(),
-            phone_number: self.consumer_facts.phone_number.clone(),
-            sin_ssn: self.consumer_facts.sin_ssn.clone(),
-            institution_names: self.consumer_facts.institution_names.clone(),
-            amount: self.credit_facts.amount.clone(),
-            credit_type: self.credit_facts.credit_type.clone(),
-            application_datetime: self.credit_facts.application_datetime,
-            originated_datetime: self.credit_facts.originated_datetime,
-            payment_due_date: self.credit_facts.payment_due_date,
-            payment_due_amount: self.credit_facts.payment_due_amount,
-            credit_state: self.credit_facts.credit_state.clone(),
-        }
-    }
-}
 
 impl From<ConsumerCreditModel> for ConsumerCreditDto {
     fn from(consumer_credit: ConsumerCreditModel) -> Self {

@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 use serde_valid::Validate;
 
-use super::dto::InsertConsumerCreditDto;
+use super::dto::{InsertConsumerCreditDto, UpdateConsumerCreditDto};
 
 pub struct ConsumerCreditService;
 
@@ -29,7 +29,7 @@ impl ConsumerCreditService {
             conn,
             move |c| {
                 diesel::insert_into(consumer_credit)
-                    .values(dto.to_insert_consumer_credit(&_consumer_credit_id, &auth_result.id))
+                    .values(dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id))
                     .get_result::<ConsumerCreditModel>(c)
             },
             |ok| Ok(Json(ok.into())),
@@ -54,7 +54,7 @@ impl ConsumerCreditService {
 
     pub async fn update_consumer_credit<'r>(
         _consumer_credit_id: String,
-        record: RestDto<'r, InsertConsumerCreditDto>,
+        record: RestDto<'r, UpdateConsumerCreditDto>,
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
@@ -68,19 +68,7 @@ impl ConsumerCreditService {
             conn,
             move |c| {
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(_consumer_credit_id)))
-                    .set((
-                        first_name.eq(updated_consumer_facts.first_name),
-                        last_name.eq(updated_consumer_facts.last_name),
-                        email.eq(updated_consumer_facts.email),
-                        date_of_birth.eq(updated_consumer_facts.date_of_birth),
-                        address.eq(updated_consumer_facts.address),
-                        phone_number.eq(updated_consumer_facts.phone_number),
-                        institution_names.eq(updated_consumer_facts.institution_names),
-                        amount.eq(updated_consumer_facts.amount),
-                        credit_type.eq(updated_consumer_facts.credit_type),
-                        application_datetime.eq(updated_consumer_facts.application_datetime),
-                        credit_state.eq(updated_consumer_facts.credit_state),
-                    ))
+                    .set(updated_consumer_facts)
                     .get_result::<ConsumerCreditModel>(c)
             },
             |ok| Ok(Json(ok.into())),
