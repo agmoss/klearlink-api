@@ -93,6 +93,9 @@ fn get_constraint_name(error: &DieselError) -> Option<&str> {
     if let DieselError::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, info) = error {
         return info.constraint_name();
     }
+    if let DieselError::DatabaseError(DatabaseErrorKind::CheckViolation, info) = error {
+        return info.constraint_name();
+    }
     None
 }
 
@@ -135,6 +138,10 @@ impl ErrorResponse {
             DbError::NotFound => Self::NotFound(Json(message)),
             DbError::DatabaseError(error_kind, _) => match error_kind {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
+                DatabaseErrorKind::CheckViolation => {
+                    let constraint_name = get_constraint_name(&err);
+                    Self::Conflict(Json(message))
+                },
                 DatabaseErrorKind::UniqueViolation => {
                     let constraint_name = get_constraint_name(&err);
                     let custom_message = if constraint_name
