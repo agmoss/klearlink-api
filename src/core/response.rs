@@ -1,6 +1,10 @@
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
-use rocket::{response::Responder, serde::json::Error as SerdeError, serde::json::Json};
+use rocket::{
+    response::Responder,
+    serde::json::{Error as SerdeError, Json},
+};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use serde_json::Value;
 use serde_valid::validation::Errors as SerdeValidErrors;
 use std::fmt::Debug;
@@ -141,12 +145,14 @@ impl ErrorResponse {
                 DatabaseErrorKind::CheckViolation => {
                     let constraint_name = get_constraint_name(&err);
                     let custom_message = if let Some(name) = constraint_name {
-                        ErrorMessage::from_value(json!({ "error": message.error, "constraint": name }))
+                        ErrorMessage::from_value(
+                            json!({ "error": message.error, "constraint": name }),
+                        )
                     } else {
                         message
                     };
                     Self::Conflict(Json(custom_message))
-                },
+                }
                 DatabaseErrorKind::UniqueViolation => {
                     let constraint_name = get_constraint_name(&err);
                     let custom_message = if constraint_name

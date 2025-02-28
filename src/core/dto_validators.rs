@@ -3,6 +3,8 @@ use chrono::{Local, NaiveDate, NaiveDateTime};
 use regex::Regex;
 use serde_valid::validation::Error;
 
+use crate::consumer_credit::dto::CreditFactsDto;
+
 pub struct Validator;
 
 impl Validator {
@@ -18,14 +20,10 @@ impl Validator {
         }
     }
 
-    pub fn validate_credit_facts(
-        originated_datetime: &Option<NaiveDateTime>,
-        payment_due_date: &Option<NaiveDateTime>,
-        payment_due_amount: &Option<f64>,
-    ) -> Result<(), Error> {
-        let count = originated_datetime.is_some() as u8
-            + payment_due_date.is_some() as u8
-            + payment_due_amount.is_some() as u8;
+    pub fn validate_credit_facts(dto: &CreditFactsDto) -> Result<(), Error> {
+        let count = dto.originated_datetime.is_some() as u8
+            + dto.payment_due_date.is_some() as u8
+            + dto.payment_due_amount.is_some() as u8;
 
         if count == 0 || count == 3 {
             Ok(())

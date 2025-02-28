@@ -48,6 +48,7 @@ pub struct UpdateConsumerFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[validate(custom = Validator::validate_credit_facts)]
 pub struct CreditFactsDto {
     #[validate(custom = Validator::non_negative_bigdecimal)]
     pub amount: BigDecimal,
@@ -61,7 +62,6 @@ pub struct CreditFactsDto {
     pub payment_due_date: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_amount: Option<f64>,
-    #[validate(custom = Validator::validate_credit_facts)]
     #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
 }

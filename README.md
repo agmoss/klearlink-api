@@ -150,7 +150,7 @@ The KlearSync Data ETL interface automatically populates new consumer credit rec
 
 **Request Body**:
 
-Same schema as Submit endpoint, with additional optional fields in credit_facts:
+Same schema as Submit endpoint (all fields optional), with additional optional fields in credit_facts:
 
 credit_facts (optional - only present on credit states of 'originated', 'compliant', 'non-compliant')
 
@@ -159,6 +159,10 @@ credit_facts (optional - only present on credit states of 'originated', 'complia
 | originated_datetime | string | ISO 8601 datetime of origination      |
 | payment_due_date    | string | ISO 8601 datetime of payment due date |
 | payment_amount_due  | number | Amount due for payment, in dollars    |
+
+:::info
+`originated_datetime`, `payment_due_date`, and `payment_amount_due` are all required if one is provided. Further, these fields can only be set when the credit state is not `application` or `declined`
+:::
 
 **Example**:
 
