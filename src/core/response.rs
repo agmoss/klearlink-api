@@ -140,7 +140,12 @@ impl ErrorResponse {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
                 DatabaseErrorKind::CheckViolation => {
                     let constraint_name = get_constraint_name(&err);
-                    Self::Conflict(Json(message))
+                    let custom_message = if let Some(name) = constraint_name {
+                        ErrorMessage::from_value(json!({ "error": message.error, "constraint": name }))
+                    } else {
+                        message
+                    };
+                    Self::Conflict(Json(custom_message))
                 },
                 DatabaseErrorKind::UniqueViolation => {
                     let constraint_name = get_constraint_name(&err);
