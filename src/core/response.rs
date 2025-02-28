@@ -137,7 +137,12 @@ impl ErrorResponse {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
                 DatabaseErrorKind::UniqueViolation => {
                     let constraint_name = get_constraint_name(&err);
-                    Self::Conflict(Json(message))
+                    let custom_message = if constraint_name == Some("idx_consumer_credit_consumer_credit_id") {
+                        ErrorMessage::from_str("Duplicate consumer credit record error")
+                    } else {
+                        message
+                    };
+                    Self::Conflict(Json(custom_message))
                 },
                 _ => Self::InternalServerError(Json(message)),
             },
