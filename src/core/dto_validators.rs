@@ -18,6 +18,24 @@ impl Validator {
         }
     }
 
+    pub fn validate_credit_facts(
+        originated_datetime: &Option<NaiveDateTime>,
+        payment_due_date: &Option<NaiveDateTime>,
+        payment_due_amount: &Option<f64>,
+    ) -> Result<(), Error> {
+        let count = originated_datetime.is_some() as u8
+            + payment_due_date.is_some() as u8
+            + payment_due_amount.is_some() as u8;
+
+        if count == 0 || count == 3 {
+            Ok(())
+        } else {
+            Err(Error::Custom(
+                "All or none of originated_datetime, payment_due_date, and payment_due_amount must be supplied.".to_string(),
+            ))
+        }
+    }
+
     pub fn optional_email_validation(val: &Option<String>) -> Result<(), Error> {
         if let Some(value) = val {
             Self::email_validation(value)

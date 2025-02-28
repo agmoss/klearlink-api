@@ -61,6 +61,7 @@ pub struct CreditFactsDto {
     pub payment_due_date: Option<NaiveDateTime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_amount: Option<f64>,
+    #[validate(custom = Validator::validate_credit_facts)]
     #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
 }
