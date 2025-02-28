@@ -28,6 +28,19 @@ pub struct ConsumerFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct UpdateConsumerFactsDto {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: Option<String>,
+    pub date_of_birth: Option<NaiveDate>,
+    pub address: Option<String>,
+    pub phone_number: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sin_ssn: Option<String>,
+    pub institution_names: Option<Vec<Option<String>>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct CreditFactsDto {
     #[validate(custom = Validator::non_negative_bigdecimal)]
     pub amount: BigDecimal,
@@ -46,6 +59,20 @@ pub struct CreditFactsDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct UpdateCreditFactsDto {
+    pub amount: Option<BigDecimal>,
+    pub credit_type: Option<String>,
+    pub application_datetime: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub originated_datetime: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payment_due_date: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payment_due_amount: Option<NaiveDateTime>,
+    pub credit_state: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct InsertConsumerCreditDto {
     #[validate]
     pub consumer_facts: ConsumerFactsDto,
@@ -57,9 +84,9 @@ pub struct InsertConsumerCreditDto {
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct UpdateConsumerCreditDto {
     #[validate]
-    pub consumer_facts: Option<ConsumerFactsDto>,
+    pub consumer_facts: Option<UpdateConsumerFactsDto>,
     #[validate]
-    pub credit_facts: Option<CreditFactsDto>,
+    pub credit_facts: Option<UpdateCreditFactsDto>,
 }
 
 
