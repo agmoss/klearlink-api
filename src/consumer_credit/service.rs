@@ -54,7 +54,7 @@ impl ConsumerCreditService {
 
     pub async fn update_consumer_credit<'r>(
         _consumer_credit_id: String,
-        record: RestDto<'r, ConsumerCreditDto>,
+        record: RestDto<'r, InsertConsumerCreditDto>,
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
