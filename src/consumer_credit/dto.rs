@@ -49,6 +49,7 @@ pub struct UpdateConsumerFactsDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 #[validate(custom = Validator::validate_credit_facts)]
+#[validate(custom = Validator::validate_credit_state)]
 pub struct CreditFactsDto {
     #[validate(custom = Validator::non_negative_bigdecimal)]
     pub amount: BigDecimal,

@@ -34,6 +34,24 @@ impl Validator {
         }
     }
 
+    pub fn validate_credit_state(dto: &CreditFactsDto) -> Result<(), Error> {
+        if dto.credit_state == "applied" {
+            let count = dto.originated_datetime.is_some() as u8
+                + dto.payment_due_date.is_some() as u8
+                + dto.payment_due_amount.is_some() as u8;
+
+            if count == 0 {
+                Ok(())
+            } else {
+                Err(Error::Custom(
+                    "If credit_state is 'applied', originated_datetime, payment_due_date, and payment_due_amount cannot be present.".to_string(),
+                ))
+            }
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn optional_email_validation(val: &Option<String>) -> Result<(), Error> {
         if let Some(value) = val {
             Self::email_validation(value)
