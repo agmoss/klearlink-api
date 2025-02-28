@@ -145,26 +145,23 @@ impl UpdateConsumerCreditDto {
         &self,
         consumer_credit_id: &str
     ) -> UpdateConsumerCreditModel {
-        let consumer_facts = self.consumer_facts.as_ref();
-        let credit_facts = self.credit_facts.as_ref();
-
         UpdateConsumerCreditModel {
             consumer_credit_id: Some(consumer_credit_id.to_string()),
-            first_name: consumer_facts.and_then(|facts| Some(facts.first_name.clone())),
-            last_name: consumer_facts.and_then(|facts| Some(facts.last_name.clone())),
-            email: consumer_facts.and_then(|facts| Some(facts.email.clone())),
-            date_of_birth: consumer_facts.and_then(|facts| Some(facts.date_of_birth)),
-            address: consumer_facts.and_then(|facts| Some(facts.address.clone())),
-            phone_number: consumer_facts.and_then(|facts| Some(facts.phone_number.clone())),
-            sin_ssn: consumer_facts.and_then(|facts| facts.sin_ssn.clone()),
-            institution_names: consumer_facts.and_then(|facts| Some(facts.institution_names.clone())),
-            amount: credit_facts.and_then(|facts| Some(facts.amount.clone())),
-            credit_type: credit_facts.and_then(|facts| Some(facts.credit_type.clone())),
-            application_datetime: credit_facts.and_then(|facts| Some(facts.application_datetime)),
-            originated_datetime: credit_facts.and_then(|facts| facts.originated_datetime),
-            payment_due_date: credit_facts.and_then(|facts| facts.payment_due_date),
-            payment_due_amount: credit_facts.and_then(|facts| facts.payment_due_amount),
-            credit_state: credit_facts.and_then(|facts| Some(facts.credit_state.clone())),
+            first_name: self.consumer_facts.as_ref().and_then(|facts| facts.first_name.clone()),
+            last_name: self.consumer_facts.as_ref().and_then(|facts| facts.last_name.clone()),
+            email: self.consumer_facts.as_ref().and_then(|facts| facts.email.clone()),
+            date_of_birth: self.consumer_facts.as_ref().and_then(|facts| facts.date_of_birth),
+            address: self.consumer_facts.as_ref().and_then(|facts| facts.address.clone()),
+            phone_number: self.consumer_facts.as_ref().and_then(|facts| facts.phone_number.clone()),
+            sin_ssn: self.consumer_facts.as_ref().and_then(|facts| facts.sin_ssn.clone()),
+            institution_names: self.consumer_facts.as_ref().and_then(|facts| facts.institution_names.clone()),
+            amount: self.credit_facts.as_ref().and_then(|facts| facts.amount.clone()),
+            credit_type: self.credit_facts.as_ref().and_then(|facts| facts.credit_type.clone()),
+            application_datetime: self.credit_facts.as_ref().and_then(|facts| facts.application_datetime),
+            originated_datetime: self.credit_facts.as_ref().and_then(|facts| facts.originated_datetime),
+            payment_due_date: self.credit_facts.as_ref().and_then(|facts| facts.payment_due_date),
+            payment_due_amount: self.credit_facts.as_ref().and_then(|facts| facts.payment_due_amount),
+            credit_state: self.credit_facts.as_ref().and_then(|facts| facts.credit_state.clone()),
         }
     }
 }
