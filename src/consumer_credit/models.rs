@@ -4,6 +4,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::schema::consumer_credit;
+use crate::schema::consumer_credit_events;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Clone)]
 #[diesel(table_name = consumer_credit)]
@@ -79,3 +80,29 @@ pub struct UpdateConsumerCreditModel {
     pub payment_due_amount: Option<f64>,
     pub credit_state: Option<String>,
 }
+
+#[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]
+#[diesel(table_name = consumer_credit_events)]
+pub struct ConsumerCreditEvents {
+    pub id: i32,
+    pub consumer_credit_id: String,
+    pub event_type: String,
+    pub event_data: serde_json::Value,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]
+#[diesel(table_name = consumer_credit_events)]
+pub struct InsertConsumerCreditEvents {
+    pub consumer_credit_id: String,
+    pub event_type: String,
+    pub event_data: serde_json::Value,
+}
+
+// id -> Int4,
+// #[max_length = 100]
+// consumer_credit_id -> Varchar,
+// #[max_length = 50]
+// event_type -> Varchar,
+// event_data -> Jsonb,
+// created_at -> Nullable<Timestamp>,
