@@ -71,7 +71,7 @@ pub struct CreditFactsDto {
     pub credit_state: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Serialize, Clone, Validate, Default)]
 pub struct UpdateCreditFactsDto {
     #[validate(custom = Validator::optional_non_negative_bigdecimal)]
     pub amount: Option<BigDecimal>,
@@ -154,72 +154,34 @@ pub struct MatchedOnDto {
 }
 
 impl UpdateConsumerCreditDto {
+    fn extract<T: Clone>(opt: &Option<T>) -> Option<T> {
+        opt.clone()
+    }
+
     pub fn to_update_consumer_credit_model(
         &self,
         consumer_credit_id: &str,
     ) -> UpdateConsumerCreditModel {
+        let facts = self.consumer_facts.as_ref();
+        let credit = self.credit_facts.as_ref();
+
         UpdateConsumerCreditModel {
             consumer_credit_id: Some(consumer_credit_id.to_string()),
-            first_name: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.first_name.clone()),
-            last_name: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.last_name.clone()),
-            email: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.email.clone()),
-            date_of_birth: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.date_of_birth),
-            address: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.address.clone()),
-            phone_number: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.phone_number.clone()),
-            sin_ssn: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.sin_ssn.clone()),
-            institution_names: self
-                .consumer_facts
-                .as_ref()
-                .and_then(|facts| facts.institution_names.clone()),
-            amount: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.amount.clone()),
-            credit_type: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.credit_type.clone()),
-            application_datetime: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.application_datetime),
-            originated_datetime: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.originated_datetime),
-            payment_due_date: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.payment_due_date),
-            payment_due_amount: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.payment_due_amount),
-            credit_state: self
-                .credit_facts
-                .as_ref()
-                .and_then(|facts| facts.credit_state.clone()),
+            first_name: Self::extract(&facts.and_then(|f| f.first_name.clone())),
+            last_name: Self::extract(&facts.and_then(|f| f.last_name.clone())),
+            email: Self::extract(&facts.and_then(|f| f.email.clone())),
+            date_of_birth: facts.and_then(|f| f.date_of_birth),
+            address: Self::extract(&facts.and_then(|f| f.address.clone())),
+            phone_number: Self::extract(&facts.and_then(|f| f.phone_number.clone())),
+            sin_ssn: Self::extract(&facts.and_then(|f| f.sin_ssn.clone())),
+            institution_names: Self::extract(&facts.and_then(|f| f.institution_names.clone())),
+            amount: Self::extract(&credit.and_then(|c| c.amount.clone())),
+            credit_type: Self::extract(&credit.and_then(|c| c.credit_type.clone())),
+            application_datetime: credit.and_then(|c| c.application_datetime),
+            originated_datetime: credit.and_then(|c| c.originated_datetime),
+            payment_due_date: credit.and_then(|c| c.payment_due_date),
+            payment_due_amount: credit.and_then(|c| c.payment_due_amount),
+            credit_state: Self::extract(&credit.and_then(|c| c.credit_state.clone())),
         }
     }
 }
