@@ -1,4 +1,4 @@
-use crate::core::{response::ErrorMessage, response::ErrorResponse};
+use crate::core::{reqres::ErrorMessage, reqres::ErrorResponse};
 use rocket::{catch, catchers, http::Status, serde::json::Json, Request};
 
 pub fn catchers() -> Vec<rocket::Catcher> {

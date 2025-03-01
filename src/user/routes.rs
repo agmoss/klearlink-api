@@ -1,6 +1,6 @@
 use crate::core::auth::AuthResponse;
 use crate::core::pool::Db;
-use crate::core::response::{RestDto, RestResult};
+use crate::core::reqres::{RestDto, RestResult};
 use rocket::{delete, get, post};
 
 use super::dto::UserDto;

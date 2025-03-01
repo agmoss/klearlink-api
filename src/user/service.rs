@@ -1,6 +1,6 @@
 use crate::core::execute_db_operation::execute_db_operation_rest;
 use crate::core::pool::Db;
-use crate::core::response::{validate_dto, RestDto, RestResult};
+use crate::core::reqres::{validate_dto, RestDto, RestResult};
 use crate::user::models::{InsertUserModel, UserModel};
 use diesel::prelude::*;
 use rocket::serde::json::Json;

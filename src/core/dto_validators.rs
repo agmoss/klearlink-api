@@ -5,7 +5,7 @@ use serde_valid::validation::Error;
 
 use crate::consumer_credit::dto::CreditFactsDto;
 
-use super::response::ValidatorError;
+use super::reqres::ValidatorError;
 
 pub struct Validator;
 
