@@ -29,20 +29,32 @@ impl ConsumerCreditService {
         let dto = record.map_err(ErrorResponse::from)?;
         dto.validate().map_err(ErrorResponse::from)?;
 
-        let result = execute_db_operation(
-            conn,
-            move |c| {
+        let re_1 = conn
+            .run(move |c: &mut PgConnection| {
                 diesel::insert_into(consumer_credit)
                     .values(
                         dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id),
                     )
                     .get_result::<ConsumerCreditModel>(c)
-            },
-            |ok| Ok(Json(ok.into())),
-        )
-        .await;
+            })
+            .await;
 
-        result.map_err(ErrorResponse::from)
+        let re_2 = match re_1 {
+            Ok(file) => {
+                ConsumerCreditService::log_event(
+                    &conn,
+                    &file.consumer_credit_id,
+                    "ConsumerCreditCreated",
+                    serde_json::to_value(&file).unwrap(),
+                )
+                .await?;
+
+                Ok(Json(file.into()))
+            }
+            Err(error) => Err(ErrorResponse::from(error)),
+        };
+
+        re_2
     }
 
     pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
@@ -74,18 +86,30 @@ impl ConsumerCreditService {
         dto.validate().map_err(ErrorResponse::from)?;
         let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
-        let result = execute_db_operation(
-            conn,
-            move |c| {
+        let re_1 = conn
+            .run(move |c: &mut PgConnection| {
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(&_consumer_credit_id)))
                     .set(updated_consumer_facts)
                     .get_result::<ConsumerCreditModel>(c)
-            },
-            |ok| Ok(Json(ok.into())),
-        )
-        .await;
+            })
+            .await;
 
-        result
+        let re_2 = match re_1 {
+            Ok(file) => {
+                ConsumerCreditService::log_event(
+                    &conn,
+                    &file.consumer_credit_id,
+                    "ConsumerCreditCreated",
+                    serde_json::to_value(&file).unwrap(),
+                )
+                .await?;
+
+                Ok(Json(file.into()))
+            }
+            Err(error) => Err(ErrorResponse::from(error)),
+        };
+
+        re_2
     }
 
     pub async fn view_consumer_credit(
