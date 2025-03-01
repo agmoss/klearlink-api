@@ -9,9 +9,9 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::response::{ErrorMessage, ErrorResponse};
+use super::response::{BaseResponse, ErrorMessage, ErrorResponse};
 
-pub type AuthResponse = Result<AuthDto, ErrorResponse>;
+pub type AuthResponse = BaseResponse<AuthDto>;
 
 #[derive(Deserialize, Serialize)]
 pub struct AuthDto {
@@ -46,7 +46,7 @@ impl AuthDto {
         .await
     }
 
-    pub fn ensure_admin(&self) -> Result<(), ErrorResponse> {
+    pub fn ensure_admin(&self) -> BaseResponse<()> {
         if self.role == "admin" {
             Ok(())
         } else {

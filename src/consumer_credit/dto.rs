@@ -175,7 +175,7 @@ impl UpdateConsumerCreditDto {
             date_of_birth: self
                 .consumer_facts
                 .as_ref()
-                .and_then(|facts| facts.date_of_birth.clone()),
+                .and_then(|facts| facts.date_of_birth),
             address: self
                 .consumer_facts
                 .as_ref()

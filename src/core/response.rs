@@ -1,14 +1,17 @@
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use rocket::{
     response::Responder,
-    serde::json::{Error as SerdeError, Json},
+    serde::json::{Error as RocketSerdeError, Json},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_json::Error as SerdeError;
 use serde_json::Value;
+use serde_valid::validation::Error as SerdeValidError;
 use serde_valid::{validation::Errors as SerdeValidErrors, Validate};
 use std::fmt::Debug;
 use tonic::{Code, Status};
+use uuid::Error as UuidError;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Responder)]
 pub struct ErrorMessage {
@@ -84,15 +87,17 @@ pub enum ErrorResponse {
     NetworkAuthenticationRequired(Json<ErrorMessage>),
 }
 
-pub type DbError = DieselError;
+pub type DbOpResult<T> = Result<T, DieselError>;
 
-pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
+pub type RestDto<'a, T> = Result<Json<T>, RocketSerdeError<'a>>;
 
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
 
 pub type BaseResponse<T> = Result<T, ErrorResponse>;
 
-pub fn validate_dto<'r, T: Validate>(record: RestDto<'r, T>) -> Result<Json<T>, ErrorResponse> {
+pub type ValidatorError = Result<(), SerdeValidError>;
+
+pub fn validate_dto<T: Validate>(record: RestDto<T>) -> Result<Json<T>, ErrorResponse> {
     let dto = record.map_err(ErrorResponse::from)?;
     dto.validate().map_err(ErrorResponse::from)?;
     Ok(dto)
@@ -144,11 +149,11 @@ impl ErrorResponse {
         }
     }
 
-    fn convert_diesel_error(err: DbError) -> Self {
+    fn convert_diesel_error(err: DieselError) -> Self {
         let message = ErrorMessage::from_str(&err.to_string());
         match err {
-            DbError::NotFound => Self::NotFound(Json(message)),
-            DbError::DatabaseError(error_kind, _) => match error_kind {
+            DieselError::NotFound => Self::NotFound(Json(message)),
+            DieselError::DatabaseError(error_kind, _) => match error_kind {
                 DatabaseErrorKind::NotNullViolation => Self::BadRequest(Json(message)),
                 DatabaseErrorKind::CheckViolation => {
                     let constraint_name = get_constraint_name(&err);
@@ -178,7 +183,14 @@ impl ErrorResponse {
         }
     }
 
-    fn convert_serde_error(err: SerdeError<'_>) -> Self {
+    fn convert_rocket_serde_error(err: RocketSerdeError<'_>) -> Self {
+        let error_value: Value = serde_json::from_str(&err.to_string())
+            .unwrap_or_else(|_| Value::String(err.to_string()));
+        let message = ErrorMessage::from_value(error_value);
+        Self::UnprocessableEntity(Json(message))
+    }
+
+    fn convert_serde_error(err: SerdeError) -> Self {
         let error_value: Value = serde_json::from_str(&err.to_string())
             .unwrap_or_else(|_| Value::String(err.to_string()));
         let message = ErrorMessage::from_value(error_value);
@@ -192,7 +204,7 @@ impl ErrorResponse {
         Self::UnprocessableEntity(Json(message))
     }
 
-    fn convert_uuid_valid_error(err: uuid::Error) -> Self {
+    fn convert_uuid_valid_error(err: UuidError) -> Self {
         let error_value: Value = serde_json::from_str(&err.to_string())
             .unwrap_or_else(|_| Value::String(err.to_string()));
         let message = ErrorMessage::from_value(error_value);
@@ -206,15 +218,15 @@ impl From<Status> for ErrorResponse {
     }
 }
 
-impl From<DbError> for ErrorResponse {
-    fn from(error: DbError) -> ErrorResponse {
+impl From<DieselError> for ErrorResponse {
+    fn from(error: DieselError) -> ErrorResponse {
         Self::convert_diesel_error(error)
     }
 }
 
-impl From<SerdeError<'_>> for ErrorResponse {
-    fn from(error: SerdeError<'_>) -> ErrorResponse {
-        Self::convert_serde_error(error)
+impl From<RocketSerdeError<'_>> for ErrorResponse {
+    fn from(error: RocketSerdeError<'_>) -> ErrorResponse {
+        Self::convert_rocket_serde_error(error)
     }
 }
 
@@ -224,8 +236,14 @@ impl From<SerdeValidErrors> for ErrorResponse {
     }
 }
 
-impl From<uuid::Error> for ErrorResponse {
-    fn from(error: uuid::Error) -> ErrorResponse {
+impl From<UuidError> for ErrorResponse {
+    fn from(error: UuidError) -> ErrorResponse {
         Self::convert_uuid_valid_error(error)
+    }
+}
+
+impl From<SerdeError> for ErrorResponse {
+    fn from(error: SerdeError) -> Self {
+        Self::convert_serde_error(error)
     }
 }

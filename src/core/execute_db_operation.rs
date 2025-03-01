@@ -1,6 +1,6 @@
 use super::{
     pool::Db,
-    response::{BaseResponse, ErrorResponse, RestResult},
+    response::{BaseResponse, DbOpResult, ErrorResponse, RestResult},
 };
 
 pub async fn execute_db_operation_rest<T, F, R>(
@@ -9,7 +9,7 @@ pub async fn execute_db_operation_rest<T, F, R>(
     success_handler: impl Fn(T) -> RestResult<R>,
 ) -> RestResult<R>
 where
-    F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+    F: FnOnce(&mut diesel::PgConnection) -> DbOpResult<T> + Send + 'static,
     T: Send + 'static,
 {
     let result = conn.run(db_op).await;
@@ -25,7 +25,7 @@ pub async fn execute_db_operation<T, F, R>(
     success_handler: impl Fn(T) -> BaseResponse<R>,
 ) -> BaseResponse<R>
 where
-    F: FnOnce(&mut diesel::PgConnection) -> Result<T, diesel::result::Error> + Send + 'static,
+    F: FnOnce(&mut diesel::PgConnection) -> DbOpResult<T> + Send + 'static,
     T: Send + 'static,
 {
     let result = conn.run(db_op).await;

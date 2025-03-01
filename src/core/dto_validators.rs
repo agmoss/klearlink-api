@@ -5,10 +5,12 @@ use serde_valid::validation::Error;
 
 use crate::consumer_credit::dto::CreditFactsDto;
 
+use super::response::ValidatorError;
+
 pub struct Validator;
 
 impl Validator {
-    pub fn email_validation(val: &str) -> Result<(), Error> {
+    pub fn email_validation(val: &str) -> ValidatorError {
         let email_regex = Regex::new(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").unwrap();
         if email_regex.is_match(val) {
             Ok(())
@@ -20,7 +22,7 @@ impl Validator {
         }
     }
 
-    pub fn validate_credit_facts(dto: &CreditFactsDto) -> Result<(), Error> {
+    pub fn validate_credit_facts(dto: &CreditFactsDto) -> ValidatorError {
         let count = dto.originated_datetime.is_some() as u8
             + dto.payment_due_date.is_some() as u8
             + dto.payment_due_amount.is_some() as u8;
@@ -34,7 +36,7 @@ impl Validator {
         }
     }
 
-    pub fn validate_credit_state(dto: &CreditFactsDto) -> Result<(), Error> {
+    pub fn validate_credit_state(dto: &CreditFactsDto) -> ValidatorError {
         if dto.credit_state == "applied" {
             let count = dto.originated_datetime.is_some() as u8
                 + dto.payment_due_date.is_some() as u8
@@ -52,7 +54,7 @@ impl Validator {
         }
     }
 
-    pub fn optional_email_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn optional_email_validation(val: &Option<String>) -> ValidatorError {
         if let Some(value) = val {
             Self::email_validation(value)
         } else {
@@ -60,7 +62,7 @@ impl Validator {
         }
     }
 
-    pub fn phone_validation(val: &str) -> Result<(), Error> {
+    pub fn phone_validation(val: &str) -> ValidatorError {
         let phone_regex = Regex::new(r"^\+?[1-9]\d{1,14}$").unwrap();
         if phone_regex.is_match(val) {
             Ok(())
@@ -72,7 +74,7 @@ impl Validator {
         }
     }
 
-    pub fn optional_phone_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn optional_phone_validation(val: &Option<String>) -> ValidatorError {
         if let Some(value) = val {
             Self::phone_validation(value)
         } else {
@@ -80,7 +82,7 @@ impl Validator {
         }
     }
 
-    pub fn address_validation(val: &str) -> Result<(), Error> {
+    pub fn address_validation(val: &str) -> ValidatorError {
         let address_regex = Regex::new(r"^\d+\s[A-Za-z0-9\s.,'-]+,\s[A-Za-z\s-]+,\s(?:AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT),\s[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d(?:,\sCanada)?$").unwrap();
         if address_regex.is_match(val) {
             Ok(())
@@ -92,7 +94,7 @@ impl Validator {
         }
     }
 
-    pub fn optional_address_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn optional_address_validation(val: &Option<String>) -> ValidatorError {
         if let Some(value) = val {
             Self::address_validation(value)
         } else {
@@ -100,7 +102,7 @@ impl Validator {
         }
     }
 
-    pub fn credit_type_validation(val: &str) -> Result<(), Error> {
+    pub fn credit_type_validation(val: &str) -> ValidatorError {
         match val {
             "PDL" | "BNPL" => Ok(()),
             _ => Err(Error::Custom(format!(
@@ -110,7 +112,7 @@ impl Validator {
         }
     }
 
-    pub fn optional_credit_type_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn optional_credit_type_validation(val: &Option<String>) -> ValidatorError {
         if let Some(value) = val {
             Self::credit_type_validation(value)
         } else {
@@ -118,7 +120,7 @@ impl Validator {
         }
     }
 
-    pub fn credit_state_validation(val: &str) -> Result<(), Error> {
+    pub fn credit_state_validation(val: &str) -> ValidatorError {
         match val {
             "application" | "originated" | "declined" | "non-compliant" | "compliant" | "bankrupt/insolvent" => Ok(()),
             _ => Err(Error::Custom(format!(
@@ -128,7 +130,7 @@ impl Validator {
         }
     }
 
-    pub fn optional_credit_state_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn optional_credit_state_validation(val: &Option<String>) -> ValidatorError {
         if let Some(value) = val {
             Self::credit_state_validation(value)
         } else {
@@ -136,7 +138,7 @@ impl Validator {
         }
     }
 
-    pub fn non_negative_bigdecimal(val: &BigDecimal) -> Result<(), Error> {
+    pub fn non_negative_bigdecimal(val: &BigDecimal) -> ValidatorError {
         if val >= &BigDecimal::from(0) {
             Ok(())
         } else {
@@ -147,15 +149,15 @@ impl Validator {
         }
     }
 
-    pub fn optional_non_negative_bigdecimal(val: &Option<BigDecimal>) -> Result<(), Error> {
+    pub fn optional_non_negative_bigdecimal(val: &Option<BigDecimal>) -> ValidatorError {
         if let Some(value) = val {
-            Self::non_negative_bigdecimal(&value)
+            Self::non_negative_bigdecimal(value)
         } else {
             Ok(())
         }
     }
 
-    pub fn past_or_present_date(val: &NaiveDate) -> Result<(), Error> {
+    pub fn past_or_present_date(val: &NaiveDate) -> ValidatorError {
         let today = Local::now().date_naive();
         if val <= &today {
             Ok(())
@@ -167,15 +169,15 @@ impl Validator {
         }
     }
 
-    pub fn optional_past_or_present_date(val: &Option<NaiveDate>) -> Result<(), Error> {
+    pub fn optional_past_or_present_date(val: &Option<NaiveDate>) -> ValidatorError {
         if let Some(value) = val {
-            Self::past_or_present_date(&value)
+            Self::past_or_present_date(value)
         } else {
             Ok(())
         }
     }
 
-    pub fn past_or_present_datetime(val: &NaiveDateTime) -> Result<(), Error> {
+    pub fn past_or_present_datetime(val: &NaiveDateTime) -> ValidatorError {
         let now = Local::now().naive_local();
         if val <= &now {
             Ok(())
@@ -187,15 +189,15 @@ impl Validator {
         }
     }
 
-    pub fn optional_past_or_present_datetime(val: &Option<NaiveDateTime>) -> Result<(), Error> {
+    pub fn optional_past_or_present_datetime(val: &Option<NaiveDateTime>) -> ValidatorError {
         if let Some(value) = val {
-            Self::past_or_present_datetime(&value)
+            Self::past_or_present_datetime(value)
         } else {
             Ok(())
         }
     }
 
-    pub fn sin_validation(val: &Option<String>) -> Result<(), Error> {
+    pub fn sin_validation(val: &Option<String>) -> ValidatorError {
         if let Some(sin) = val {
             if sin.len() != 9 || !sin.chars().all(|c| c.is_ascii_digit()) {
                 return Err(Error::Custom(format!(

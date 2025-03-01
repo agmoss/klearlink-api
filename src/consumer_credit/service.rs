@@ -41,7 +41,7 @@ impl ConsumerCreditService {
             conn,
             &result.consumer_credit_id,
             "ConsumerCreditCreated",
-            serde_json::to_value(&result).unwrap(),
+            serde_json::to_value(&result)?,
         )
         .await?;
 
@@ -75,7 +75,7 @@ impl ConsumerCreditService {
             conn,
             &result.consumer_credit_id,
             "ConsumerCreditUpdated",
-            serde_json::to_value(&result).unwrap(),
+            serde_json::to_value(&result)?,
         )
         .await?;
 
@@ -106,8 +106,7 @@ impl ConsumerCreditService {
 
         match target_record {
             Ok(target) => {
-                let _target: ConsumerCreditModel =
-                    serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
+                let _target: ConsumerCreditModel = target.clone();
 
                 execute_db_operation_rest(
                     &conn,
@@ -194,7 +193,7 @@ impl ConsumerCreditService {
         _consumer_credit_id: &str,
         _event_type: &str,
         _event_data: Value,
-    ) -> Result<(), ErrorResponse> {
+    ) -> BaseResponse<()> {
         let event_dto = ConsumerCreditEventsDto {
             consumer_credit_id: _consumer_credit_id.to_string(),
             event_type: _event_type.to_string(),
