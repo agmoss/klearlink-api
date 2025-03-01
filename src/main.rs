@@ -1,6 +1,5 @@
 use dotenvy::dotenv;
 
-use log::info;
 use rocket::{launch, Build, Rocket};
 
 #[launch]

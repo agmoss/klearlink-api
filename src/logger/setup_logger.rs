@@ -1,7 +1,5 @@
 use chrono::Local;
 use fern::Dispatch;
-use log::{error, info, warn};
-use rocket::serde::json::Json;
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
     Dispatch::new()
