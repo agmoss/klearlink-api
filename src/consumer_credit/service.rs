@@ -25,7 +25,7 @@ impl ConsumerCreditService {
         let dto = record.map_err(ErrorResponse::from)?;
         dto.validate().map_err(ErrorResponse::from)?;
 
-        execute_db_operation(
+        let result = execute_db_operation(
             conn,
             move |c| {
                 diesel::insert_into(consumer_credit)
@@ -36,14 +36,21 @@ impl ConsumerCreditService {
             },
             |ok| Ok(Json(ok.into())),
         )
-        .await
+        .await;
+
+        if let Ok(_) = result {
+            let event_data = serde_json::to_value(&dto).unwrap();
+            Self::log_event(&conn, &_consumer_credit_id, "created", event_data).await?;
+        }
+
+        result
         .map_err(ErrorResponse::from)
     }
 
     pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
         let user_id_result = Self::get_user_id_by_username(username, &conn).await?;
 
-        execute_db_operation(
+        let result = execute_db_operation(
             conn,
             move |c| {
                 use crate::schema::consumer_credit::dsl::*;
@@ -51,7 +58,14 @@ impl ConsumerCreditService {
             },
             |_| Ok(Json(())),
         )
-        .await
+        .await;
+
+        if let Ok(_) = result {
+            let event_data = serde_json::to_value(&dto).unwrap();
+            Self::log_event(&conn, &_consumer_credit_id, "updated", event_data).await?;
+        }
+
+        result
     }
 
     pub async fn update_consumer_credit<'r>(
@@ -67,7 +81,7 @@ impl ConsumerCreditService {
         dto.validate().map_err(ErrorResponse::from)?;
         let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
-        execute_db_operation(
+        let result = execute_db_operation(
             conn,
             move |c| {
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(_consumer_credit_id)))
@@ -76,7 +90,14 @@ impl ConsumerCreditService {
             },
             |ok| Ok(Json(ok.into())),
         )
-        .await
+        .await;
+
+        if let Ok(_) = result {
+            let event_data = json!({ "username": username });
+            Self::log_event(&conn, &consumer_credit_id, "deleted", event_data).await?;
+        }
+
+        result
     }
 
     pub async fn view_consumer_credit(
@@ -165,4 +186,25 @@ impl ConsumerCreditService {
         })
         .await
     }
-}
+    async fn log_event(
+        conn: &Db,
+        consumer_credit_id: &str,
+        event_type: &str,
+        event_data: serde_json::Value,
+    ) -> Result<(), ErrorResponse> {
+        use crate::schema::consumer_credit_events::dsl::*;
+
+        conn.run(move |c| {
+            diesel::insert_into(consumer_credit_events)
+                .values((
+                    consumer_credit_id.eq(consumer_credit_id),
+                    event_type.eq(event_type),
+                    event_data.eq(event_data),
+                ))
+                .execute(c)
+        })
+        .await
+        .map_err(ErrorResponse::from)?;
+
+        Ok(())
+    }
