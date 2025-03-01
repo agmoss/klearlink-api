@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  klearlink-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - RUST_LOG=info
+    volumes:
+      - .:/usr/src/klearlink-api
+    command: ["cargo", "run", "--release"]
