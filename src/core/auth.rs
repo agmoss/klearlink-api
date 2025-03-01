@@ -9,7 +9,7 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::reqres::{BaseResponse, ErrorMessage, ErrorResponse};
+use super::res::{BaseResponse, ErrorMessage, ErrorResponse};
 
 pub type AuthResponse = BaseResponse<AuthDto>;
 

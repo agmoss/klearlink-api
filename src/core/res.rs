@@ -8,7 +8,7 @@ use serde_json::json;
 use serde_json::Error as SerdeError;
 use serde_json::Value;
 use serde_valid::validation::Error as SerdeValidError;
-use serde_valid::{validation::Errors as SerdeValidErrors, Validate};
+use serde_valid::validation::Errors as SerdeValidErrors;
 use std::fmt::Debug;
 use tonic::{Code, Status};
 use uuid::Error as UuidError;
@@ -89,19 +89,11 @@ pub enum ErrorResponse {
 
 pub type DbOpResult<T> = Result<T, DieselError>;
 
-pub type RestDto<'a, T> = Result<Json<T>, RocketSerdeError<'a>>;
-
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
 
 pub type BaseResponse<T> = Result<T, ErrorResponse>;
 
 pub type ValidatorError = Result<(), SerdeValidError>;
-
-pub fn validate_dto<T: Validate>(record: RestDto<T>) -> Result<Json<T>, ErrorResponse> {
-    let dto = record.map_err(ErrorResponse::from)?;
-    dto.validate().map_err(ErrorResponse::from)?;
-    Ok(dto)
-}
 
 fn get_constraint_name(error: &DieselError) -> Option<&str> {
     if let DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, info) = error {

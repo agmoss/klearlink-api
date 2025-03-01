@@ -1,6 +1,6 @@
 use super::{
     pool::Db,
-    reqres::{BaseResponse, DbOpResult, ErrorResponse, RestResult},
+    res::{BaseResponse, DbOpResult, ErrorResponse, RestResult},
 };
 
 pub async fn execute_db_operation_rest<T, F, R>(

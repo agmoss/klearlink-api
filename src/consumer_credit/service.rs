@@ -3,7 +3,9 @@ use crate::consumer_credit::models::{ConsumerCreditEventModel, ConsumerCreditMod
 use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::{execute_db_operation, execute_db_operation_rest};
 use crate::core::pool::Db;
-use crate::core::reqres::{validate_dto, BaseResponse, ErrorResponse, RestDto, RestResult};
+use crate::core::req::{validate_dto, RestDto};
+use crate::core::res::{BaseResponse, ErrorResponse, RestResult};
+
 use diesel::prelude::*;
 use rocket::serde::json::Json;
 use serde_json::Value;

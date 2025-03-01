@@ -7,7 +7,8 @@ use super::service::ConsumerCreditService;
 
 use crate::core::auth::AuthResponse;
 use crate::core::pool::Db;
-use crate::core::reqres::{RestDto, RestResult};
+use crate::core::req::RestDto;
+use crate::core::res::RestResult;
 
 /// Route for adding a consumer credit record
 ///
