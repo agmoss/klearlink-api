@@ -1,10 +1,10 @@
+use crate::schema::consumer_credit;
+use crate::schema::consumer_credit_events;
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-
-use crate::schema::consumer_credit;
-use crate::schema::consumer_credit_events;
+use serde_json::Value;
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Clone)]
 #[diesel(table_name = consumer_credit)]
@@ -87,7 +87,7 @@ pub struct ConsumerCreditEventModel {
     pub id: i32,
     pub consumer_credit_id: String,
     pub event_type: String,
-    pub event_data: serde_json::Value,
+    pub event_data: Value,
     pub created_at: NaiveDateTime,
 }
 
@@ -96,5 +96,5 @@ pub struct ConsumerCreditEventModel {
 pub struct InsertConsumerCreditEventModel {
     pub consumer_credit_id: String,
     pub event_type: String,
-    pub event_data: serde_json::Value,
+    pub event_data: Value,
 }

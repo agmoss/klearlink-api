@@ -7,6 +7,7 @@ use super::models::{
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_valid::Validate;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -337,7 +338,7 @@ impl ConsumerCreditModel {
 pub struct ConsumerCreditEventsDto {
     pub consumer_credit_id: String,
     pub event_type: String,
-    pub event_data: serde_json::Value,
+    pub event_data: Value,
 }
 
 impl ConsumerCreditEventsDto {

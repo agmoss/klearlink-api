@@ -6,6 +6,7 @@ use crate::core::pool::Db;
 use crate::core::response::{validate_dto, BaseResponse, ErrorResponse, RestDto, RestResult};
 use diesel::prelude::*;
 use rocket::serde::json::Json;
+use serde_json::Value;
 
 use super::dto::{InsertConsumerCreditDto, UpdateConsumerCreditDto};
 
@@ -18,7 +19,7 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
-        let auth = auth?;
+        let auth_result = auth?;
 
         let dto = validate_dto(record)?;
 
@@ -27,7 +28,9 @@ impl ConsumerCreditService {
             move |c| {
                 use crate::schema::consumer_credit::dsl::*;
                 diesel::insert_into(consumer_credit)
-                    .values(dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth.id))
+                    .values(
+                        dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id),
+                    )
                     .get_result::<ConsumerCreditModel>(c)
             },
             |target| Ok(target),
@@ -190,7 +193,7 @@ impl ConsumerCreditService {
         conn: Db,
         _consumer_credit_id: &str,
         _event_type: &str,
-        _event_data: serde_json::Value,
+        _event_data: Value,
     ) -> Result<(), ErrorResponse> {
         let event_dto = ConsumerCreditEventsDto {
             consumer_credit_id: _consumer_credit_id.to_string(),
