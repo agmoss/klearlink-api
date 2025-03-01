@@ -1,4 +1,5 @@
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
+use log::error;
 use rocket::{
     response::Responder,
     serde::json::{Error as RocketSerdeError, Json},
@@ -120,6 +121,8 @@ impl ErrorResponse {
     /// response instead.
     fn convert(status: Status) -> Self {
         let message = ErrorMessage::from_str(status.message());
+        error!("{}", format!("error: {}", status.message()));
+
         match status.code() {
             Code::Aborted => Self::NoResponse(Json(message)),
             Code::AlreadyExists => Self::Conflict(Json(message)),

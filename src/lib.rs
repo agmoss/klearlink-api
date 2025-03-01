@@ -2,6 +2,8 @@ pub mod schema;
 
 use base::routes::{base_route, favicon};
 use core::{cors::CORS, pool::Db};
+use log::info;
+use logger::setup_logger::setup_logger;
 
 use rocket::{routes, Build, Rocket};
 
@@ -9,9 +11,12 @@ mod base;
 mod consumer_credit;
 mod core;
 mod error;
+mod logger;
 mod user;
 
 pub fn create_rocket() -> Rocket<Build> {
+    setup_logger().expect("Failed to initialize logger");
+    info!("Starting Rocket application...");
     rocket::build()
         .register("/", error::catchers())
         .attach(Db::fairing())

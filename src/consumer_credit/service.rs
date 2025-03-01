@@ -7,6 +7,7 @@ use crate::core::req::{validate_dto, RestDto};
 use crate::core::res::{BaseResponse, ErrorResponse, RestResult};
 
 use diesel::prelude::*;
+use log::info;
 use rocket::serde::json::Json;
 use serde_json::Value;
 
@@ -21,6 +22,10 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
+        info!(
+            "{}",
+            format!("submitting consumer credit: {}", _consumer_credit_id)
+        );
         let auth_result = auth?;
 
         let dto = validate_dto(record)?;
@@ -56,6 +61,11 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
+        info!(
+            "{}",
+            format!("updating consumer credit: {}", _consumer_credit_id)
+        );
+
         auth?;
 
         let dto = validate_dto(record)?;
