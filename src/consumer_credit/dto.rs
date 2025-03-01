@@ -1,6 +1,9 @@
 use crate::core::dto_validators::Validator;
 
-use super::models::{ConsumerCreditModel, InsertConsumerCreditModel, UpdateConsumerCreditModel};
+use super::models::{
+    ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
+    UpdateConsumerCreditModel,
+};
 use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -326,6 +329,23 @@ impl ConsumerCreditModel {
                 credit_state: self.credit_state.clone(),
                 institution_names: self.institution_names.clone(),
             },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct ConsumerCreditEventsDto {
+    pub consumer_credit_id: String,
+    pub event_type: String,
+    pub event_data: serde_json::Value,
+}
+
+impl ConsumerCreditEventsDto {
+    pub fn to_insert_consumer_credit_events_model(&self) -> InsertConsumerCreditEventModel {
+        InsertConsumerCreditEventModel {
+            consumer_credit_id: self.consumer_credit_id.to_string(),
+            event_type: self.event_type.to_string(),
+            event_data: self.event_data.clone(),
         }
     }
 }

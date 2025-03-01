@@ -6,7 +6,7 @@ use rocket::{
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::Value;
-use serde_valid::validation::Errors as SerdeValidErrors;
+use serde_valid::{validation::Errors as SerdeValidErrors, Validate};
 use std::fmt::Debug;
 use tonic::{Code, Status};
 
@@ -89,6 +89,14 @@ pub type DbError = DieselError;
 pub type RestDto<'a, T> = Result<Json<T>, SerdeError<'a>>;
 
 pub type RestResult<T> = Result<Json<T>, ErrorResponse>;
+
+pub type BaseResponse<T> = Result<T, ErrorResponse>;
+
+pub fn validate_dto<'r, T: Validate>(record: RestDto<'r, T>) -> Result<Json<T>, ErrorResponse> {
+    let dto = record.map_err(ErrorResponse::from)?;
+    dto.validate().map_err(ErrorResponse::from)?;
+    Ok(dto)
+}
 
 fn get_constraint_name(error: &DieselError) -> Option<&str> {
     if let DieselError::DatabaseError(DatabaseErrorKind::UniqueViolation, info) = error {

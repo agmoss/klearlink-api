@@ -1,16 +1,11 @@
-use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerMatchDto};
-use crate::consumer_credit::models::{
-    ConsumerCreditEvents, ConsumerCreditModel, InsertConsumerCreditEvents,
-};
+use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto};
+use crate::consumer_credit::models::{ConsumerCreditEventModel, ConsumerCreditModel};
 use crate::core::auth::AuthResponse;
-use crate::core::execute_db_operation::execute_db_operation;
+use crate::core::execute_db_operation::{execute_db_operation, execute_db_operation_rest};
 use crate::core::pool::Db;
-use crate::core::response::{DbError, ErrorResponse, RestDto, RestResult};
+use crate::core::response::{validate_dto, BaseResponse, ErrorResponse, RestDto, RestResult};
 use diesel::prelude::*;
 use rocket::serde::json::Json;
-use serde_json::json;
-use serde_valid::json::ToJsonValue;
-use serde_valid::Validate;
 
 use super::dto::{InsertConsumerCreditDto, UpdateConsumerCreditDto};
 
@@ -23,54 +18,31 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
-        use crate::schema::consumer_credit::dsl::*;
+        let auth = auth?;
 
-        let auth_result = auth?;
-        let dto = record.map_err(ErrorResponse::from)?;
-        dto.validate().map_err(ErrorResponse::from)?;
-
-        let re_1 = conn
-            .run(move |c: &mut PgConnection| {
-                diesel::insert_into(consumer_credit)
-                    .values(
-                        dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth_result.id),
-                    )
-                    .get_result::<ConsumerCreditModel>(c)
-            })
-            .await;
-
-        let re_2 = match re_1 {
-            Ok(file) => {
-                ConsumerCreditService::log_event(
-                    &conn,
-                    &file.consumer_credit_id,
-                    "ConsumerCreditCreated",
-                    serde_json::to_value(&file).unwrap(),
-                )
-                .await?;
-
-                Ok(Json(file.into()))
-            }
-            Err(error) => Err(ErrorResponse::from(error)),
-        };
-
-        re_2
-    }
-
-    pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
-        let user_id_result = Self::get_user_id_by_username(username, &conn).await?;
+        let dto = validate_dto(record)?;
 
         let result = execute_db_operation(
-            conn,
+            &conn,
             move |c| {
                 use crate::schema::consumer_credit::dsl::*;
-                diesel::delete(consumer_credit.filter(user_id.eq(user_id_result))).execute(c)
+                diesel::insert_into(consumer_credit)
+                    .values(dto.to_insert_consumer_credit_model(&_consumer_credit_id, &auth.id))
+                    .get_result::<ConsumerCreditModel>(c)
             },
-            |_| Ok(Json(())),
+            |target| Ok(target),
         )
-        .await;
+        .await?;
 
-        result
+        ConsumerCreditService::log_event(
+            conn,
+            &result.consumer_credit_id,
+            "ConsumerCreditCreated",
+            serde_json::to_value(&result).unwrap(),
+        )
+        .await?;
+
+        Ok(Json(result.into()))
     }
 
     pub async fn update_consumer_credit<'r>(
@@ -79,37 +51,32 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerCreditDto> {
-        use crate::schema::consumer_credit::dsl::*;
-
         auth?;
-        let dto = record.map_err(ErrorResponse::from)?;
-        dto.validate().map_err(ErrorResponse::from)?;
-        let updated_consumer_facts = dto.to_update_consumer_credit_model(&_consumer_credit_id);
 
-        let re_1 = conn
-            .run(move |c: &mut PgConnection| {
+        let dto = validate_dto(record)?;
+
+        let result = execute_db_operation(
+            &conn,
+            move |c| {
+                use crate::schema::consumer_credit::dsl::*;
+
                 diesel::update(consumer_credit.filter(consumer_credit_id.eq(&_consumer_credit_id)))
-                    .set(updated_consumer_facts)
+                    .set(dto.to_update_consumer_credit_model(&_consumer_credit_id))
                     .get_result::<ConsumerCreditModel>(c)
-            })
-            .await;
+            },
+            |target| Ok(target),
+        )
+        .await?;
 
-        let re_2 = match re_1 {
-            Ok(file) => {
-                ConsumerCreditService::log_event(
-                    &conn,
-                    &file.consumer_credit_id,
-                    "ConsumerCreditCreated",
-                    serde_json::to_value(&file).unwrap(),
-                )
-                .await?;
+        ConsumerCreditService::log_event(
+            conn,
+            &result.consumer_credit_id,
+            "ConsumerCreditUpdated",
+            serde_json::to_value(&result).unwrap(),
+        )
+        .await?;
 
-                Ok(Json(file.into()))
-            }
-            Err(error) => Err(ErrorResponse::from(error)),
-        };
-
-        re_2
+        Ok(Json(result.into()))
     }
 
     pub async fn view_consumer_credit(
@@ -130,8 +97,6 @@ impl ConsumerCreditService {
         auth: AuthResponse,
         conn: Db,
     ) -> RestResult<ConsumerMatchDto> {
-        use crate::schema::consumer_credit::dsl::*;
-
         let auth_result = auth?;
         let target_record =
             Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
@@ -141,9 +106,11 @@ impl ConsumerCreditService {
                 let _target: ConsumerCreditModel =
                     serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
 
-                execute_db_operation(
-                    conn,
+                execute_db_operation_rest(
+                    &conn,
                     move |c| {
+                        use crate::schema::consumer_credit::dsl::*;
+
                         consumer_credit
                             .or_filter(first_name.eq(&target.first_name))
                             .or_filter(last_name.eq(&target.last_name))
@@ -171,56 +138,76 @@ impl ConsumerCreditService {
         }
     }
 
+    pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
+        let user_id_result = Self::get_user_id_by_username(username, &conn).await?;
+
+        execute_db_operation_rest(
+            &conn,
+            move |c| {
+                use crate::schema::consumer_credit::dsl::*;
+                diesel::delete(consumer_credit.filter(user_id.eq(user_id_result))).execute(c)
+            },
+            |_| Ok(Json(())),
+        )
+        .await
+    }
+
     async fn get_target_record(
         _consumer_credit_id: String,
         _user_id: i32,
         conn: &Db,
-    ) -> Result<ConsumerCreditModel, DbError> {
-        use crate::schema::consumer_credit::dsl::*;
-
-        conn.run(move |c| {
-            consumer_credit
-                .filter(consumer_credit_id.eq(_consumer_credit_id))
-                .filter(user_id.eq(_user_id))
-                .first::<ConsumerCreditModel>(c)
-        })
+    ) -> BaseResponse<ConsumerCreditModel> {
+        execute_db_operation(
+            conn,
+            move |c| {
+                use crate::schema::consumer_credit::dsl::*;
+                consumer_credit
+                    .filter(consumer_credit_id.eq(_consumer_credit_id))
+                    .filter(user_id.eq(_user_id))
+                    .first::<ConsumerCreditModel>(c)
+            },
+            |target| Ok(target),
+        )
         .await
     }
 
-    async fn get_user_id_by_username(username: String, conn: &Db) -> Result<i32, DbError> {
-        use crate::schema::users::dsl::{username as user_username, users};
-
-        conn.run(move |c| {
-            users
-                .filter(user_username.eq(username))
-                .select(crate::schema::users::dsl::id)
-                .first::<i32>(c)
-        })
+    async fn get_user_id_by_username(username: String, conn: &Db) -> BaseResponse<i32> {
+        execute_db_operation(
+            conn,
+            move |c| {
+                use crate::schema::users::dsl::{username as user_username, users};
+                users
+                    .filter(user_username.eq(username))
+                    .select(crate::schema::users::dsl::id)
+                    .first::<i32>(c)
+            },
+            |target| Ok(target),
+        )
         .await
     }
 
     async fn log_event(
-        conn: &Db,
+        conn: Db,
         _consumer_credit_id: &str,
         _event_type: &str,
         _event_data: serde_json::Value,
     ) -> Result<(), ErrorResponse> {
-        use crate::schema::consumer_credit_events::dsl::*;
-
-        let asdf = InsertConsumerCreditEvents {
+        let event_dto = ConsumerCreditEventsDto {
             consumer_credit_id: _consumer_credit_id.to_string(),
             event_type: _event_type.to_string(),
             event_data: _event_data,
         };
 
-        conn.run(move |c: &mut PgConnection| {
-            diesel::insert_into(consumer_credit_events)
-                .values(asdf)
-                .get_result::<ConsumerCreditEvents>(c)
-        })
+        execute_db_operation(
+            &conn,
+            move |c| {
+                use crate::schema::consumer_credit_events::dsl::*;
+                diesel::insert_into(consumer_credit_events)
+                    .values(event_dto.to_insert_consumer_credit_events_model())
+                    .get_result::<ConsumerCreditEventModel>(c)
+            },
+            |_| Ok(()),
+        )
         .await
-        .map_err(ErrorResponse::from)?;
-
-        Ok(())
     }
 }

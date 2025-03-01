@@ -10,7 +10,8 @@ mod tests {
     use uuid::Uuid;
 
     use crate::common::{
-        create_consumer_credit, response_json_value, test_client, view_consumer_match,
+        create_consumer_credit, response_json_value, test_client, update_consumer_credit,
+        view_consumer_match,
     };
 
     static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
@@ -328,5 +329,38 @@ mod tests {
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Conflict);
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_consumer_credit() {
+        let client = test_client().lock().unwrap();
+
+        let dummy_payload = json!({
+            "consumer_facts": {
+                "first_name": "Randy",
+            },
+        });
+
+        let response = update_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            "test_user_1".to_string(),
+            &dummy_payload,
+        );
+
+        assert_eq!(response.status(), Status::Ok);
+
+        let value = response_json_value(response);
+
+        let title = value
+            .get("consumer_facts")
+            .expect("must have an 'consumer_facts' field")
+            .get("first_name")
+            .expect("must have a 'first_name' field")
+            .as_str();
+
+        assert_eq!(title, Some("Randy"));
     }
 }

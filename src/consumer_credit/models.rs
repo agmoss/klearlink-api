@@ -83,7 +83,7 @@ pub struct UpdateConsumerCreditModel {
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]
 #[diesel(table_name = consumer_credit_events)]
-pub struct ConsumerCreditEvents {
+pub struct ConsumerCreditEventModel {
     pub id: i32,
     pub consumer_credit_id: String,
     pub event_type: String,
@@ -93,16 +93,8 @@ pub struct ConsumerCreditEvents {
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]
 #[diesel(table_name = consumer_credit_events)]
-pub struct InsertConsumerCreditEvents {
+pub struct InsertConsumerCreditEventModel {
     pub consumer_credit_id: String,
     pub event_type: String,
     pub event_data: serde_json::Value,
 }
-
-// id -> Int4,
-// #[max_length = 100]
-// consumer_credit_id -> Varchar,
-// #[max_length = 50]
-// event_type -> Varchar,
-// event_data -> Jsonb,
-// created_at -> Nullable<Timestamp>,

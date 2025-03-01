@@ -39,6 +39,23 @@ pub fn create_consumer_credit<'a>(
     response
 }
 
+pub fn update_consumer_credit<'a>(
+    client: &'a Client,
+    consumer_credit_id: &'a String,
+    api_key: String,
+    username: String,
+    payload: &Value,
+) -> LocalResponse<'a> {
+    let response = client
+        .post(format!("/consumer-credit/{}", consumer_credit_id))
+        .header(Header::new("X-API-Key", api_key))
+        .header(Header::new("X-Username", username))
+        .body(payload.to_string())
+        .dispatch();
+
+    response
+}
+
 pub fn view_consumer_match<'a>(
     client: &'a Client,
     consumer_credit_id: &'a String,
