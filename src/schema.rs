@@ -35,6 +35,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    consumer_credit_events (id) {
+        id -> Int4,
+        #[max_length = 100]
+        consumer_credit_id -> Varchar,
+        #[max_length = 50]
+        event_type -> Varchar,
+        event_data -> Jsonb,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         #[max_length = 100]
@@ -48,14 +60,10 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    consumer_credit_events (id) {
-        id -> Int4,
-        consumer_credit_id -> Varchar,
-        event_type -> Varchar,
-        event_data -> Jsonb,
-        created_at -> Timestamp,
-    }
-}
+diesel::joinable!(consumer_credit -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(consumer_credit, users, consumer_credit_events,);
+diesel::allow_tables_to_appear_in_same_query!(
+    consumer_credit,
+    consumer_credit_events,
+    users,
+);
