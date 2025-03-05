@@ -6,7 +6,7 @@ ident = "klearlink"
 form = "1 kB"
 json = "1 MiB"
 msgpack = "1 kB"
-"file/jpg" = "1 MiB"
+"file/jpg" = "1 kB"
 
 [debug]
 port = 8000
