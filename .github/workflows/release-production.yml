@@ -22,8 +22,8 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and push Docker image
-        run: |
-          docker compose build production
-          docker compose push production
+      - name: Build Docker image
+        run: docker compose build staging
 
+      - name: Push Docker image
+        run: docker compose push staging
