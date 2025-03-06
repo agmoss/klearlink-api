@@ -1,6 +1,5 @@
 pub mod schema;
 
-use base::routes::{base_route, favicon};
 use core::{cors::CORS, pool::Db};
 use log::info;
 use logger::setup_logger::setup_logger;
@@ -21,10 +20,11 @@ pub fn create_rocket() -> Rocket<Build> {
         .register("/", error::catchers())
         .attach(Db::fairing())
         .attach(CORS)
-        .mount("/", routes![base_route, favicon])
         .mount(
             "/",
             routes![
+                base::routes::base_route,
+                base::routes::favicon,
                 consumer_credit::routes::submit_consumer_credit,
                 consumer_credit::routes::update_consumer_credit,
                 consumer_credit::routes::view_consumer_credit,
