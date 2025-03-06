@@ -16,7 +16,6 @@ COPY Cargo.toml Cargo.lock ./
 
 COPY src ./src
 COPY Rocket.toml Rocket.toml
-COPY .env .env
 
 RUN cargo fetch
 
