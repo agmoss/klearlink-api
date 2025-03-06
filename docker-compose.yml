@@ -7,17 +7,14 @@ services:
       - 8000:8000
     environment:
       - RUST_LOG=info
-      - APP_ENV=staging
-    volumes:
-      - .:/usr/src/klearlink-api
-    command: ["cargo", "run", "--release"]
+      - ROCKET_ENV=staging
+    command: ["/app/klearlink-api"]
+
   production:
     build: .
     ports:
       - 8000:8000
     environment:
       - RUST_LOG=info
-      - APP_ENV=production
-    volumes:
-      - .:/usr/src/klearlink-api
-    command: ["cargo", "run", "--release"]
+      - ROCKET_ENV=production
+    command: ["/app/klearlink-api"]

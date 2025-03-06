@@ -18,7 +18,10 @@ impl Fairing for CORS {
         let allowed_origin = "https://example.com"; // Change this to your frontend's domain
 
         // Only set CORS headers for specific routes/methods
-        if request.method() == Method::Options || request.method() == Method::Post || request.method() == Method::Get {
+        if request.method() == Method::Options
+            || request.method() == Method::Post
+            || request.method() == Method::Get
+        {
             // Allow only specific origin
             response.set_header(Header::new("Access-Control-Allow-Origin", allowed_origin));
 

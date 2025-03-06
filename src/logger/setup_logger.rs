@@ -1,13 +1,14 @@
 use chrono::Local;
 use fern::Dispatch;
+use std::env;
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
-    Dispatch::new()
+    let mut dispatch = Dispatch::new()
         // Set the minimum log level
         .level(log::LevelFilter::Info)
         // Filter logs for specific modules, e.g., Rocket
         .level_for("rocket", log::LevelFilter::Info)
-        .level_for("my_app", log::LevelFilter::Debug)
+        .level_for("klearlink-api", log::LevelFilter::Debug)
         // Format the output
         .format(|out, message, record| {
             out.finish(format_args!(
@@ -19,9 +20,13 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
             ))
         })
         // Output to stdout
-        .chain(std::io::stdout())
-        // Optionally output to a file
-        .chain(fern::log_file("output.log")?)
-        .apply()?;
+        .chain(std::io::stdout());
+
+    // Check if the ROCKET_ENV is set to "development"
+    if env::var("ROCKET_ENV").unwrap_or_default() == "development" {
+        dispatch = dispatch.chain(fern::log_file("output.log")?);
+    }
+
+    dispatch.apply()?;
     Ok(())
 }
