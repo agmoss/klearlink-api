@@ -1,18 +1,20 @@
 services:
   staging:
     build: .
+    image: klearlink.azurecr.io/klearlink-api-staging:latest
     ports:
       - 8000:8000
     environment:
       - RUST_LOG=info
       - ROCKET_ENV=staging
-    command: ["/app/klearlink-api"]
+    command: [ "/app/klearlink-api" ]
 
   production:
     build: .
+    image: klearlink.azurecr.io/klearlink-api:latest
     ports:
       - 8000:8000
     environment:
       - RUST_LOG=info
       - ROCKET_ENV=production
-    command: ["/app/klearlink-api"]
+    command: [ "/app/klearlink-api" ]
