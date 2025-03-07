@@ -358,6 +358,23 @@ For real-time updates on consumer matches, use the KlearWatch interface.
 
 ---
 
+## Security
+
+The KlearLink API is designed with robust security features to ensure the protection of sensitive data and compliance with industry standards.
+
+### Authentication
+
+- The API uses API key-based authentication, requiring both an `X-API-Key` and `X-Username` in the request headers to authenticate requests.
+
+### Monitoring and Logging
+
+- Comprehensive logging is implemented to monitor API usage and detect any unauthorized access attempts. Logs are securely stored and regularly reviewed to ensure system integrity.
+
+### Compliance and Protection
+
+- The API is developed in adherence to the FAPI 2.0 Security Profile, ensuring high standards of financial-grade API security.
+- It is also protected against the OWASP Top Ten vulnerabilities, providing a secure environment against common security threats.
+
 ## Appendix
 
 ### A. Definitions
