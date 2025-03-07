@@ -1,17 +1,41 @@
 # KlearLink API
 
-## Table of Contents
+- [KlearLink API](#klearlink-api)
+  - [Authentication](#authentication)
+  - [Error Handling](#error-handling)
+  - [1. Submit a consumer credit record](#1-submit-a-consumer-credit-record)
+  - [2. Update a consumer credit record](#2-update-a-consumer-credit-record)
+  - [3. View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
+  - [4. View Consumer Match](#4-view-consumer-match)
+    - [matched\_on](#matched_on)
+  - [Security](#security)
+    - [Authentication](#authentication-1)
+    - [Monitoring and Logging](#monitoring-and-logging)
+    - [Compliance and Protection](#compliance-and-protection)
+  - [Appendix](#appendix)
+    - [A. Definitions](#a-definitions)
+    - [B. Data Standards](#b-data-standards)
+      - [1. E.164 Phone Number Validation](#1-e164-phone-number-validation)
+        - [**Regex Pattern:**](#regex-pattern)
+        - [**Description:**](#description)
+        - [**Rules:**](#rules)
+        - [**Examples:**](#examples)
+      - [2. CAN/CSA-Z109.1-01 Canadian Address Validation](#2-cancsa-z1091-01-canadian-address-validation)
+        - [**Regex Pattern:**](#regex-pattern-1)
+        - [**Description:**](#description-1)
+        - [**Rules:**](#rules-1)
+        - [**Examples:**](#examples-1)
+      - [3. RFC 5322/822 Email Address Validation](#3-rfc-5322822-email-address-validation)
+        - [**Regex Pattern:**](#regex-pattern-2)
+        - [**Description:**](#description-2)
+        - [**Rules:**](#rules-2)
+        - [**Examples:**](#examples-2)
+      - [4. SIN Validation](#4-sin-validation)
+        - [**Description:**](#description-3)
+        - [**Rules:**](#rules-3)
+        - [Error Messages](#error-messages)
 
-1. [Authentication](#authentication)
-2. [Error Handling](#error-handling)
-3. Endpoints
-   - [Submit a consumer credit record](#1-submit-a-consumer-credit-record)
-   - [Update a consumer credit record](#2-update-a-consumer-credit-record)
-   - [View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
-   - [View Consumer Match](#4-view-consumer-match)
-4. [Appendix](#appendix)
-   - [Definitions](#a-definitions)
-   - [Data Standards](#b-data-standards)
+---
 
 ## Authentication
 
@@ -65,9 +89,9 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 | 201  | Created - Consumer credit record successfully created                |
 | 409  | Conflict - A consumer credit record with id of `{id}` already exists |
 
-### Request Body
+**Request Body**
 
-#### consumer_facts
+> **consumer_facts**
 
 | Field             | Type              | Description                                                                     |
 | ----------------- | ----------------- | ------------------------------------------------------------------------------- |
@@ -80,7 +104,7 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 | SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                        |
 | institution_names | array             | List of associated institutions. Each name must be between 2 and 50 characters. |
 
-#### credit_facts (required)
+> **credit_facts**
 
 | Field                | Type   | Description                              |
 | -------------------- | ------ | ---------------------------------------- |
@@ -89,7 +113,7 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 | application_datetime | string | ISO 8601 datetime of application         |
 | credit_state         | string | State of credit (see values below)       |
 
-**Credit States**:
+> **Credit States**:
 
 - `"application"`
 - `"originated"`
