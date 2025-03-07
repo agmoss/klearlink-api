@@ -4,7 +4,7 @@
 
 1. [Authentication](#authentication)
 2. [Error Handling](#error-handling)
-3. [Endpoints](#endpoints)
+3. Endpoints
    - [Submit a consumer credit record](#1-submit-a-consumer-credit-record)
    - [Update a consumer credit record](#2-update-a-consumer-credit-record)
    - [View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
@@ -282,7 +282,7 @@ Includes all fields from consumer_facts and credit_facts, plus:
 
 Includes consumer_facts and credit_facts from original record, plus:
 
-#### matched_on
+### matched_on
 
 | Field             | Type    | Description                              |
 | ----------------- | ------- | ---------------------------------------- |
@@ -372,8 +372,8 @@ The KlearLink API is designed with robust security features to ensure the protec
 
 ### Compliance and Protection
 
-- The API is developed in adherence to the FAPI 2.0 Security Profile, ensuring high standards of financial-grade API security.
-- It is also protected against the OWASP Top Ten vulnerabilities, providing a secure environment against common security threats.
+- The API is developed in adherence to the [FAPI 2.0 Security Profile](https://openid.net/specs/fapi-2_0-security-profile-ID2.html), ensuring high standards of financial-grade API security.
+- It is also protected against the [OWASP Top Ten](https://owasp.org/www-project-top-ten/) vulnerabilities, providing a secure environment against common security threats.
 
 ## Appendix
 
@@ -493,18 +493,18 @@ This regex validates addresses formatted according to the **CAN/CSA-Z109.1-01** 
 ^[^\s@]+@[^\s@]+\.[^\s@]+$
 ```
 
-### **Description:**
+##### **Description:**
 
 This regex validates email addresses according to the **RFC 5322/822** standard, ensuring that they conform to typical email formatting rules.
 
-### **Rules:**
+##### **Rules:**
 
 - The local part may contain alphanumeric characters, dots, and special characters `(!#$%&'*+/=?^_{|}~-)`.
 - The local part may be enclosed in quotes (`"..."`) if special characters are used.
 - The domain must contain alphanumeric characters and hyphens, but not start or end with a hyphen.
 - The domain must end with a valid top-level domain (2-63 characters in length).
 
-### **Examples:**
+##### **Examples:**
 
 ✅ Valid:
 
@@ -524,11 +524,11 @@ This regex validates email addresses according to the **RFC 5322/822** standard,
 
 #### 4. SIN Validation
 
-### **Description:**
+##### **Description:**
 
 This validator ensures compliance with CRA standards for SIN numbers
 
-### **Rules:**
+##### **Rules:**
 
 - If None → Accept it (SIN is optional).
 - If provided:
@@ -536,7 +536,7 @@ This validator ensures compliance with CRA standards for SIN numbers
   - Must start with 1-9 (no leading zero).
   - Must pass Luhn checksum validation.
 
-### Error Messages
+##### Error Messages
 
 - "Invalid SIN: XXX. Must be exactly 9 digits."
 - "Invalid SIN: XXX. Cannot start with 0."
