@@ -17,7 +17,6 @@ pub type AuthResponse = BaseResponse<AuthDto>;
 pub struct AuthDto {
     /// user id
     pub id: i32,
-    pub username: String,
     pub api_key: Uuid,
     pub role: String,
 }
@@ -26,7 +25,6 @@ impl From<UserModel> for AuthDto {
     fn from(user_model: UserModel) -> Self {
         AuthDto {
             id: user_model.id,
-            username: user_model.username,
             api_key: user_model.api_key,
             role: user_model.role,
         }
@@ -34,11 +32,10 @@ impl From<UserModel> for AuthDto {
 }
 
 impl AuthDto {
-    pub async fn get_user(u_name: String, a_key: Uuid, conn: Db) -> Option<UserModel> {
+    pub async fn get_user(a_key: Uuid, conn: Db) -> Option<UserModel> {
         use crate::schema::users::dsl::*;
         conn.run(move |c| {
             users
-                .filter(username.eq(u_name))
                 .filter(api_key.eq(a_key))
                 .first::<UserModel>(c)
                 .ok()
@@ -61,25 +58,24 @@ impl AuthDto {
 impl<'r> FromRequest<'r> for AuthDto {
     type Error = ErrorResponse;
 
-    /// Extract Auth username and API_KEY from the "Authorization" header.
+    /// Extract Auth API_KEY from the "Authorization" header.
     ///
     /// Handlers with AuthResponse guard will fail with 401, 404, or 422 error.
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        let username = req.headers().get_one("X-Username");
-        let api_key = req.headers().get_one("X-API-Key");
+        let api_key = req.headers().get_one("Authorization");
 
-        if let (Some(_username), Some(_api_key)) = (username, api_key) {
+        if let Some(_api_key) = api_key {
             let conn = req.guard::<Db>().await.unwrap();
 
             match Uuid::try_parse(_api_key) {
                 Ok(ok_api_key) => {
-                    match AuthDto::get_user(_username.to_string(), ok_api_key, conn).await {
+                    match AuthDto::get_user(ok_api_key, conn).await {
                         Some(user_record) => Outcome::Success(user_record.into()),
                         None => Outcome::Error((
                             Status::NotFound,
                             ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
-                                "User with credentials '{}' '{}' not found",
-                                _username, ok_api_key
+                                "User with credentials '{}' not found",
+                                ok_api_key
                             )))),
                         )),
                     }
