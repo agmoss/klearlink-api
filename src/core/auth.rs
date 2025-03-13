@@ -46,7 +46,14 @@ impl AuthDto {
     pub fn ensure_admin(&self) -> BaseResponse<()> {
         if self.role == "admin" {
             Ok(())
-        } else {
+            } else {
+                return Outcome::Error((
+                    Status::UnprocessableEntity,
+                    ErrorResponse::NotFound(Json(ErrorMessage::from_str(
+                        "Invalid authorization header format",
+                    ))),
+                ));
+            }
             Err(ErrorResponse::Unauthorized(Json(ErrorMessage::from_str(
                 "Access denied: Admin role required",
             ))))
@@ -62,9 +69,12 @@ impl<'r> FromRequest<'r> for AuthDto {
     ///
     /// Handlers with AuthResponse guard will fail with 401, 404, or 422 error.
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        let api_key = req.headers().get_one("Authorization");
+        let auth_header = req.headers().get_one("Authorization");
 
-        if let Some(_api_key) = api_key {
+        if let Some(auth_value) = auth_header {
+            let parts: Vec<&str> = auth_value.split_whitespace().collect();
+            if parts.len() == 2 && parts[0] == "Apikey" {
+                let _api_key = parts[1];
             let conn = req.guard::<Db>().await.unwrap();
 
             match Uuid::try_parse(_api_key) {
