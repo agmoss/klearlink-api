@@ -10,8 +10,8 @@ mod tests {
     use uuid::Uuid;
 
     use crate::common::{
-        create_consumer_credit, response_json_value, test_client, update_consumer_credit,
-        view_consumer_match,
+        create_consumer_credit, create_user, delete_user, response_json_value, test_client,
+        update_consumer_credit, view_consumer_match,
     };
 
     static TEST_UUID: Lazy<String> = Lazy::new(|| Uuid::new_v4().to_string());
@@ -43,13 +43,7 @@ mod tests {
         ];
 
         for user in users {
-            let response = client
-                .post("/users")
-                .header(Header::new("X-API-Key", API_KEY_ADMIN))
-                .header(Header::new("X-Username", "test_admin_user"))
-                .header(ContentType::JSON)
-                .body(user.to_string())
-                .dispatch();
+            let response = create_user(&client, &user, API_KEY_ADMIN.to_string());
 
             assert_eq!(response.status(), Status::Ok);
         }
@@ -68,10 +62,8 @@ mod tests {
                 .dispatch();
 
             assert_eq!(r1.status(), Status::Ok);
-            let r2 = client
-                .delete(format!("/users/{}", username))
-                .header(ContentType::JSON)
-                .dispatch();
+
+            let r2 = delete_user(&client, username.to_string(), API_KEY_ADMIN.to_string());
 
             assert_eq!(r2.status(), Status::Ok);
         }
@@ -90,13 +82,7 @@ mod tests {
             "role": "lender"
         });
 
-        let response = client
-            .post("/users")
-            .header(Header::new("X-API-Key", API_KEY_ADMIN))
-            .header(Header::new("X-Username", "test_admin_user"))
-            .header(ContentType::JSON)
-            .body(new_user.to_string())
-            .dispatch();
+        let response = create_user(&client, &new_user, API_KEY_ADMIN.to_string());
 
         assert_eq!(response.status(), Status::Ok);
     }
@@ -106,11 +92,7 @@ mod tests {
     fn test_delete_user() {
         let client = test_client().lock().unwrap();
 
-        let response = client
-            .delete("/users/new_user")
-            .header(Header::new("X-API-Key", API_KEY_ADMIN))
-            .header(Header::new("X-Username", "test_admin_user"))
-            .dispatch();
+        let response = delete_user(&client, "new_user".to_string(), API_KEY_ADMIN.to_string());
 
         assert_eq!(response.status(), Status::Ok);
     }
@@ -138,13 +120,8 @@ mod tests {
             }
         });
 
-        let response = create_consumer_credit(
-            &client,
-            &*TEST_UUID,
-            API_KEY_1.to_string(),
-            "test_user_1".to_string(),
-            &dummy_payload,
-        );
+        let response =
+            create_consumer_credit(&client, &*TEST_UUID, API_KEY_1.to_string(), &dummy_payload);
 
         assert_eq!(response.status(), Status::Ok);
 
@@ -187,7 +164,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &invalid_payload,
         );
 
@@ -213,7 +189,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &missing_fields_payload,
         );
 
@@ -270,18 +245,12 @@ mod tests {
                 &client,
                 &consumer_credit_id,
                 API_KEY_2.to_string(),
-                "test_user_2".to_string(),
                 &payload,
             );
             assert_eq!(response.status(), Status::Ok);
         }
 
-        let response = view_consumer_match(
-            &client,
-            &*TEST_UUID,
-            API_KEY_1.to_string(),
-            "test_user_1".to_string(),
-        );
+        let response = view_consumer_match(&client, &*TEST_UUID, API_KEY_1.to_string());
 
         assert_eq!(response.status(), Status::Ok);
     }
@@ -315,7 +284,6 @@ mod tests {
             &client,
             &test_uuid_duplicate,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Ok);
@@ -325,7 +293,6 @@ mod tests {
             &client,
             &test_uuid_duplicate,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Conflict);
@@ -338,29 +305,24 @@ mod tests {
 
         let dummy_payload = json!({
             "consumer_facts": {
-                "first_name": "Randy",
+                "last_name": "Randy",
             },
         });
 
-        let response = update_consumer_credit(
-            &client,
-            &*TEST_UUID,
-            API_KEY_1.to_string(),
-            "test_user_1".to_string(),
-            &dummy_payload,
-        );
+        let response =
+            update_consumer_credit(&client, &*TEST_UUID, API_KEY_1.to_string(), &dummy_payload);
 
         assert_eq!(response.status(), Status::Ok);
 
         let value = response_json_value(response);
 
-        let title = value
+        let last_name = value
             .get("consumer_facts")
             .expect("must have an 'consumer_facts' field")
-            .get("first_name")
-            .expect("must have a 'first_name' field")
+            .get("last_name")
+            .expect("must have a 'last_name' field")
             .as_str();
 
-        assert_eq!(title, Some("Randy"));
+        assert_eq!(last_name, Some("Randy"));
     }
 }

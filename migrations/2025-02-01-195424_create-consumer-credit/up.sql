@@ -8,7 +8,8 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
-    UNIQUE (username)
+    UNIQUE (username),
+    UNIQUE (api_key)
 );
 
 CREATE TABLE consumer_credit (

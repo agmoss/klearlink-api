@@ -102,9 +102,7 @@ impl ConsumerCreditService {
         let auth_result = auth?;
         let target_record =
             Self::get_target_record(_consumer_credit_id, auth_result.id, &conn).await;
-        target_record
-            .map(|record| Json(record.into()))
-            .map_err(ErrorResponse::from)
+        target_record.map(|record| Json(record.into()))
     }
 
     pub async fn view_consumer_match(
@@ -148,7 +146,7 @@ impl ConsumerCreditService {
                 )
                 .await
             }
-            Err(e) => Err(ErrorResponse::from(e)),
+            Err(e) => Err(e),
         }
     }
 

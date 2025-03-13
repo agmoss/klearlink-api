@@ -17,7 +17,6 @@ pub type AuthResponse = BaseResponse<AuthDto>;
 pub struct AuthDto {
     /// user id
     pub id: i32,
-    pub username: String,
     pub api_key: Uuid,
     pub role: String,
 }
@@ -26,7 +25,6 @@ impl From<UserModel> for AuthDto {
     fn from(user_model: UserModel) -> Self {
         AuthDto {
             id: user_model.id,
-            username: user_model.username,
             api_key: user_model.api_key,
             role: user_model.role,
         }
@@ -34,16 +32,10 @@ impl From<UserModel> for AuthDto {
 }
 
 impl AuthDto {
-    pub async fn get_user(u_name: String, a_key: Uuid, conn: Db) -> Option<UserModel> {
+    pub async fn get_user(a_key: Uuid, conn: Db) -> Option<UserModel> {
         use crate::schema::users::dsl::*;
-        conn.run(move |c| {
-            users
-                .filter(username.eq(u_name))
-                .filter(api_key.eq(a_key))
-                .first::<UserModel>(c)
-                .ok()
-        })
-        .await
+        conn.run(move |c| users.filter(api_key.eq(a_key)).first::<UserModel>(c).ok())
+            .await
     }
 
     pub fn ensure_admin(&self) -> BaseResponse<()> {
@@ -56,43 +48,60 @@ impl AuthDto {
         }
     }
 }
-
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for AuthDto {
     type Error = ErrorResponse;
 
-    /// Extract Auth username and API_KEY from the "Authorization" header.
+    /// Extract API key from the "Authorization" header.
     ///
     /// Handlers with AuthResponse guard will fail with 401, 404, or 422 error.
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        let username = req.headers().get_one("X-Username");
-        let api_key = req.headers().get_one("X-API-Key");
+        let authorization = req.headers().get_one("Authorization");
 
-        if let (Some(_username), Some(_api_key)) = (username, api_key) {
-            let conn = req.guard::<Db>().await.unwrap();
-
-            match Uuid::try_parse(_api_key) {
-                Ok(ok_api_key) => {
-                    match AuthDto::get_user(_username.to_string(), ok_api_key, conn).await {
-                        Some(user_record) => Outcome::Success(user_record.into()),
-                        None => Outcome::Error((
-                            Status::NotFound,
-                            ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
-                                "User with credentials '{}' '{}' not found",
-                                _username, ok_api_key
-                            )))),
-                        )),
-                    }
-                }
-                Err(e) => Outcome::Error((Status::UnprocessableEntity, ErrorResponse::from(e))),
-            }
-        } else {
-            Outcome::Error((
+        if authorization.is_none() {
+            return Outcome::Error((
                 Status::UnprocessableEntity,
                 ErrorResponse::NotFound(Json(ErrorMessage::from_str(
-                    "Missing authentication headers",
+                    "Missing authentication header",
                 ))),
-            ))
+            ));
+        }
+
+        let auth_header = authorization.unwrap();
+
+        // Ensure it follows the format "Apikey <key>"
+        let parts: Vec<&str> = auth_header.split_whitespace().collect();
+        if parts.len() != 2 || parts[0] != "Apikey" {
+            return Outcome::Error((
+                Status::BadRequest,
+                ErrorResponse::NotFound(Json(ErrorMessage::from_str(
+                    "Invalid Authorization format. Expected: 'Authorization: Apikey <UUID>'",
+                ))),
+            ));
+        }
+
+        let api_key_str = parts[1];
+
+        match Uuid::parse_str(api_key_str) {
+            Ok(parsed_api_key) => {
+                let conn = req.guard::<Db>().await.unwrap();
+                match AuthDto::get_user(parsed_api_key, conn).await {
+                    Some(user_record) => Outcome::Success(user_record.into()),
+                    None => Outcome::Error((
+                        Status::NotFound,
+                        ErrorResponse::NotFound(Json(ErrorMessage::from_str(&format!(
+                            "User with API key '{}' not found",
+                            parsed_api_key
+                        )))),
+                    )),
+                }
+            }
+            Err(_) => Outcome::Error((
+                Status::UnprocessableEntity,
+                ErrorResponse::NotFound(Json(ErrorMessage::from_str(
+                    "Invalid API key format. Expected a valid UUID.",
+                ))),
+            )),
         }
     }
 }

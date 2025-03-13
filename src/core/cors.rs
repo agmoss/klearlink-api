@@ -15,7 +15,7 @@ impl Fairing for CORS {
 
     async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
         // Define allowed origin (specific domain instead of wildcard)
-        let allowed_origin = "https://example.com"; // Change this to your frontend's domain
+        let allowed_origin = "https://api.klearlink.io"; // Change this to your frontend's domain
 
         // Only set CORS headers for specific routes/methods
         if request.method() == Method::Options

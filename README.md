@@ -1,15 +1,18 @@
 # KlearLink API
 
 - [KlearLink API](#klearlink-api)
-  - [Authentication](#authentication)
+  - [**Authentication Guide**](#authentication-guide)
+    - [**Authentication Format**](#authentication-format)
+    - [**Error Responses**](#error-responses)
   - [Error Handling](#error-handling)
+    - [Error Responses](#error-responses-1)
   - [1. Submit a consumer credit record](#1-submit-a-consumer-credit-record)
   - [2. Update a consumer credit record](#2-update-a-consumer-credit-record)
   - [3. View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
   - [4. View Consumer Match](#4-view-consumer-match)
     - [matched\_on](#matched_on)
   - [Security](#security)
-    - [Authentication](#authentication-1)
+    - [Authentication](#authentication)
     - [Monitoring and Logging](#monitoring-and-logging)
     - [Compliance and Protection](#compliance-and-protection)
   - [Appendix](#appendix)
@@ -37,23 +40,32 @@
 
 ---
 
-## Authentication
+## **Authentication Guide**
 
-All API requests must include authentication credentials in the request headers. We use API key-based authentication.
+This API requires authentication via an **API key** provided in the `Authorization` header.
 
-**Headers**:
+### **Authentication Format**
+All requests must include the `Authorization` header with the following format:
 
-| Header       | Value  | Description                  |
-| ------------ | ------ | ---------------------------- |
-| `X-API-Key`  | string | Your unique API key (UUIDV4) |
-| `X-Username` | string | Your registered username     |
-
-**Example Request Headers**:
-
-```http
-X-API-Key: your_api_key_here
-X-Username: your_username
+```bash
+Authorization: Apikey <YOUR_API_KEY>
 ```
+
+### **Error Responses**
+If authentication fails, the API will return one of the following errors:
+
+| Status Code | Error Message | Description |
+|-------------|--------------|-------------|
+| **400** Bad Request | `Invalid Authorization format. Expected: 'Authorization: Apikey <UUID>'` | The `Authorization` header is malformed. Ensure it's in the correct format. |
+| **404** Not Found | `User with API key '<UUID>' not found` | The provided API key does not match any user in the system. |
+| **422** Unprocessable Entity | `Invalid API key format. Expected a valid UUID.` | The API key is not a valid UUID format. |
+| **422** Unprocessable Entity | `Missing authentication header` | No `Authorization` header was provided in the request. |
+
+
+:::info
+- The API key must be a valid **UUID**.
+- If the API key does not belong to a registered user, authentication will fail.
+:::
 
 :::warning
 Keep your API key secure and never share it. If you believe your API key has been compromised, contact support immediately for a replacement.
@@ -67,6 +79,29 @@ The API uses standard HTTP status codes to indicate the success or failure of an
 - **401 Unauthorized**: Authentication credentials were missing or incorrect.
 - **404 Not Found**: The requested resource could not be found.
 - **409 Conflict**: The request could not be completed due to a conflict with the current state of the resource.
+  - This will occur when attempting to submit a duplicate consumer id record.
+- **422 Unprocessable Entity**: The request was recognized but is malformed
+  - This will occur if the request body contains invalid or malformed data. See [Data Standards](#b-data-standards)
+
+### Error Responses
+
+All 4XX and 5XX responses will have a content type of "application/json" and have a root key of "error". The value for "error" will either be a string detailing the error, or in the case of a 422 error, a json structure with further error details.
+
+```json
+{
+  "error":"message"
+}
+```
+
+or 
+
+```json
+{
+  "error": {
+    "key":"value"
+  }
+}
+```
 
 ## 1. Submit a consumer credit record
 
