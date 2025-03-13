@@ -70,6 +70,16 @@ pub async fn view_consumer_match(
 }
 
 #[delete("/consumer-credit/user/<username>")]
-pub async fn delete_consumer_credits_by_username(username: String, conn: Db) -> RestResult<()> {
-    ConsumerCreditService::delete_consumer_credits_by_username(username, conn).await
+pub async fn delete_consumer_credits_by_username(
+    username: String,
+    auth: AuthResponse,
+    conn: Db,
+) -> RestResult<()> {
+    match auth {
+        Ok(user) => {
+            user.ensure_admin()?;
+            ConsumerCreditService::delete_consumer_credits_by_username(username, conn).await
+        }
+        Err(err) => Err(err),
+    }
 }

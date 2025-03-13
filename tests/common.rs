@@ -1,8 +1,7 @@
 use dotenvy::dotenv;
 use klearlink_api;
-use once_cell::sync::OnceCell;
 use rocket::{
-    http::Header,
+    http::{ContentType, Header},
     local::blocking::{Client, LocalResponse},
 };
 use serde_json::Value;
@@ -21,8 +20,6 @@ pub fn test_client() -> &'static Mutex<Client> {
         let rocket = klearlink_api::create_rocket();
         Mutex::new(Client::tracked(rocket).expect("valid Rocket client"))
     })
-
-    
 }
 
 pub fn create_consumer_credit<'a>(
@@ -65,6 +62,30 @@ pub fn view_consumer_match<'a>(
             "/consumer-credit/{}/consumer-match",
             consumer_credit_id
         ))
+        .header(Header::new("Authorization", format!("Apikey {}", api_key)))
+        .dispatch();
+
+    response
+}
+
+pub fn create_user<'a>(
+    client: &'a Client,
+    new_user: &'a Value,
+    api_key: String,
+) -> LocalResponse<'a> {
+    let response = client
+        .post("/users")
+        .header(Header::new("Authorization", format!("Apikey {}", api_key)))
+        .header(ContentType::JSON)
+        .body(new_user.to_string())
+        .dispatch();
+
+    response
+}
+
+pub fn delete_user<'a>(client: &'a Client, uname: String, api_key: String) -> LocalResponse<'a> {
+    let response = client
+        .delete(format!("/users/{}", uname))
         .header(Header::new("Authorization", format!("Apikey {}", api_key)))
         .dispatch();
 
