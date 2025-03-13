@@ -142,7 +142,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
 
@@ -187,7 +186,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &invalid_payload,
         );
 
@@ -213,7 +211,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &missing_fields_payload,
         );
 
@@ -270,7 +267,6 @@ mod tests {
                 &client,
                 &consumer_credit_id,
                 API_KEY_2.to_string(),
-                "test_user_2".to_string(),
                 &payload,
             );
             assert_eq!(response.status(), Status::Ok);
@@ -279,7 +275,6 @@ mod tests {
         let response = view_consumer_match(
             &client,
             &*TEST_UUID,
-            API_KEY_1.to_string(),
             "test_user_1".to_string(),
         );
 
@@ -315,7 +310,6 @@ mod tests {
             &client,
             &test_uuid_duplicate,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Ok);
@@ -325,7 +319,6 @@ mod tests {
             &client,
             &test_uuid_duplicate,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
         assert_eq!(response.status(), Status::Conflict);
@@ -346,7 +339,6 @@ mod tests {
             &client,
             &*TEST_UUID,
             API_KEY_1.to_string(),
-            "test_user_1".to_string(),
             &dummy_payload,
         );
 
