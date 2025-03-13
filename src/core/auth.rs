@@ -102,3 +102,4 @@ impl<'r> FromRequest<'r> for AuthDto {
         }
     }
 }
+}
