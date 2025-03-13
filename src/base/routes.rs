@@ -14,7 +14,7 @@ pub struct ApiInfo {
 }
 
 #[get("/")]
-pub fn base_route() -> Json<ApiInfo> {
+pub fn base_route() -> Json<ApiInfo> {    
     Json(ApiInfo {
         version: env!("CARGO_PKG_VERSION"),
         env: env::var("ROCKET_ENV").unwrap_or_else(|_| "unknown".to_string()),

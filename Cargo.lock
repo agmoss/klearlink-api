@@ -928,6 +928,8 @@ dependencies = [
  "serde_valid",
  "serial_test",
  "tonic",
+ "tracing",
+ "tracing-subscriber",
  "uuid",
 ]
 
