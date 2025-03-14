@@ -1,6 +1,6 @@
 pub mod schema;
 
-use core::{cors::CORS, pool::Db, trace::init_tracing};
+use core::{cors::CORS, pool::Db, trace::init_tracing_1, trace::init_tracing_2};
 
 use rocket::{routes, Build, Rocket};
 
@@ -13,7 +13,7 @@ mod error;
 mod user;
 
 pub fn create_rocket() -> Rocket<Build> {
-    init_tracing().expect("tracing on");
+    init_tracing_2();
 
     warn!("Starting Rocket application...");
     rocket::build()
