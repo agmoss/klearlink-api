@@ -4,7 +4,7 @@ mod common;
 mod tests {
 
     use once_cell::sync::Lazy;
-    use rocket::http::{ContentType, Header, Status};
+    use rocket::http::Status;
     use serde_json::json;
     use serial_test::serial;
     use uuid::Uuid;

@@ -4,7 +4,7 @@ use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::{execute_db_operation, execute_db_operation_rest};
 use crate::core::pool::Db;
 use crate::core::req::{validate_dto, RestDto};
-use crate::core::res::{BaseResponse, ErrorResponse, RestResult};
+use crate::core::res::{BaseResponse, RestResult};
 
 use diesel::prelude::*;
 use log::info;

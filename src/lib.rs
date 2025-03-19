@@ -1,21 +1,21 @@
 pub mod schema;
 
-use core::{cors::CORS, pool::Db};
-use log::info;
-use logger::setup_logger::setup_logger;
+use core::{cors::CORS, pool::Db, trace::init_tracing_1, trace::init_tracing_2};
 
 use rocket::{routes, Build, Rocket};
+
+use tracing::warn;
 
 mod base;
 mod consumer_credit;
 mod core;
 mod error;
-mod logger;
 mod user;
 
 pub fn create_rocket() -> Rocket<Build> {
-    setup_logger().expect("Failed to initialize logger");
-    info!("Starting Rocket application...");
+    init_tracing_2();
+
+    warn!("Starting Rocket application...");
     rocket::build()
         .register("/", error::catchers())
         .attach(Db::fairing())
