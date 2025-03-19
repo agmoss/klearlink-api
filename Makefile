@@ -81,7 +81,7 @@ lint-sql-fix:
 # Run the application
 run: 
 	$(PRINT_CMD)
-	RUST_LOG=rocket=debug,info ROCKET_ENV=development cargo run
+	cargo run
 	$(PRINT_DONE)
 
 .PHONY: install-diesel-cli diesel-cli diesel-setup migrate-up migrate-down format lint test install-sql-linter lint-sql lint-sql-fix run
