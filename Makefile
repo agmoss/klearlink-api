@@ -84,4 +84,7 @@ run:
 	cargo run
 	$(PRINT_DONE)
 
-.PHONY: install-diesel-cli diesel-cli diesel-setup migrate-up migrate-down format lint test install-sql-linter lint-sql lint-sql-fix run
+seed: 
+	cargo run --bin seed
+
+.PHONY: install-diesel-cli diesel-cli diesel-setup migrate-up migrate-down format lint test install-sql-linter lint-sql lint-sql-fix run seed
