@@ -54,6 +54,13 @@ fn main() {
 fn seed_database(conn: &diesel::pg::PgConnection) {
     use diesel::insert_into;
     use diesel::RunQueryDsl;
+    use rand::seq::SliceRandom;
+    use rand::Rng;
+    let first_names = ["John", "Jane", "Alice", "Bob", "Charlie", "Diana"];
+    let last_names = ["Doe", "Smith", "Johnson", "Lee", "Brown", "Davis"];
+    let addresses = ["101 Main St", "202 Elm St", "303 Oak Ave", "404 Maple Rd", "505 Pine St"];
+    let credit_types = ["PDL", "BNPL"];
+    let credit_states = ["application", "originated", "declined", "non-compliant", "compliant"];
 
     // Seed 1000 users
     for i in 0..1000 {
@@ -74,23 +81,33 @@ fn seed_database(conn: &diesel::pg::PgConnection) {
         for j in 0..10 {
             let cc_id = format!("cc_{}_{}", i, j);
             let now = Local::now().naive_local();
+            let mut rng = rand::thread_rng();
+            let first_name = first_names.choose(&mut rng).unwrap().to_string();
+            let last_name = last_names.choose(&mut rng).unwrap().to_string();
+            let address = addresses.choose(&mut rng).unwrap().to_string();
+            let credit_type = credit_types.choose(&mut rng).unwrap().to_string();
+            let credit_state = credit_states.choose(&mut rng).unwrap().to_string();
+            let amount: f64 = rng.gen_range(500.0..2000.0);
+            let dob_year = rng.gen_range(1970..2000);
+            let dob_month = rng.gen_range(1..13);
+            let dob_day = rng.gen_range(1..28);
             let new_credit = NewConsumerCredit {
                 consumer_credit_id: cc_id,
-                first_name: "John".to_string(),
-                last_name: "Doe".to_string(),
-                email: format!("user_{}@example.com", i),
-                date_of_birth: NaiveDate::from_ymd(1990, 1, 1),
-                address: "101 Main St".to_string(),
+                first_name: first_name.clone(),
+                last_name: last_name.clone(),
+                email: format!("{}.{}{}@example.com", first_name, last_name, j),
+                date_of_birth: NaiveDate::from_ymd(dob_year, dob_month, dob_day),
+                address,
                 phone_number: "+11234567890".to_string(),
                 sin_ssn: None,
                 institution_names: vec!["TD".to_string()],
-                amount: 1000.00,
-                credit_type: "PDL".to_string(),
+                amount,
+                credit_type,
                 application_datetime: now,
                 originated_datetime: None,
                 payment_due_date: None,
                 payment_due_amount: None,
-                credit_state: "application".to_string(),
+                credit_state,
                 consumer_information_indicator: None,
                 user_id: inserted_user.0,
             };
