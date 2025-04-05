@@ -1,6 +1,5 @@
 use crate::schema::consumer_credit;
 use crate::schema::consumer_credit_events;
-use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -21,8 +20,7 @@ pub struct ConsumerCreditModel {
     pub sin_ssn: Option<String>,
     #[diesel(sql_type = Nullable<Array<Nullable<Text>>>)]
     pub institution_names: Vec<Option<String>>,
-    #[diesel(sql_type = Numeric)]
-    pub amount: BigDecimal,
+    pub amount: f64,
     pub credit_type: String,
     #[diesel(sql_type = Timestamp)]
     pub application_datetime: NaiveDateTime,
@@ -50,8 +48,7 @@ pub struct InsertConsumerCreditModel {
     pub sin_ssn: Option<String>,
     pub institution_names: Vec<Option<String>>,
     pub consumer_information_indicator: Option<String>,
-    #[diesel(sql_type = Numeric)]
-    pub amount: BigDecimal,
+    pub amount: f64,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
     pub originated_datetime: Option<NaiveDateTime>,
@@ -73,8 +70,7 @@ pub struct UpdateConsumerCreditModel {
     pub phone_number: Option<String>,
     pub sin_ssn: Option<String>,
     pub institution_names: Option<Vec<Option<String>>>,
-    #[diesel(sql_type = Numeric)]
-    pub amount: Option<BigDecimal>,
+    pub amount: Option<f64>,
     pub credit_type: Option<String>,
     pub application_datetime: Option<NaiveDateTime>,
     pub originated_datetime: Option<NaiveDateTime>,

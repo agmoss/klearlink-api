@@ -9,7 +9,7 @@ use opentelemetry_stdout as stdout;
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
 
-pub fn init_tracing_1() -> Result<(), Error> {
+pub fn _init_tracing_1() -> Result<(), Error> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .with_target(true)

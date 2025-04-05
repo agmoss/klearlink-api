@@ -4,7 +4,6 @@ use super::models::{
     ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
     UpdateConsumerCreditModel,
 };
-use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -60,8 +59,8 @@ pub struct UpdateConsumerFactsDto {
 #[validate(custom = Validator::validate_credit_facts)]
 #[validate(custom = Validator::validate_credit_state)]
 pub struct CreditFactsDto {
-    #[validate(custom = Validator::non_negative_bigdecimal)]
-    pub amount: BigDecimal,
+    #[validate(custom = Validator::non_negative_float)]
+    pub amount: f64,
     #[validate(custom = Validator::credit_type_validation)]
     pub credit_type: String,
     #[validate(custom = Validator::past_or_present_datetime)]
@@ -78,8 +77,8 @@ pub struct CreditFactsDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, Default)]
 pub struct UpdateCreditFactsDto {
-    #[validate(custom = Validator::optional_non_negative_bigdecimal)]
-    pub amount: Option<BigDecimal>,
+    #[validate(custom = Validator::optional_non_negative_float)]
+    pub amount: Option<f64>,
     #[validate(custom = Validator::optional_credit_type_validation)]
     pub credit_type: Option<String>,
     #[validate(custom = Validator::optional_past_or_present_datetime)]
@@ -135,7 +134,7 @@ pub struct ConsumerMatchesDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct MatchedCreditFactsDto {
-    pub amount: BigDecimal,
+    pub amount: f64,
     pub credit_type: String,
     pub application_datetime: NaiveDateTime,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -184,7 +183,7 @@ impl UpdateConsumerCreditDto {
             consumer_information_indicator: Self::extract(
                 &facts.and_then(|f| f.consumer_information_indicator.clone()),
             ),
-            amount: Self::extract(&credit.and_then(|c| c.amount.clone())),
+            amount: Self::extract(&credit.and_then(|c| c.amount)),
             credit_type: Self::extract(&credit.and_then(|c| c.credit_type.clone())),
             application_datetime: credit.and_then(|c| c.application_datetime),
             originated_datetime: credit.and_then(|c| c.originated_datetime),
@@ -215,7 +214,7 @@ impl InsertConsumerCreditDto {
                 .consumer_facts
                 .consumer_information_indicator
                 .clone(),
-            amount: self.credit_facts.amount.clone(),
+            amount: self.credit_facts.amount,
             credit_type: self.credit_facts.credit_type.clone(),
             application_datetime: self.credit_facts.application_datetime,
             originated_datetime: self.credit_facts.originated_datetime,

@@ -1,16 +1,16 @@
 pub mod schema;
 
-use core::{cors::CORS, pool::Db, trace::init_tracing_1, trace::init_tracing_2};
+use core::{cors::CORS, pool::Db, trace::init_tracing_2};
 
 use rocket::{routes, Build, Rocket};
 
 use tracing::warn;
 
 mod base;
-mod consumer_credit;
+pub mod consumer_credit;
 mod core;
-mod error;
-mod user;
+pub mod error;
+pub mod user;
 
 pub fn create_rocket() -> Rocket<Build> {
     init_tracing_2();

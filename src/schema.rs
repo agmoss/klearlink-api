@@ -18,7 +18,7 @@ diesel::table! {
         #[max_length = 11]
         sin_ssn -> Nullable<Varchar>,
         institution_names -> Array<Nullable<Text>>,
-        amount -> Numeric,
+        amount -> Float8,
         #[max_length = 10]
         credit_type -> Varchar,
         application_datetime -> Timestamp,
