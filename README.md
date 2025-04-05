@@ -145,12 +145,12 @@ or
 
 > **credit_facts**
 
-| Field                | Type   | Description                              |
-| -------------------- | ------ | ---------------------------------------- |
-| amount               | number | Amount requested by borrower, in dollars |
-| credit_type          | string | Type of credit (`"PDL"` or `"BNPL"`)     |
-| application_datetime | string | ISO 8601 datetime of application         |
-| credit_state         | string | State of credit (see values below)       |
+| Field                | Type   | Description                                    |
+| -------------------- | ------ | ---------------------------------------------- |
+| amount               | float  | Amount requested by borrower, in dollars/cents |
+| credit_type          | string | Type of credit (`"PDL"` or `"BNPL"`)           |
+| application_datetime | string | ISO 8601 datetime of application               |
+| credit_state         | string | State of credit (see values below)             |
 
 > **Credit States**:
 
@@ -174,7 +174,7 @@ or
     "institution_names": ["TD", "RBC"]
   },
   "credit_facts": {
-    "amount": 1000,
+    "amount": 1000.0,
     "credit_type": "PDL",
     "application_datetime": "2024-09-23 21:47:12.023476",
     "credit_state": "applied"
@@ -216,11 +216,11 @@ Same schema as Submit endpoint (all fields optional), with additional optional f
 
 credit_facts (optional - only present on credit states of 'originated', 'compliant', 'non-compliant')
 
-| Field               | Type   | Description                           |
-| ------------------- | ------ | ------------------------------------- |
-| originated_datetime | string | ISO 8601 datetime of origination      |
-| payment_due_date    | string | ISO 8601 datetime of payment due date |
-| payment_amount_due  | number | Amount due for payment, in dollars    |
+| Field               | Type   | Description                              |
+| ------------------- | ------ | ---------------------------------------- |
+| originated_datetime | string | ISO 8601 datetime of origination         |
+| payment_due_date    | string | ISO 8601 datetime of payment due date    |
+| payment_amount_due  | float  | Amount due for payment, in dollars/cents |
 
 :::info
 `originated_datetime`, `payment_due_date`, and `payment_amount_due` are all required if one is provided. Further, these fields can only be set when the credit state is not `application` or `declined`
@@ -240,12 +240,12 @@ credit_facts (optional - only present on credit states of 'originated', 'complia
     "institution_names": ["TD", "RBC"]
   },
   "credit_facts": {
-    "amount": 1000,
+    "amount": 1000.0,
     "credit_type": "PDL",
     "application_datetime": "2024-09-23 21:47:12.023476",
     "originated_datetime": "2024-09-24 15:43:12.023476",
     "payment_due_date": "2024-09-30 15:43:12.023476",
-    "payment_amount_due": 1000,
+    "payment_amount_due": 1000.0,
     "credit_state": "originated"
   }
 }
@@ -303,12 +303,12 @@ Includes all fields from consumer_facts and credit_facts, plus:
     "institution_names": ["TD", "RBC"]
   },
   "credit_facts": {
-    "amount": 1000,
+    "amount": 1000.0,
     "credit_type": "PDL",
     "application_datetime": "2024-09-23 21:47:12.023476",
     "originated_datetime": "2024-09-24 15:43:12.023476",
     "payment_due_date": "2024-09-30 15:43:12.023476",
-    "payment_amount_due": 1000,
+    "payment_amount_due": 1000.0,
     "credit_state": "originated"
   },
   "created_at": "datetime",
@@ -370,12 +370,12 @@ Includes consumer_facts and credit_facts from original record, plus:
     "institution_names": ["TD", "RBC"]
   },
   "credit_facts": {
-    "amount": 1000,
+    "amount": 1000.0,
     "credit_type": "PDL",
     "application_datetime": "2024-09-23 21:47:12.023476",
     "originated_datetime": "2024-09-24 15:43:12.023476",
     "payment_due_date": "2024-09-30 15:43:12.023476",
-    "payment_amount_due": 1000,
+    "payment_amount_due": 1000.0,
     "credit_state": "originated"
   },
   "created_at": "datetime",
@@ -393,12 +393,12 @@ Includes consumer_facts and credit_facts from original record, plus:
         "institution_names": ["CIBC"]
       },
       "credit_facts": {
-        "amount": 1200,
+        "amount": 1200.0,
         "credit_type": "PDL",
         "application_datetime": "2024-09-23 11:47:12.023476",
         "originated_datetime": "2024-09-24 12:43:12.023476",
         "payment_due_date": "2024-09-30 07:43:12.023476",
-        "payment_amount_due": 1200,
+        "payment_amount_due": 1200.0,
         "credit_state": "non-compliant"
       }
     }

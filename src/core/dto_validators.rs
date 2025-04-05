@@ -138,7 +138,7 @@ impl Validator {
         }
     }
 
-    pub fn non_negative_bigdecimal(val: &BigDecimal) -> ValidatorError {
+    pub fn _non_negative_bigdecimal(val: &BigDecimal) -> ValidatorError {
         if val >= &BigDecimal::from(0) {
             Ok(())
         } else {
@@ -149,9 +149,28 @@ impl Validator {
         }
     }
 
-    pub fn optional_non_negative_bigdecimal(val: &Option<BigDecimal>) -> ValidatorError {
+    pub fn _optional_non_negative_bigdecimal(val: &Option<BigDecimal>) -> ValidatorError {
         if let Some(value) = val {
-            Self::non_negative_bigdecimal(value)
+            Self::_non_negative_bigdecimal(value)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn non_negative_float(val: &f64) -> ValidatorError {
+        if val >= &0.0 {
+            Ok(())
+        } else {
+            Err(Error::Custom(format!(
+                "Invalid value: {}. Must be a non-negative number.",
+                val
+            )))
+        }
+    }
+
+    pub fn optional_non_negative_float(val: &Option<f64>) -> ValidatorError {
+        if let Some(value) = val {
+            Self::non_negative_float(value)
         } else {
             Ok(())
         }

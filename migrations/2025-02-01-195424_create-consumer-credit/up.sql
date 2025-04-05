@@ -28,12 +28,12 @@ CREATE TABLE consumer_credit (
         OR sin_ssn ~ '^\d{3}-\d{2}-\d{4}$'
     ),
     institution_names TEXT [] NOT NULL,
-    amount NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
+    amount FLOAT NOT NULL CHECK (amount >= 0),
     credit_type VARCHAR(10) NOT NULL CHECK (credit_type IN ('PDL', 'BNPL')),
     application_datetime TIMESTAMP NOT NULL,
     originated_datetime TIMESTAMP,
     payment_due_date TIMESTAMP,
-    payment_due_amount FLOAT,
+    payment_due_amount FLOAT CHECK (amount >= 0),
     credit_state VARCHAR(20) NOT NULL CHECK (
         credit_state IN (
             'application',

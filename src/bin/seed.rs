@@ -5,14 +5,13 @@ use fake::Fake;
 use dotenv::dotenv;
 use rand::seq::IndexedRandom;
 use rand::SeedableRng;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use uuid::Uuid;
 
-use bigdecimal::{BigDecimal, FromPrimitive};
 use klearlink_api::consumer_credit::models::InsertConsumerCreditModel;
 use klearlink_api::schema::{consumer_credit, users};
 use klearlink_api::user::models::{InsertUserModel, UserModel};
@@ -61,7 +60,7 @@ fn generate_profile(first: &str, last: &str) -> PersonProfile {
     use fake::faker::phone_number::raw::*;
     use fake::locales::*;
     let address: String = SecondaryAddress(EN).fake_with_rng(&mut local_rng);
-    let phone_number: String = PhoneNumber(EN).fake_with_rng(&mut local_rng);
+    let _phone_number: String = PhoneNumber(EN).fake_with_rng(&mut local_rng);
 
     let email = format!(
         "{}.{}@example.com",
@@ -73,12 +72,12 @@ fn generate_profile(first: &str, last: &str) -> PersonProfile {
         address,
         date_of_birth: dob,
         email,
-        phone_number,
+        phone_number: "+11234567890".to_string(),
     }
 }
 
-fn generate_credit_facts(state: &str, now: NaiveDateTime) -> CreditFactsProfile {
-    let amount = Some(1000.0); // consistent dummy value
+fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> CreditFactsProfile {
+    let amoun = Some(amount); // consistent dummy value
 
     match state {
         "application" => CreditFactsProfile {
@@ -97,7 +96,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime) -> CreditFactsProfile 
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amount,
+                payment_due_amount: amoun,
                 credit_state: "originated".to_string(),
             }
         }
@@ -117,7 +116,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime) -> CreditFactsProfile 
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amount,
+                payment_due_amount: amoun,
                 credit_state: "non-compliant".to_string(),
             }
         }
@@ -130,7 +129,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime) -> CreditFactsProfile 
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amount,
+                payment_due_amount: amoun,
                 credit_state: "compliant".to_string(),
             }
         }
@@ -138,11 +137,6 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime) -> CreditFactsProfile 
     }
 }
 
-fn main() {
-    println!("Seeding database with test data...");
-    seed_database();
-    println!("Database seeded successfully.");
-}
 fn seed_database() {
     let mut connn = establish_connection();
 
@@ -179,19 +173,19 @@ fn seed_database() {
         })
         .collect();
 
-    for i in 0..10 {
-        let new_user = InsertUserModel {
+    for i in 0..5 {
+        let lending_user = InsertUserModel {
             username: format!("lender_{}", i),
             api_key: Uuid::new_v4(),
             role: "lender".to_string(),
         };
 
         let inserted_user = insert_into(users::table)
-            .values(&new_user)
+            .values(&lending_user)
             .get_result::<UserModel>(&mut connn)
             .expect("Error inserting new user");
 
-        for j in 0..10 {
+        for j in 0..25 {
             let cc_id = format!("cc_{}_{}", i, j);
             let now = Local::now().naive_local();
             let mut rng = rand::rng();
@@ -209,7 +203,7 @@ fn seed_database() {
 
             let credit_state_choice = credit_states.choose(&mut rng).unwrap();
 
-            let credit_facts = generate_credit_facts(credit_state_choice, now);
+            let credit_facts = generate_credit_facts(credit_state_choice, now, amount);
 
             let new_credit = InsertConsumerCreditModel {
                 consumer_credit_id: cc_id,
@@ -221,7 +215,7 @@ fn seed_database() {
                 phone_number: profile.phone_number,
                 sin_ssn: None,
                 institution_names: vec![Some("TD".to_string())],
-                amount: BigDecimal::from_f64(amount).unwrap(),
+                amount: amount,
                 credit_type,
                 application_datetime: credit_facts.application_datetime,
                 originated_datetime: credit_facts.originated_datetime,
@@ -238,4 +232,10 @@ fn seed_database() {
                 .expect("Error inserting consumer credit record");
         }
     }
+}
+
+fn main() {
+    println!("Seeding database with test data...");
+    seed_database();
+    println!("Database seeded successfully.");
 }

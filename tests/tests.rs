@@ -21,7 +21,7 @@ mod tests {
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
     #[test]
-    fn global_setup() {
+    fn _global_setup() {
         let client = test_client().lock().unwrap();
 
         let users = vec![
@@ -52,7 +52,7 @@ mod tests {
     }
 
     // #[test]
-    fn global_teardown() {
+    fn _global_teardown() {
         let client = test_client().lock().unwrap();
 
         let usernames = vec!["test_admin_user", "test_user_1", "test_user_2"];
