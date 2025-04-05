@@ -38,7 +38,7 @@ migrate-up:
 
 migrate-down:
 	$(PRINT_CMD)
-	diesel migration redo
+	diesel migration revert
 	$(PRINT_DONE)
 
 create-migration:

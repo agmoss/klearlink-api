@@ -17,6 +17,7 @@
     - [Compliance and Protection](#compliance-and-protection)
   - [Appendix](#appendix)
     - [A. Definitions](#a-definitions)
+    - [B. Consumer Information Indicator](#b-consumer-information-indicator)
     - [B. Data Standards](#b-data-standards)
       - [1. E.164 Phone Number Validation](#1-e164-phone-number-validation)
         - [**Regex Pattern:**](#regex-pattern)
@@ -45,6 +46,7 @@
 This API requires authentication via an **API key** provided in the `Authorization` header.
 
 ### **Authentication Format**
+
 All requests must include the `Authorization` header with the following format:
 
 ```bash
@@ -52,20 +54,21 @@ Authorization: Apikey <YOUR_API_KEY>
 ```
 
 ### **Error Responses**
+
 If authentication fails, the API will return one of the following errors:
 
-| Status Code | Error Message | Description |
-|-------------|--------------|-------------|
-| **400** Bad Request | `Invalid Authorization format. Expected: 'Authorization: Apikey <UUID>'` | The `Authorization` header is malformed. Ensure it's in the correct format. |
-| **404** Not Found | `User with API key '<UUID>' not found` | The provided API key does not match any user in the system. |
-| **422** Unprocessable Entity | `Invalid API key format. Expected a valid UUID.` | The API key is not a valid UUID format. |
-| **422** Unprocessable Entity | `Missing authentication header` | No `Authorization` header was provided in the request. |
-
+| Status Code                  | Error Message                                                            | Description                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| **400** Bad Request          | `Invalid Authorization format. Expected: 'Authorization: Apikey <UUID>'` | The `Authorization` header is malformed. Ensure it's in the correct format. |
+| **404** Not Found            | `User with API key '<UUID>' not found`                                   | The provided API key does not match any user in the system.                 |
+| **422** Unprocessable Entity | `Invalid API key format. Expected a valid UUID.`                         | The API key is not a valid UUID format.                                     |
+| **422** Unprocessable Entity | `Missing authentication header`                                          | No `Authorization` header was provided in the request.                      |
 
 :::info
+
 - The API key must be a valid **UUID**.
 - If the API key does not belong to a registered user, authentication will fail.
-:::
+  :::
 
 :::warning
 Keep your API key secure and never share it. If you believe your API key has been compromised, contact support immediately for a replacement.
@@ -89,16 +92,16 @@ All 4XX and 5XX responses will have a content type of "application/json" and hav
 
 ```json
 {
-  "error":"message"
+  "error": "message"
 }
 ```
 
-or 
+or
 
 ```json
 {
   "error": {
-    "key":"value"
+    "key": "value"
   }
 }
 ```
@@ -128,16 +131,17 @@ or
 
 > **consumer_facts**
 
-| Field             | Type              | Description                                                                     |
-| ----------------- | ----------------- | ------------------------------------------------------------------------------- |
-| first_name        | string            | First name of the consumer. Must be at least 2 characters.                      |
-| last_name         | string            | Last name of the consumer. Must be at least 2 characters.                       |
-| email             | string            | RFC 5322 and RFC 822 format email address of the consumer                       |
-| date_of_birth     | string            | ISO 8601 date format of the consumer's date of birth                            |
-| address           | string            | CAN/CSA-Z109.1-01 or USPS Publication 28 address format of the consumer         |
-| phone_number      | string            | E.164 international format phone number of the consumer                         |
-| SIN/SSN           | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                        |
-| institution_names | array             | List of associated institutions. Each name must be between 2 and 50 characters. |
+| Field                          | Type              | Description                                                                                                                   |
+| ------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| first_name                     | string            | First name of the consumer. Must be at least 2 characters.                                                                    |
+| last_name                      | string            | Last name of the consumer. Must be at least 2 characters.                                                                     |
+| email                          | string            | RFC 5322 and RFC 822 format email address of the consumer                                                                     |
+| date_of_birth                  | string            | ISO 8601 date format of the consumer's date of birth                                                                          |
+| address                        | string            | CAN/CSA-Z109.1-01 or USPS Publication 28 address format of the consumer                                                       |
+| phone_number                   | string            | E.164 international format phone number of the consumer                                                                       |
+| SIN/SSN                        | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                                                                      |
+| institution_names              | array             | List of associated institutions. Each name must be between 2 and 50 characters.                                               |
+| consumer_information_indicator | string (optional) | Used to report a special condition of the account. See [B. Consumer Information Indicator](#b-consumer-information-indicator) |
 
 > **credit_facts**
 
@@ -155,7 +159,6 @@ or
 - `"declined"`
 - `"non-compliant"`
 - `"compliant"`
-- `"bankrupt/insolvent"`
 
 **Example**:
 
@@ -446,6 +449,32 @@ The KlearLink API is designed with robust security features to ensure the protec
 | Institution Names | Financial institutions or lenders that have a relationship with the consumer                                                         |
 | Consumer State    | The current status of a consumer in relation to their credit products                                                                |
 | Credit State      | The current status of a specific credit product                                                                                      |
+
+### B. Consumer Information Indicator
+
+The consumer information indicator of the consumer facts can be the following:
+
+| Value | Description                                |
+| ----- | ------------------------------------------ |
+| A     | Chapter 7 - Bankruptcy in Canada           |
+| B     | Chapter 11 - Proposal in Canada            |
+| C     | Chapter 12 (OPD in Canada)                 |
+| D     | Chapter 13 - Credit Counselling in Canada  |
+| E     | Discharged through Bankruptcy Chapter 7    |
+| F     | Discharged Proposal                        |
+| G     | Discharged through Bankruptcy Chapter 12   |
+| T     | Credit Grantor Cannot Locate Consumer      |
+| Z     | Chapter 7 - Bankruptcy in Canada           |
+| ZA    | Chapter 7 - Bankruptcy in Canada           |
+| ZB    | Chapter 11 - Discharged Proposal in Canada |
+| ZC    | Bankruptcy Dismissed                       |
+| ZD    | Bankruptcy Withdrawn                       |
+| Q     | Removes previously reported Bankruptcy     |
+
+:::info
+These are standard definitions from TU reporting guidelines.
+
+:::
 
 ### B. Data Standards
 

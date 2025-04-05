@@ -20,7 +20,7 @@ mod tests {
     static API_KEY_1: &str = "c491a813-234a-4bea-b6c4-7413b244dea5";
     static API_KEY_2: &str = "c491a813-234a-4bea-b6c4-7413b244dea6";
 
-    // #[test]
+    #[test]
     fn global_setup() {
         let client = test_client().lock().unwrap();
 

@@ -30,6 +30,7 @@ pub struct ConsumerCreditModel {
     pub payment_due_date: Option<NaiveDateTime>,
     pub payment_due_amount: Option<f64>,
     pub credit_state: String,
+    pub consumer_information_indicator: Option<String>,
     pub user_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -48,6 +49,7 @@ pub struct InsertConsumerCreditModel {
     pub phone_number: String,
     pub sin_ssn: Option<String>,
     pub institution_names: Vec<Option<String>>,
+    pub consumer_information_indicator: Option<String>,
     #[diesel(sql_type = Numeric)]
     pub amount: BigDecimal,
     pub credit_type: String,
@@ -79,6 +81,7 @@ pub struct UpdateConsumerCreditModel {
     pub payment_due_date: Option<NaiveDateTime>,
     pub payment_due_amount: Option<f64>,
     pub credit_state: Option<String>,
+    pub consumer_information_indicator: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]

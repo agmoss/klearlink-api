@@ -27,6 +27,8 @@ diesel::table! {
         payment_due_amount -> Nullable<Float8>,
         #[max_length = 20]
         credit_state -> Varchar,
+        #[max_length = 2]
+        consumer_information_indicator -> Nullable<Varchar>,
         user_id -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,

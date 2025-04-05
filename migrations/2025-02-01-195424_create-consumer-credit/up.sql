@@ -40,10 +40,10 @@ CREATE TABLE consumer_credit (
             'originated',
             'declined',
             'non-compliant',
-            'compliant',
-            'bankrupt/insolvent'
+            'compliant'
         )
     ),
+    consumer_information_indicator VARCHAR(2),
     user_id INTEGER NOT NULL REFERENCES users (id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
