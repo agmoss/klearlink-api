@@ -5,8 +5,10 @@ use std::env;
 use chrono::{NaiveDate, NaiveDateTime, Local};
 use uuid::Uuid;
 
-// Import your schema modules
+ // Import your schema modules
 use klearlink_api::schema::{users, consumer_credit};
+use klearlink_api::consumer_credit::models::InsertConsumerCreditModel;
+use bigdecimal::BigDecimal;
 
 // Make sure your Diesel table name annotations match your schema.
 #[derive(Insertable)]
@@ -17,28 +19,6 @@ struct NewUser {
     role: String,
 }
 
-#[derive(Insertable)]
-#[diesel(table_name = consumer_credit)]
-struct NewConsumerCredit {
-    consumer_credit_id: String,
-    first_name: String,
-    last_name: String,
-    email: String,
-    date_of_birth: NaiveDate,
-    address: String,
-    phone_number: String,
-    sin_ssn: Option<String>,
-    institution_names: Vec<String>,
-    amount: f64,
-    credit_type: String,
-    application_datetime: NaiveDateTime,
-    originated_datetime: Option<NaiveDateTime>,
-    payment_due_date: Option<NaiveDateTime>,
-    payment_due_amount: Option<f64>,
-    credit_state: String,
-    consumer_information_indicator: Option<String>,
-    user_id: i32,
-}
 
 fn main() {
     dotenv().ok();
@@ -91,7 +71,7 @@ fn seed_database(conn: &diesel::pg::PgConnection) {
             let dob_year = rng.gen_range(1970..2000);
             let dob_month = rng.gen_range(1..13);
             let dob_day = rng.gen_range(1..28);
-            let new_credit = NewConsumerCredit {
+            let new_credit = InsertConsumerCreditModel {
                 consumer_credit_id: cc_id,
                 first_name: first_name.clone(),
                 last_name: last_name.clone(),
@@ -100,8 +80,8 @@ fn seed_database(conn: &diesel::pg::PgConnection) {
                 address,
                 phone_number: "+11234567890".to_string(),
                 sin_ssn: None,
-                institution_names: vec!["TD".to_string()],
-                amount,
+                institution_names: vec![Some("TD".to_string())],
+                amount: BigDecimal::from_f64(amount).unwrap(),
                 credit_type,
                 application_datetime: now,
                 originated_datetime: None,
