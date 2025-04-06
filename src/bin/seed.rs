@@ -3,14 +3,17 @@ use diesel::prelude::*;
 use dotenv::dotenv;
 use rand::rngs::ThreadRng;
 use rand::seq::IndexedRandom;
-use rand::Rng;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use std::collections::HashMap;
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
 
+use diesel::{insert_into, RunQueryDsl};
+
+use fake::faker::address::raw::*;
 use fake::faker::number::en::NumberWithFormat;
-use fake::{Fake, Faker};
+use fake::locales::*;
+use fake::Fake;
 
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use uuid::Uuid;
@@ -28,7 +31,7 @@ pub fn establish_connection() -> PgConnection {
 }
 
 #[derive(Clone, Debug)]
-struct PersonProfile {
+struct ConsumerFactsProfile {
     address: String,
     date_of_birth: NaiveDate,
     email: String,
@@ -45,9 +48,17 @@ struct CreditFactsProfile {
 }
 
 fn generate_address(rng: &mut impl rand::Rng) -> String {
-    use fake::faker::address::raw::*;
-    use fake::locales::*;
-    SecondaryAddress(EN).fake_with_rng(rng)
+    let street: String = StreetName(EN).fake_with_rng(rng);
+    let building_number: String = BuildingNumber(EN).fake_with_rng(rng);
+    let city: String = CityName(EN).fake_with_rng(rng);
+    let state: String = StateName(EN).fake_with_rng(rng);
+    let zip_code: String = PostCode(EN).fake_with_rng(rng);
+    let country: String = CountryName(EN).fake_with_rng(rng);
+
+    format!(
+        "{} {} {} {} {} {}",
+        street, building_number, city, state, zip_code, country
+    )
 }
 
 fn generate_birthdate(hash: u64) -> NaiveDate {
@@ -62,14 +73,23 @@ fn generate_phone_number(rng: &mut impl rand::Rng) -> String {
     format!("+1{}", local_number)
 }
 
-fn generate_profile(first: &str, last: &str) -> PersonProfile {
+fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>> {
+    let available_banks = vec!["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
+    let subset_size = rng.random_range(1..=available_banks.len());
+    available_banks
+        .choose_multiple(rng, subset_size)
+        .map(|&bank| Some(bank.to_string()))
+        .collect()
+}
+
+fn generate_profile(first: &str, last: &str) -> ConsumerFactsProfile {
     let mut hasher = DefaultHasher::new();
     (first, last).hash(&mut hasher);
     let hash = hasher.finish();
 
     let mut local_rng = rand::rngs::StdRng::seed_from_u64(hash);
 
-    PersonProfile {
+    ConsumerFactsProfile {
         address: generate_address(&mut local_rng),
         date_of_birth: generate_birthdate(hash),
         email: format!(
@@ -142,21 +162,8 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
     }
 }
 
-fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>> {
-    let available_banks = vec!["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
-    let subset_size = rng.random_range(1..=available_banks.len());
-    available_banks
-        .choose_multiple(rng, subset_size)
-        .map(|&bank| Some(bank.to_string()))
-        .collect()
-}
-
 fn seed_database() {
     let mut connn = establish_connection();
-
-    use diesel::insert_into;
-    use diesel::RunQueryDsl;
-    use rand::Rng;
 
     let first_names = ["John", "Jane", "Alice", "Bob", "Charlie", "Diana"];
     let last_names = ["Doe", "Smith", "Johnson", "Lee", "Brown", "Davis"];
@@ -179,7 +186,7 @@ fn seed_database() {
         })
         .collect();
 
-    let profile_map: HashMap<(String, String), PersonProfile> = name_combinations
+    let profile_map: HashMap<(String, String), ConsumerFactsProfile> = name_combinations
         .iter()
         .map(|(f, l)| {
             let profile = generate_profile(f, l);
@@ -199,8 +206,7 @@ fn seed_database() {
             .get_result::<UserModel>(&mut connn)
             .expect("Error inserting new user");
 
-        for j in 0..25 {
-            let cc_id = format!("cc_{}_{}", i, j);
+        for _j in 0..25 {
             let now = Local::now().naive_local();
             let mut rng = rand::rng();
 
@@ -219,7 +225,7 @@ fn seed_database() {
             let credit_facts = generate_credit_facts(credit_state_choice, now, amount);
 
             let new_credit = InsertConsumerCreditModel {
-                consumer_credit_id: cc_id,
+                consumer_credit_id: Uuid::new_v4().to_string(),
                 first_name: first_name.clone(),
                 last_name: last_name.clone(),
                 email: profile.email,
