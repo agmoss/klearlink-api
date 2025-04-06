@@ -25,12 +25,25 @@ use klearlink_api::user::models::{InsertUserModel, UserModel};
 
 use indicatif::{ProgressBar, ProgressStyle};
 
-pub fn establish_connection() -> PgConnection {
+fn establish_connection() -> PgConnection {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     PgConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+}
+
+fn progress_bar(len: u64) -> ProgressBar {
+    let pb = ProgressBar::new(len);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+    pb
 }
 
 #[derive(Clone, Debug)]
@@ -259,16 +272,7 @@ fn seed_database() {
     let lenders = 5;
     let lendees_per_lender = 6;
 
-    let pb = ProgressBar::new(lenders * lendees_per_lender);
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template(
-                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
-            )
-            .unwrap()
-            .progress_chars("#>-"),
-    );
-
+    let pb = progress_bar(lenders * lendees_per_lender);
     for i in 0..lenders {
         let lending_user = InsertUserModel {
             username: format!("lender_{}", i),
