@@ -32,6 +32,8 @@ pub fn establish_connection() -> PgConnection {
 
 #[derive(Clone, Debug)]
 struct ConsumerFactsProfile {
+    first_name: String,
+    last_name: String,
     address: String,
     date_of_birth: NaiveDate,
     email: String,
@@ -45,6 +47,13 @@ struct CreditFactsProfile {
     payment_due_date: Option<NaiveDateTime>,
     payment_due_amount: Option<f64>,
     credit_state: String,
+}
+
+#[derive(Clone)]
+struct NamePair {
+    id: i32,
+    first: &'static str,
+    last: &'static str,
 }
 
 fn generate_address(rng: &mut impl rand::Rng) -> String {
@@ -82,20 +91,22 @@ fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>>
         .collect()
 }
 
-fn generate_profile(first: &str, last: &str) -> ConsumerFactsProfile {
+fn generate_consumer_facts(name: &NamePair) -> ConsumerFactsProfile {
     let mut hasher = DefaultHasher::new();
-    (first, last).hash(&mut hasher);
+    (name.first, name.last).hash(&mut hasher);
     let hash = hasher.finish();
 
     let mut local_rng = rand::rngs::StdRng::seed_from_u64(hash);
 
     ConsumerFactsProfile {
+        first_name: name.first.to_string(),
+        last_name: name.last.to_string(),
         address: generate_address(&mut local_rng),
         date_of_birth: generate_birthdate(hash),
         email: format!(
             "{}.{}@example.com",
-            first.to_lowercase(),
-            last.to_lowercase()
+            name.first.to_lowercase(),
+            name.last.to_lowercase()
         ),
         phone_number: generate_phone_number(&mut local_rng),
     }
@@ -165,8 +176,18 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
 fn seed_database() {
     let mut connn = establish_connection();
 
-    let first_names = ["John", "Jane", "Alice", "Bob", "Charlie", "Diana"];
-    let last_names = ["Doe", "Smith", "Johnson", "Lee", "Brown", "Davis"];
+    let names = [
+        NamePair { id: 1, first: "John", last: "Doe" },
+        NamePair { id: 2, first: "Jane", last: "Smith" },
+        NamePair { id: 3, first: "Alice", last: "Johnson" },
+        NamePair { id: 4, first: "Bob", last: "Lee" },
+        NamePair { id: 5, first: "Charlie", last: "Brown" },
+        NamePair { id: 6, first: "Diana", last: "Davis" },
+        NamePair { id: 7, first: "Edward", last: "Wilson" },
+        NamePair { id: 8, first: "Fiona", last: "Taylor" },
+        NamePair { id: 9, first: "George", last: "Anderson" },
+        NamePair { id: 10, first: "Helen", last: "Thomas" },
+    ];
 
     let credit_types = ["PDL", "BNPL"];
     let credit_states = [
@@ -177,20 +198,10 @@ fn seed_database() {
         "compliant",
     ];
 
-    let name_combinations: Vec<(String, String)> = first_names
+    let consumer_facts_profile_map: HashMap<i32, ConsumerFactsProfile> = names
         .iter()
-        .flat_map(|&first| {
-            last_names
-                .iter()
-                .map(move |&last| (first.to_string(), last.to_string()))
-        })
-        .collect();
-
-    let profile_map: HashMap<(String, String), ConsumerFactsProfile> = name_combinations
-        .iter()
-        .map(|(f, l)| {
-            let profile = generate_profile(f, l);
-            ((f.clone(), l.clone()), profile)
+        .map(|name| {
+            (name.id, generate_consumer_facts(name))
         })
         .collect();
 
@@ -201,7 +212,7 @@ fn seed_database() {
             role: "lender".to_string(),
         };
 
-        let inserted_user = insert_into(users::table)
+        let inserted_lending_user = insert_into(users::table)
             .values(&lending_user)
             .get_result::<UserModel>(&mut connn)
             .expect("Error inserting new user");
@@ -209,25 +220,19 @@ fn seed_database() {
         for _j in 0..25 {
             let now = Local::now().naive_local();
             let mut rng = rand::rng();
-
-            let first_name = first_names.choose(&mut rng).unwrap().to_string();
-            let last_name = last_names.choose(&mut rng).unwrap().to_string();
-
-            let profile = profile_map
-                .get(&(first_name.clone(), last_name.clone()))
+            let name = names.choose(&mut rng).unwrap();
+            let profile = consumer_facts_profile_map
+                .get(&name.id)
                 .unwrap()
                 .clone();
-
             let amount: f64 = rng.random_range(500.0..2000.0);
-
             let credit_state_choice = credit_states.choose(&mut rng).unwrap();
-
             let credit_facts = generate_credit_facts(credit_state_choice, now, amount);
 
-            let new_credit = InsertConsumerCreditModel {
+            let consumer_credit = InsertConsumerCreditModel {
                 consumer_credit_id: Uuid::new_v4().to_string(),
-                first_name: first_name.clone(),
-                last_name: last_name.clone(),
+                first_name: profile.first_name,
+                last_name: profile.last_name,
                 email: profile.email,
                 date_of_birth: profile.date_of_birth,
                 address: profile.address,
@@ -242,11 +247,11 @@ fn seed_database() {
                 payment_due_amount: credit_facts.payment_due_amount,
                 credit_state: credit_facts.credit_state,
                 consumer_information_indicator: None,
-                user_id: inserted_user.id,
+                user_id: inserted_lending_user.id,
             };
 
             insert_into(consumer_credit::table)
-                .values(&new_credit)
+                .values(&consumer_credit)
                 .execute(&mut connn)
                 .expect("Error inserting consumer credit record");
         }
