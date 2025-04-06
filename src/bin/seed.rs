@@ -4,6 +4,7 @@ use dotenv::dotenv;
 use rand::rngs::ThreadRng;
 use rand::seq::IndexedRandom;
 use rand::{Rng, SeedableRng};
+use rand_distr::{Distribution, Normal};
 use std::collections::HashMap;
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -115,19 +116,30 @@ fn generate_consumer_facts(name: &NamePair) -> ConsumerFactsProfile {
 
 fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> CreditFactsProfile {
     let amt = Some(amount); // consistent dummy value
+    let mut rng = rand::thread_rng();
+    
+    // Create a normal distribution with mean=0 and std_dev=1
+    let normal = Normal::new(0.0, 1.0).unwrap();
+    
+    // Helper function to add random variation to a duration
+    // ~68% of variations will be within ±2 days
+    let add_variation = |days: i64| -> i64 {
+        let variation = normal.sample(&mut rng) * 2.0; // 2 days standard deviation
+        (days as f64 + variation).round() as i64
+    };
 
     match state {
         "application" => CreditFactsProfile {
-            application_datetime: now - Duration::days(10),
+            application_datetime: now - Duration::days(add_variation(10)),
             originated_datetime: None,
             payment_due_date: None,
             payment_due_amount: None,
             credit_state: "application".to_string(),
         },
         "originated" => {
-            let application = now - Duration::days(20);
-            let originated = application + Duration::days(1);
-            let due = now + Duration::days(14);
+            let application = now - Duration::days(add_variation(20));
+            let originated = application + Duration::days(add_variation(1));
+            let due = now + Duration::days(add_variation(14));
 
             CreditFactsProfile {
                 application_datetime: application,
@@ -138,16 +150,16 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
             }
         }
         "declined" => CreditFactsProfile {
-            application_datetime: now - Duration::days(15),
+            application_datetime: now - Duration::days(add_variation(15)),
             originated_datetime: None,
             payment_due_date: None,
             payment_due_amount: None,
             credit_state: "declined".to_string(),
         },
         "non-compliant" => {
-            let application = now - Duration::days(60);
-            let originated = application + Duration::days(1);
-            let due = originated + Duration::days(30); // but still in the past
+            let application = now - Duration::days(add_variation(60));
+            let originated = application + Duration::days(add_variation(1));
+            let due = originated + Duration::days(add_variation(30)); // but still in the past
 
             CreditFactsProfile {
                 application_datetime: application,
@@ -158,9 +170,9 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
             }
         }
         "compliant" => {
-            let application = now - Duration::days(40);
-            let originated = application + Duration::days(2);
-            let due = originated + Duration::days(25); // in past but compliant
+            let application = now - Duration::days(add_variation(40));
+            let originated = application + Duration::days(add_variation(2));
+            let due = originated + Duration::days(add_variation(25)); // in past but compliant
 
             CreditFactsProfile {
                 application_datetime: application,
