@@ -22,6 +22,8 @@ use klearlink_api::consumer_credit::models::InsertConsumerCreditModel;
 use klearlink_api::schema::{consumer_credit, users};
 use klearlink_api::user::models::{InsertUserModel, UserModel};
 
+use indicatif::{ProgressBar, ProgressStyle};
+
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
 
@@ -62,11 +64,10 @@ fn generate_address(rng: &mut impl rand::Rng) -> String {
     let city: String = CityName(EN).fake_with_rng(rng);
     let state: String = StateName(EN).fake_with_rng(rng);
     let zip_code: String = PostCode(EN).fake_with_rng(rng);
-    let country: String = CountryName(EN).fake_with_rng(rng);
 
     format!(
         "{} {} {} {} {} {}",
-        street, building_number, city, state, zip_code, country
+        street, building_number, city, state, zip_code, "USA"
     )
 }
 
@@ -113,7 +114,7 @@ fn generate_consumer_facts(name: &NamePair) -> ConsumerFactsProfile {
 }
 
 fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> CreditFactsProfile {
-    let amoun = Some(amount); // consistent dummy value
+    let amt = Some(amount); // consistent dummy value
 
     match state {
         "application" => CreditFactsProfile {
@@ -132,7 +133,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amoun,
+                payment_due_amount: amt,
                 credit_state: "originated".to_string(),
             }
         }
@@ -152,7 +153,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amoun,
+                payment_due_amount: amt,
                 credit_state: "non-compliant".to_string(),
             }
         }
@@ -165,7 +166,7 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
                 application_datetime: application,
                 originated_datetime: Some(originated),
                 payment_due_date: Some(due),
-                payment_due_amount: amoun,
+                payment_due_amount: amt,
                 credit_state: "compliant".to_string(),
             }
         }
@@ -174,19 +175,59 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
 }
 
 fn seed_database() {
-    let mut connn = establish_connection();
+    let mut conn = establish_connection();
 
     let names = [
-        NamePair { id: 1, first: "John", last: "Doe" },
-        NamePair { id: 2, first: "Jane", last: "Smith" },
-        NamePair { id: 3, first: "Alice", last: "Johnson" },
-        NamePair { id: 4, first: "Bob", last: "Lee" },
-        NamePair { id: 5, first: "Charlie", last: "Brown" },
-        NamePair { id: 6, first: "Diana", last: "Davis" },
-        NamePair { id: 7, first: "Edward", last: "Wilson" },
-        NamePair { id: 8, first: "Fiona", last: "Taylor" },
-        NamePair { id: 9, first: "George", last: "Anderson" },
-        NamePair { id: 10, first: "Helen", last: "Thomas" },
+        NamePair {
+            id: 1,
+            first: "John",
+            last: "Doe",
+        },
+        NamePair {
+            id: 2,
+            first: "Jane",
+            last: "Smith",
+        },
+        NamePair {
+            id: 3,
+            first: "Alice",
+            last: "Johnson",
+        },
+        NamePair {
+            id: 4,
+            first: "Bob",
+            last: "Lee",
+        },
+        NamePair {
+            id: 5,
+            first: "Charlie",
+            last: "Brown",
+        },
+        NamePair {
+            id: 6,
+            first: "Diana",
+            last: "Davis",
+        },
+        NamePair {
+            id: 7,
+            first: "Edward",
+            last: "Wilson",
+        },
+        NamePair {
+            id: 8,
+            first: "Fiona",
+            last: "Taylor",
+        },
+        NamePair {
+            id: 9,
+            first: "George",
+            last: "Anderson",
+        },
+        NamePair {
+            id: 10,
+            first: "Helen",
+            last: "Thomas",
+        },
     ];
 
     let credit_types = ["PDL", "BNPL"];
@@ -200,12 +241,21 @@ fn seed_database() {
 
     let consumer_facts_profile_map: HashMap<i32, ConsumerFactsProfile> = names
         .iter()
-        .map(|name| {
-            (name.id, generate_consumer_facts(name))
-        })
+        .map(|name| (name.id, generate_consumer_facts(name)))
         .collect();
 
+    let pb = ProgressBar::new(5);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+
     for i in 0..5 {
+        pb.inc(1);
         let lending_user = InsertUserModel {
             username: format!("lender_{}", i),
             api_key: Uuid::new_v4(),
@@ -214,19 +264,31 @@ fn seed_database() {
 
         let inserted_lending_user = insert_into(users::table)
             .values(&lending_user)
-            .get_result::<UserModel>(&mut connn)
+            .get_result::<UserModel>(&mut conn)
             .expect("Error inserting new user");
 
+        let credit_pb = ProgressBar::new(25);
+        credit_pb.set_style(
+            ProgressStyle::default_bar()
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+                )
+                .unwrap()
+                .progress_chars("#>-"),
+        );
+
         for _j in 0..25 {
+            credit_pb.inc(1);
             let now = Local::now().naive_local();
             let mut rng = rand::rng();
+
             let name = names.choose(&mut rng).unwrap();
-            let profile = consumer_facts_profile_map
-                .get(&name.id)
-                .unwrap()
-                .clone();
+            let profile = consumer_facts_profile_map.get(&name.id).unwrap().clone();
+
             let amount: f64 = rng.random_range(500.0..2000.0);
+
             let credit_state_choice = credit_states.choose(&mut rng).unwrap();
+
             let credit_facts = generate_credit_facts(credit_state_choice, now, amount);
 
             let consumer_credit = InsertConsumerCreditModel {
@@ -252,14 +314,14 @@ fn seed_database() {
 
             insert_into(consumer_credit::table)
                 .values(&consumer_credit)
-                .execute(&mut connn)
+                .execute(&mut conn)
                 .expect("Error inserting consumer credit record");
         }
+        credit_pb.finish_with_message("Credits created");
     }
+    pb.finish_with_message("Database seeded");
 }
 
 fn main() {
-    println!("Seeding database with test data...");
     seed_database();
-    println!("Database seeded successfully.");
 }
