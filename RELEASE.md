@@ -1,6 +1,6 @@
 # Release
 
-1. `git cliff --bump [major|minor|patch]`
+1. `git-cliff --bump [major|minor|patch] -o`
 2. `cargo bump [FLAGS] [<version> | major | minor | patch]`
 3. `git add -A`
 4. `git commit -m "chore: Release ${version}"`
