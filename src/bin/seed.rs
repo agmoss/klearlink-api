@@ -85,7 +85,7 @@ fn generate_phone_number(rng: &mut impl rand::Rng) -> String {
 }
 
 fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>> {
-    let available_banks = vec!["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
+    let available_banks = ["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
     let subset_size = rng.random_range(1..=available_banks.len());
     available_banks
         .choose_multiple(rng, subset_size)
@@ -116,14 +116,14 @@ fn generate_consumer_facts(name: &NamePair) -> ConsumerFactsProfile {
 
 fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> CreditFactsProfile {
     let amt = Some(amount); // consistent dummy value
-    let mut rng = rand::thread_rng();
-    
+    let mut rng = rand::rng();
+
     // Create a normal distribution with mean=0 and std_dev=1
     let normal = Normal::new(0.0, 1.0).unwrap();
-    
+
     // Helper function to add random variation to a duration
     // ~68% of variations will be within ±2 days
-    let add_variation = |days: i64| -> i64 {
+    let mut add_variation = |days: i64| -> i64 {
         let variation = normal.sample(&mut rng) * 2.0; // 2 days standard deviation
         (days as f64 + variation).round() as i64
     };
@@ -256,7 +256,10 @@ fn seed_database() {
         .map(|name| (name.id, generate_consumer_facts(name)))
         .collect();
 
-    let pb = ProgressBar::new(5);
+    let lenders = 5;
+    let lendees_per_lender = 6;
+
+    let pb = ProgressBar::new(lenders * lendees_per_lender);
     pb.set_style(
         ProgressStyle::default_bar()
             .template(
@@ -266,8 +269,7 @@ fn seed_database() {
             .progress_chars("#>-"),
     );
 
-    for i in 0..5 {
-        pb.inc(1);
+    for i in 0..lenders {
         let lending_user = InsertUserModel {
             username: format!("lender_{}", i),
             api_key: Uuid::new_v4(),
@@ -279,18 +281,8 @@ fn seed_database() {
             .get_result::<UserModel>(&mut conn)
             .expect("Error inserting new user");
 
-        let credit_pb = ProgressBar::new(25);
-        credit_pb.set_style(
-            ProgressStyle::default_bar()
-                .template(
-                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
-                )
-                .unwrap()
-                .progress_chars("#>-"),
-        );
-
-        for _j in 0..25 {
-            credit_pb.inc(1);
+        for _j in 0..lendees_per_lender {
+            pb.inc(1);
             let now = Local::now().naive_local();
             let mut rng = rand::rng();
 
@@ -329,7 +321,6 @@ fn seed_database() {
                 .execute(&mut conn)
                 .expect("Error inserting consumer credit record");
         }
-        credit_pb.finish_with_message("Credits created");
     }
     pb.finish_with_message("Database seeded");
 }

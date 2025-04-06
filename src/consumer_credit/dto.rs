@@ -271,7 +271,7 @@ impl ConsumerCreditModel {
                 consumer_information_indicator: self.consumer_information_indicator.clone(),
             },
             credit_facts: CreditFactsDto {
-                amount: self.amount.clone(),
+                amount: self.amount,
                 credit_type: self.credit_type.clone(),
                 application_datetime: self.application_datetime,
                 originated_datetime: self.originated_datetime,
@@ -297,7 +297,7 @@ impl ConsumerCreditModel {
                 phone_number: self.phone_number == _target.phone_number,
             },
             credit_facts: MatchedCreditFactsDto {
-                amount: self.amount.clone(),
+                amount: self.amount,
                 credit_type: self.credit_type.clone(),
                 application_datetime: self.application_datetime,
                 originated_datetime: self.originated_datetime,
