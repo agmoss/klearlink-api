@@ -1,13 +1,16 @@
 use diesel::prelude::*;
 
-use fake::Fake;
-
 use dotenv::dotenv;
+use rand::rngs::ThreadRng;
 use rand::seq::IndexedRandom;
+use rand::Rng;
 use rand::SeedableRng;
 use std::collections::HashMap;
 use std::env;
 use std::hash::{DefaultHasher, Hash, Hasher};
+
+use fake::faker::number::en::NumberWithFormat;
+use fake::{Fake, Faker};
 
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use uuid::Uuid;
@@ -41,38 +44,40 @@ struct CreditFactsProfile {
     credit_state: String,
 }
 
+fn generate_address(rng: &mut impl rand::Rng) -> String {
+    use fake::faker::address::raw::*;
+    use fake::locales::*;
+    SecondaryAddress(EN).fake_with_rng(rng)
+}
+
+fn generate_birthdate(hash: u64) -> NaiveDate {
+    let year = 1970 + ((hash >> 3) % 30) as i32; // 1970..2000
+    let month = 1 + ((hash >> 5) % 12) as u32; // 1..12
+    let day = 1 + ((hash >> 7) % 27) as u32; // 1..28
+    NaiveDate::from_ymd_opt(year, month, day).unwrap()
+}
+
+fn generate_phone_number(rng: &mut impl rand::Rng) -> String {
+    let local_number: String = NumberWithFormat("##########").fake_with_rng(rng); // 10 digits
+    format!("+1{}", local_number)
+}
+
 fn generate_profile(first: &str, last: &str) -> PersonProfile {
     let mut hasher = DefaultHasher::new();
     (first, last).hash(&mut hasher);
     let hash = hasher.finish();
 
-    // Deterministic birthdate based on hash
-    let year = 1970 + ((hash >> 3) % 30) as i32; // 1970..2000
-    let month = 1 + ((hash >> 5) % 12) as u32; // 1..12
-    let day = 1 + ((hash >> 7) % 27) as u32; // 1..28
-
-    let dob = NaiveDate::from_ymd_opt(year, month, day).unwrap();
-
-    // Deterministic address
     let mut local_rng = rand::rngs::StdRng::seed_from_u64(hash);
 
-    use fake::faker::address::raw::*;
-    use fake::faker::phone_number::raw::*;
-    use fake::locales::*;
-    let address: String = SecondaryAddress(EN).fake_with_rng(&mut local_rng);
-    let _phone_number: String = PhoneNumber(EN).fake_with_rng(&mut local_rng);
-
-    let email = format!(
-        "{}.{}@example.com",
-        first.to_lowercase(),
-        last.to_lowercase()
-    );
-
     PersonProfile {
-        address,
-        date_of_birth: dob,
-        email,
-        phone_number: "+11234567890".to_string(),
+        address: generate_address(&mut local_rng),
+        date_of_birth: generate_birthdate(hash),
+        email: format!(
+            "{}.{}@example.com",
+            first.to_lowercase(),
+            last.to_lowercase()
+        ),
+        phone_number: generate_phone_number(&mut local_rng),
     }
 }
 
@@ -137,6 +142,15 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
     }
 }
 
+fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>> {
+    let available_banks = vec!["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
+    let subset_size = rng.random_range(1..=available_banks.len());
+    available_banks
+        .choose_multiple(rng, subset_size)
+        .map(|&bank| Some(bank.to_string()))
+        .collect()
+}
+
 fn seed_database() {
     let mut connn = establish_connection();
 
@@ -198,7 +212,6 @@ fn seed_database() {
                 .unwrap()
                 .clone();
 
-            let credit_type = credit_types.choose(&mut rng).unwrap().to_string();
             let amount: f64 = rng.random_range(500.0..2000.0);
 
             let credit_state_choice = credit_states.choose(&mut rng).unwrap();
@@ -214,9 +227,9 @@ fn seed_database() {
                 address: profile.address,
                 phone_number: profile.phone_number,
                 sin_ssn: None,
-                institution_names: vec![Some("TD".to_string())],
+                institution_names: generate_random_institution_names(&mut rng),
                 amount: amount,
-                credit_type,
+                credit_type: credit_types.choose(&mut rng).unwrap().to_string(),
                 application_datetime: credit_facts.application_datetime,
                 originated_datetime: credit_facts.originated_datetime,
                 payment_due_date: credit_facts.payment_due_date,
