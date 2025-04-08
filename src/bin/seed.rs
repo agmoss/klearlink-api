@@ -270,7 +270,7 @@ fn seed_database() {
         .collect();
 
     let lenders = 5;
-    let lendees_per_lender = 6;
+    let lendees_per_lender = 7;
 
     let pb = progress_bar(lenders * lendees_per_lender);
     for i in 0..lenders {
