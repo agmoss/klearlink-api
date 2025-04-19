@@ -390,7 +390,10 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "days_since_last_application": 1,
     "days_since_last_origination": 1,
     "average_credit_age": 1.0,
-    "number_of_active_loans": 1
+    "number_of_active_loans": 1,
+    "application_frequency_last_12_months": 1,
+    "origination_frequency_last_12_months": 1,
+    "credit_stacking_indicator": 1
   }
 }
 ```
@@ -405,6 +408,9 @@ The statistics field provides aggregated information about the matched records:
 - `days_since_last_origination`: Number of days since the most recent origination (if any)
 - `average_credit_age`: Average age in days of active credit lines
 - `number_of_active_loans`: Count of currently outstanding credit lines (originated, compliant, or non-compliant)
+- `application_frequency_last_12_months`: Number of credit applications made in the past 12 months
+- `origination_frequency_last_12_months`: Number of credit approvals in the past 12 months
+- `credit_stacking_indicator`: Number of active loans originated within the last 30 days
 
 :::
 
