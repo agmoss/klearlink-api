@@ -342,19 +342,7 @@ Includes all fields from consumer_facts and credit_facts, plus:
 
 **Response Body**:
 
-Includes consumer_facts and credit_facts from original record, plus:
-
-### matched_on
-
-| Field             | Type    | Description                              |
-| ----------------- | ------- | ---------------------------------------- |
-| first_name        | boolean | Whether first name matched               |
-| last_name         | boolean | Whether last name matched                |
-| email             | boolean | Whether email matched                    |
-| date_of_birth     | boolean | Whether date of birth matched            |
-| address           | boolean | Whether address matched                  |
-| phone_number      | boolean | Whether phone number matched             |
-| institution_names | array   | List of institutions from matched record |
+Includes consumer_facts and credit_facts from original record, plus a `consumer_match` node with the credit_facts and a minimal set of consumer_facts of all matched records.
 
 **Example**:
 
@@ -383,15 +371,6 @@ Includes consumer_facts and credit_facts from original record, plus:
   "processed": true,
   "consumer_match": [
     {
-      "matched_on": {
-        "first_name": true,
-        "last_name": true,
-        "email": true,
-        "date_of_birth": true,
-        "address": true,
-        "phone_number": false,
-        "institution_names": ["CIBC"]
-      },
       "credit_facts": {
         "amount": 1200.0,
         "credit_type": "PDL",
@@ -400,6 +379,10 @@ Includes consumer_facts and credit_facts from original record, plus:
         "payment_due_date": "2024-09-30 07:43:12.023476",
         "payment_amount_due": 1200.0,
         "credit_state": "non-compliant"
+      },
+      "consumer_facts":{
+          "consumer_information_indicator": null,
+          "institution_names":["TD"]
       }
     }
   ]

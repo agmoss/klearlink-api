@@ -125,30 +125,20 @@ impl ConsumerCreditService {
 
                         consumer_credit
                             .filter(
-                                first_name.eq(&target.first_name)
+                                first_name
+                                    .eq(&target.first_name)
                                     .or(last_name.eq(&target.last_name))
                                     .or(email.eq(&target.email))
                                     .or(date_of_birth.eq(&target.date_of_birth))
                                     .or(address.eq(&target.address))
-                                    .or(phone_number.eq(&target.phone_number))
+                                    .or(phone_number.eq(&target.phone_number)),
                             )
                             .filter(user_id.ne(&auth_result.id))
                             .load::<ConsumerCreditModel>(c)
                             .map(|records| {
-                                records.into_iter()
-                                    .filter(|record| {
-                                        [
-                                            record.first_name == target.first_name,
-                                            record.last_name == target.last_name,
-                                            record.email == target.email,
-                                            record.date_of_birth == target.date_of_birth,
-                                            record.address == target.address,
-                                            record.phone_number == target.phone_number,
-                                        ]
-                                        .iter()
-                                        .filter(|&&matches| matches)
-                                        .count() >= 3
-                                    })
+                                records
+                                    .into_iter()
+                                    .filter(|record| record.has_minimum_matches(&target, 3))
                                     .collect()
                             })
                     },

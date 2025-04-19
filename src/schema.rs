@@ -64,8 +64,4 @@ diesel::table! {
 
 diesel::joinable!(consumer_credit -> users (user_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    consumer_credit,
-    consumer_credit_events,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(consumer_credit, consumer_credit_events, users,);
