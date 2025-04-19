@@ -393,7 +393,12 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "number_of_active_loans": 1,
     "application_frequency_last_12_months": 1,
     "origination_frequency_last_12_months": 1,
-    "credit_stacking_indicator": 1
+    "credit_stacking_indicator": 1,
+    "missed_payment_count": 1,
+    "days_in_non_compliance": 1,
+    "percentage_of_non_compliant_payments": 25.0,
+    "current_delinquency_status": true,
+    "historical_delinquency_rate": 0.25
   }
 }
 ```
@@ -402,6 +407,7 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
 Here, we see an inter-organizational match indicating that your applicant is non-compliant on a loan originated by another organization.
 
 You do not see what organization the non-compliant loan originated from, nor do you obtain any additional information on the organization, nor do you see any consumer_facts or credit_facts that you do not already have.
+:::
 
 The statistics field provides aggregated information about the matched records:
 - `days_since_last_application`: Number of days since the most recent application
@@ -411,8 +417,11 @@ The statistics field provides aggregated information about the matched records:
 - `application_frequency_last_12_months`: Number of credit applications made in the past 12 months
 - `origination_frequency_last_12_months`: Number of credit approvals in the past 12 months
 - `credit_stacking_indicator`: Number of active loans originated within the last 30 days
-
-:::
+- `missed_payment_count`: Total number of non-compliant loans
+- `days_in_non_compliance`: Total number of days the borrower has been in a non-compliant state
+- `percentage_of_non_compliant_payments`: Percentage of payments that are non-compliant (non-compliant payments / total payments) * 100
+- `current_delinquency_status`: Boolean indicating if the borrower is currently in a non-compliant state
+- `historical_delinquency_rate`: Ratio of non-compliant periods to total periods (non-compliant periods / total periods)
 
 :::info
 For real-time updates on consumer matches, use the KlearWatch interface.

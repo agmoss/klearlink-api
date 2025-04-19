@@ -128,6 +128,11 @@ pub struct ConsumerMatchStatisticsDto {
     pub application_frequency_last_12_months: usize,
     pub origination_frequency_last_12_months: usize,
     pub credit_stacking_indicator: usize,
+    pub missed_payment_count: usize,
+    pub days_in_non_compliance: i64,
+    pub percentage_of_non_compliant_payments: f64,
+    pub current_delinquency_status: bool,
+    pub historical_delinquency_rate: f64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
