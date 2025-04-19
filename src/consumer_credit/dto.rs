@@ -125,6 +125,9 @@ pub struct ConsumerMatchStatisticsDto {
     pub days_since_last_origination: Option<i64>,
     pub average_credit_age: Option<f64>,
     pub number_of_active_loans: usize,
+    pub application_frequency_last_12_months: usize,
+    pub origination_frequency_last_12_months: usize,
+    pub credit_stacking_indicator: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

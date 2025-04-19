@@ -1,7 +1,7 @@
 use crate::consumer_credit::dto::ConsumerMatchStatisticsDto;
 use crate::consumer_credit::models::ConsumerCreditModel;
 
-use chrono::Local;
+use chrono::{Duration, Local};
 
 pub struct ConsumerMatchStatistics<'a> {
     records: &'a [ConsumerCreditModel],
@@ -65,12 +65,49 @@ impl<'a> ConsumerMatchStatistics<'a> {
         Some(total_age as f64 / active_loans.len() as f64)
     }
 
+    fn calculate_application_frequency_last_12_months(&self) -> usize {
+        let one_year_ago = self.now - Duration::days(365);
+        self.records
+            .iter()
+            .filter(|r| r.application_datetime >= one_year_ago)
+            .count()
+    }
+
+    fn calculate_origination_frequency_last_12_months(&self) -> usize {
+        let one_year_ago = self.now - Duration::days(365);
+        self.records
+            .iter()
+            .filter(|r| {
+                r.credit_state == "originated"
+                    && r.originated_datetime.is_some()
+                    && r.originated_datetime.unwrap() >= one_year_ago
+            })
+            .count()
+    }
+
+    fn calculate_credit_stacking_indicator(&self) -> usize {
+        let thirty_days_ago = self.now - Duration::days(30);
+        self.records
+            .iter()
+            .filter(|r| {
+                r.credit_state == "originated"
+                    && r.originated_datetime.is_some()
+                    && r.originated_datetime.unwrap() >= thirty_days_ago
+            })
+            .count()
+    }
+
     pub fn to_dto(&self) -> ConsumerMatchStatisticsDto {
         ConsumerMatchStatisticsDto {
             days_since_last_application: self.calculate_days_since_last_application(),
             days_since_last_origination: self.calculate_days_since_last_origination(),
             average_credit_age: self.calculate_average_credit_age(),
             number_of_active_loans: self.calculate_number_of_active_loans(),
+            application_frequency_last_12_months: self
+                .calculate_application_frequency_last_12_months(),
+            origination_frequency_last_12_months: self
+                .calculate_origination_frequency_last_12_months(),
+            credit_stacking_indicator: self.calculate_credit_stacking_indicator(),
         }
     }
 }
