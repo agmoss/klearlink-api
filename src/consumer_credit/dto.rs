@@ -1,8 +1,11 @@
 use crate::core::dto_validators::Validator;
 
-use super::models::{
-    ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
-    UpdateConsumerCreditModel,
+use super::{
+    models::{
+        ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
+        UpdateConsumerCreditModel,
+    },
+    statistics::ConsumerMatchStatistics,
 };
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -117,6 +120,14 @@ pub struct ConsumerCreditDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerMatchStatisticsDto {
+    pub days_since_last_application: i64,
+    pub days_since_last_origination: Option<i64>,
+    pub average_credit_age: Option<f64>,
+    pub number_of_active_loans: usize,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchDto {
     pub consumer_facts: ConsumerFactsDto,
     pub credit_facts: CreditFactsDto,
@@ -124,6 +135,8 @@ pub struct ConsumerMatchDto {
     pub updated_at: NaiveDateTime,
     pub processed: bool,
     pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub statistics: Option<ConsumerMatchStatisticsDto>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -262,7 +275,13 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
 }
 
 impl ConsumerCreditModel {
-    pub fn to_consumer_match_dto(&self, matches: Vec<ConsumerMatchesDto>) -> ConsumerMatchDto {
+    pub fn to_consumer_match_dto(
+        &self,
+        matches: Vec<ConsumerMatchesDto>,
+        records: &[ConsumerCreditModel],
+    ) -> ConsumerMatchDto {
+        let statistics = ConsumerMatchStatistics::new(records).to_dto();
+
         ConsumerMatchDto {
             consumer_facts: ConsumerFactsDto {
                 first_name: self.first_name.clone(),
@@ -292,6 +311,7 @@ impl ConsumerCreditModel {
             } else {
                 Some(matches)
             },
+            statistics: Some(statistics),
         }
     }
 

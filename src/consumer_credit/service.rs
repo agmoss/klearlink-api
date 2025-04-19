@@ -1,4 +1,7 @@
-use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto};
+use crate::consumer_credit::dto::{
+    ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto, ConsumerMatchStatisticsDto,
+    ConsumerMatchesDto,
+};
 use crate::consumer_credit::models::{ConsumerCreditEventModel, ConsumerCreditModel};
 use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::{execute_db_operation, execute_db_operation_rest};
@@ -12,6 +15,7 @@ use rocket::serde::json::Json;
 use serde_json::Value;
 
 use super::dto::{InsertConsumerCreditDto, UpdateConsumerCreditDto};
+use super::statistics::ConsumerMatchStatistics;
 
 pub struct ConsumerCreditService;
 
@@ -143,13 +147,13 @@ impl ConsumerCreditService {
                             })
                     },
                     |matched_records: Vec<ConsumerCreditModel>| {
+                        let matches: Vec<ConsumerMatchesDto> = matched_records
+                            .iter()
+                            .map(|r| r.to_consumer_matches_dto(&_target))
+                            .collect();
+
                         Ok(Json(
-                            _target.to_consumer_match_dto(
-                                matched_records
-                                    .into_iter()
-                                    .map(|r| r.to_consumer_matches_dto(&_target))
-                                    .collect(),
-                            ),
+                            _target.to_consumer_match_dto(matches, &matched_records),
                         ))
                     },
                 )

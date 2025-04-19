@@ -342,7 +342,7 @@ Includes all fields from consumer_facts and credit_facts, plus:
 
 **Response Body**:
 
-Includes consumer_facts and credit_facts from original record, plus a `consumer_match` node with the credit_facts and a minimal set of consumer_facts of all matched records.
+Includes consumer_facts and credit_facts from original record, plus a `consumer_match` node with the credit_facts, a minimal set of consumer_facts of all matched records, and statistics.
 
 **Example**:
 
@@ -385,7 +385,13 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
           "institution_names":["TD"]
       }
     }
-  ]
+  ],
+  "statistics": {
+    "days_since_last_application": 1,
+    "days_since_last_origination": 1,
+    "average_credit_age": 1.0,
+    "number_of_active_loans": 1
+  }
 }
 ```
 
@@ -393,6 +399,12 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
 Here, we see an inter-organizational match indicating that your applicant is non-compliant on a loan originated by another organization.
 
 You do not see what organization the non-compliant loan originated from, nor do you obtain any additional information on the organization, nor do you see any consumer_facts or credit_facts that you do not already have.
+
+The statistics field provides aggregated information about the matched records:
+- `days_since_last_application`: Number of days since the most recent application
+- `days_since_last_origination`: Number of days since the most recent origination (if any)
+- `average_credit_age`: Average age in days of active credit lines
+- `number_of_active_loans`: Count of currently outstanding credit lines (originated, compliant, or non-compliant)
 
 :::
 
