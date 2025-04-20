@@ -398,7 +398,12 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "days_in_non_compliance": 1,
     "percentage_of_non_compliant_payments": 25.0,
     "current_delinquency_status": true,
-    "historical_delinquency_rate": 0.25
+    "historical_delinquency_rate": 0.25,
+    "multi_account_phone_usage": 1,
+    "multi_account_email_usage": 1,
+    "insolvency_status_indicator": true,
+    "repeated_insolvency_flag": false,
+    "high_frequency_applicant": false
   }
 }
 ```
@@ -422,6 +427,11 @@ The statistics field provides aggregated information about the matched records:
 - `percentage_of_non_compliant_payments`: Percentage of payments that are non-compliant (non-compliant payments / total payments) * 100
 - `current_delinquency_status`: Boolean indicating if the borrower is currently in a non-compliant state
 - `historical_delinquency_rate`: Ratio of non-compliant periods to total periods (non-compliant periods / total periods)
+- `multi_account_phone_usage`: Number of matched records with a different phone number than the first record
+- `multi_account_email_usage`: Number of matched records with a different email address than the first record
+- `insolvency_status_indicator`: Boolean indicating if the borrower is currently insolvent (has any insolvency-related consumer information indicator)
+- `repeated_insolvency_flag`: Boolean indicating if the borrower has been insolvent multiple times (has multiple insolvency-related consumer information indicators)
+- `high_frequency_applicant`: Boolean indicating if the borrower has made multiple applications within a 24-hour period
 
 :::info
 For real-time updates on consumer matches, use the KlearWatch interface.
@@ -496,152 +506,4 @@ These are standard definitions from TU reporting guidelines.
 | Phone Number     | E.164               | `+1XXXXXXXXXX`                        | International phone number format. Must be between 10 and 15 digits.                 |
 | Address (Canada) | CAN/CSA-Z109.1-01   | `101 1ST. S.W. Calgary AB T2P 2V6`    | Canadian postal address format. Must be between 5 and 100 characters.                |
 | Address (USA)    | USPS Publication 28 | `1234 MAIN ST NW WASHINGTON DC 20500` | US postal address format. Must be between 5 and 100 characters.                      |
-| SIN              | CRA Standard        | `NNN-NNN-NNN`                         | Canadian Social Insurance Number format. Must be exactly 9 digits. Optional.         |
-| SSN              | SSA Standard        | `NNN-NN-NNNN`                         | US Social Security Number format. Must be exactly 9 digits. Optional.                |
-
-:::warn
-The klearlink API has very strict data validation! All data sent to klearlink must be valid json and the aforementioned key fields MUST adhere to the specified format.
-:::
-
-:::info
-All monetary values in this API are expressed in the local currency (CAD for Canadian transactions, USD for US transactions) and should be provided as decimal numbers with up to 2 decimal places.
-:::
-
-#### 1. E.164 Phone Number Validation
-
-##### **Regex Pattern:**
-
-```regex
-^\+?[1-9]\d{1,14}$
-```
-
-##### **Description:**
-
-This regex validates phone numbers following the **E.164 international standard**, ensuring they are globally unique and properly formatted.
-
-##### **Rules:**
-
-- The number may start with an optional `+`.
-- The country code must be between 1 and 3 digits and cannot start with 0.
-- The total length (including country code) must be between 2 and 15 digits.
-- Only numeric digits are allowed (no spaces, dashes, or special characters apart from `+`).
-
-##### **Examples:**
-
-✅ Valid:
-
-- `+12025550123`
-- `+442071838750`
-- `+919876543210`
-- `+8613800138000`
-
-❌ Invalid:
-
-- `12025550123` (missing `+` but may be valid in certain systems)
-- `+0123456789` (country code cannot start with 0)
-- `+9999999999999999` (exceeds 15 digits)
-- `+44 207 183 8750` (contains spaces)
-- `+1-202-555-0123` (contains dashes)
-
----
-
-#### 2. CAN/CSA-Z109.1-01 Canadian Address Validation
-
-##### **Regex Pattern:**
-
-```regex
-^\d+\s[A-Za-z0-9\s.,'-]+,\s[A-Za-z\s-]+,\s(?:AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT),\s[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d(?:,\sCanada)?$
-```
-
-##### **Description:**
-
-This regex validates addresses formatted according to the **CAN/CSA-Z109.1-01** standard, which is commonly used in Canada.
-
-##### **Rules:**
-
-- The address must start with a **street number**.
-- The **street name** must contain letters, numbers, spaces, and optional characters (`.,'-`).
-- The **city name** must contain only letters and spaces.
-- The **province/territory code** must be one of the valid two-letter abbreviations: `AB, BC, MB, NB, NL, NS, NT, NU, ON, PE, QC, SK, YT`.
-- The **postal code** must follow the format `A1A 1A1` (where `A` is a letter and `1` is a digit) with an optional space.
-- The **country name "Canada"** is optional.
-
-##### **Examples:**
-
-✅ Valid:
-
-- `123 Main St, Toronto, ON, M5V 3L9`
-- `4567 Elm Ave, Vancouver, BC, V6B 1H2, Canada`
-- `77-101 King St W, Hamilton, ON, L8P 1A1`
-
-❌ Invalid:
-
-- `123 Main St Toronto ON M5V 3L9` (missing commas)
-- `4567 Elm Ave, Vancouver, BC, 12345` (invalid postal code format)
-- `Main St, Toronto, ON, M5V 3L9` (missing street number)
-- `123 Fake St, Springfield, XX, M1M 1M1` (invalid province code)
-
----
-
-#### 3. RFC 5322/822 Email Address Validation
-
-##### **Regex Pattern:**
-
-```regex
-^[^\s@]+@[^\s@]+\.[^\s@]+$
-```
-
-##### **Description:**
-
-This regex validates email addresses according to the **RFC 5322/822** standard, ensuring that they conform to typical email formatting rules.
-
-##### **Rules:**
-
-- The local part may contain alphanumeric characters, dots, and special characters `(!#$%&'*+/=?^_{|}~-)`.
-- The local part may be enclosed in quotes (`"..."`) if special characters are used.
-- The domain must contain alphanumeric characters and hyphens, but not start or end with a hyphen.
-- The domain must end with a valid top-level domain (2-63 characters in length).
-
-##### **Examples:**
-
-✅ Valid:
-
-- `example@email.com`
-- `user.name+tag@example.co.uk`
-- `"quoted@text"@example.com`
-
-❌ Invalid:
-
-- `plainaddress` (missing `@` and domain)
-- `@missinglocal.com` (missing local part)
-- `user@.com` (invalid domain format)
-- `user@com` (top-level domain too short)
-- `user@-example.com` (hyphen at the start of domain)
-
----
-
-#### 4. SIN Validation
-
-##### **Description:**
-
-This validator ensures compliance with CRA standards for SIN numbers
-
-##### **Rules:**
-
-- If None → Accept it (SIN is optional).
-- If provided:
-  - Must be 9 digits long.
-  - Must start with 1-9 (no leading zero).
-  - Must pass Luhn checksum validation.
-
-##### Error Messages
-
-- "Invalid SIN: XXX. Must be exactly 9 digits."
-- "Invalid SIN: XXX. Cannot start with 0."
-- "Invalid SIN: XXX. Failed Luhn checksum validation."
-
----
-
-:::info
-Data validation errors are expressed in the following [format](https://docs.rs/serde_valid/latest/serde_valid/#validation-errors-format)
-:::
+| SIN              | CRA Standard        | `NNN-NNN-NNN`

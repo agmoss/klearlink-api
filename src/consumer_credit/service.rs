@@ -1,6 +1,5 @@
 use crate::consumer_credit::dto::{
-    ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto, ConsumerMatchStatisticsDto,
-    ConsumerMatchesDto,
+    ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto, ConsumerMatchesDto,
 };
 use crate::consumer_credit::models::{ConsumerCreditEventModel, ConsumerCreditModel};
 use crate::core::auth::AuthResponse;
@@ -15,7 +14,6 @@ use rocket::serde::json::Json;
 use serde_json::Value;
 
 use super::dto::{InsertConsumerCreditDto, UpdateConsumerCreditDto};
-use super::statistics::ConsumerMatchStatistics;
 
 pub struct ConsumerCreditService;
 

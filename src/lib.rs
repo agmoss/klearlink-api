@@ -1,6 +1,9 @@
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::redundant_closure)]
+
 pub mod schema;
 
-use core::{cors::CORS, pool::Db, trace::init_tracing_2};
+use core::{cors::Cors, pool::Db, trace::init_tracing_2};
 
 use rocket::{routes, Build, Rocket};
 
@@ -19,7 +22,7 @@ pub fn create_rocket() -> Rocket<Build> {
     rocket::build()
         .register("/", error::catchers())
         .attach(Db::fairing())
-        .attach(CORS)
+        .attach(Cors)
         .mount(
             "/",
             routes![

@@ -133,6 +133,11 @@ pub struct ConsumerMatchStatisticsDto {
     pub percentage_of_non_compliant_payments: f64,
     pub current_delinquency_status: bool,
     pub historical_delinquency_rate: f64,
+    pub multi_account_phone_usage: usize,
+    pub multi_account_email_usage: usize,
+    pub insolvency_status_indicator: bool,
+    pub repeated_insolvency_flag: bool,
+    pub high_frequency_applicant: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -143,7 +148,6 @@ pub struct ConsumerMatchDto {
     pub updated_at: NaiveDateTime,
     pub processed: bool,
     pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub statistics: Option<ConsumerMatchStatisticsDto>,
 }
 

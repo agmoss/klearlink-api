@@ -160,6 +160,78 @@ impl<'a> ConsumerMatchStatistics<'a> {
         non_compliant_periods as f64 / total_periods as f64
     }
 
+    fn calculate_multi_account_phone_usage(&self) -> usize {
+        if self.records.is_empty() {
+            return 0;
+        }
+
+        let first_phone = &self.records[0].phone_number;
+        self.records
+            .iter()
+            .filter(|r| r.phone_number != *first_phone)
+            .count()
+    }
+
+    fn calculate_multi_account_email_usage(&self) -> usize {
+        if self.records.is_empty() {
+            return 0;
+        }
+
+        let first_email = &self.records[0].email;
+        self.records
+            .iter()
+            .filter(|r| r.email != *first_email)
+            .count()
+    }
+
+    fn is_insolvency_indicator(indicator: &Option<String>) -> bool {
+        if let Some(ind) = indicator {
+            matches!(
+                ind.as_str(),
+                "A" | "B" | "C" | "D" | "E" | "F" | "G" | "T" | "Z" | "ZA" | "ZB" | "ZC" | "ZD"
+            )
+        } else {
+            false
+        }
+    }
+
+    fn calculate_insolvency_status_indicator(&self) -> bool {
+        self.records
+            .iter()
+            .any(|r| Self::is_insolvency_indicator(&r.consumer_information_indicator))
+    }
+
+    fn calculate_repeated_insolvency_flag(&self) -> bool {
+        let insolvency_count = self
+            .records
+            .iter()
+            .filter(|r| Self::is_insolvency_indicator(&r.consumer_information_indicator))
+            .count();
+        insolvency_count > 1
+    }
+
+    fn calculate_high_frequency_applicant(&self) -> bool {
+        if self.records.len() < 2 {
+            return false;
+        }
+
+        let mut application_times: Vec<_> = self
+            .records
+            .iter()
+            .map(|r| r.application_datetime)
+            .collect();
+
+        application_times.sort();
+
+        for window in application_times.windows(2) {
+            if (window[1] - window[0]).num_hours() <= 24 {
+                return true;
+            }
+        }
+
+        false
+    }
+
     pub fn to_dto(&self) -> ConsumerMatchStatisticsDto {
         ConsumerMatchStatisticsDto {
             days_since_last_application: self.calculate_days_since_last_application(),
@@ -177,6 +249,11 @@ impl<'a> ConsumerMatchStatistics<'a> {
                 .calculate_percentage_of_non_compliant_payments(),
             current_delinquency_status: self.calculate_current_delinquency_status(),
             historical_delinquency_rate: self.calculate_historical_delinquency_rate(),
+            multi_account_phone_usage: self.calculate_multi_account_phone_usage(),
+            multi_account_email_usage: self.calculate_multi_account_email_usage(),
+            insolvency_status_indicator: self.calculate_insolvency_status_indicator(),
+            repeated_insolvency_flag: self.calculate_repeated_insolvency_flag(),
+            high_frequency_applicant: self.calculate_high_frequency_applicant(),
         }
     }
 }

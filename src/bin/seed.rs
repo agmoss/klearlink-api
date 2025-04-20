@@ -309,7 +309,7 @@ fn seed_database() {
                 phone_number: profile.phone_number,
                 sin_ssn: None,
                 institution_names: generate_random_institution_names(&mut rng),
-                amount: amount,
+                amount,
                 credit_type: credit_types.choose(&mut rng).unwrap().to_string(),
                 application_datetime: credit_facts.application_datetime,
                 originated_datetime: credit_facts.originated_datetime,
