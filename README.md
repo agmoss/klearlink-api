@@ -24,20 +24,30 @@
         - [**Description:**](#description)
         - [**Rules:**](#rules)
         - [**Examples:**](#examples)
-      - [2. CAN/CSA-Z109.1-01 Canadian Address Validation](#2-cancsa-z1091-01-canadian-address-validation)
-        - [**Regex Pattern:**](#regex-pattern-1)
-        - [**Description:**](#description-1)
-        - [**Rules:**](#rules-1)
-        - [**Examples:**](#examples-1)
+      - [2. Address Validation](#2-address-validation)
+        - [CAN/CSA-Z109.1-01](#cancsa-z1091-01)
+          - [**Regex Pattern:**](#regex-pattern-1)
+          - [**Description:**](#description-1)
+          - [**Rules:**](#rules-1)
+          - [**Examples:**](#examples-1)
+        - [USPS Publication 28](#usps-publication-28)
+          - [**Rules:**](#rules-2)
+          - [**Address Components**](#address-components)
+          - [**Examples**](#examples-2)
       - [3. RFC 5322/822 Email Address Validation](#3-rfc-5322822-email-address-validation)
         - [**Regex Pattern:**](#regex-pattern-2)
         - [**Description:**](#description-2)
-        - [**Rules:**](#rules-2)
-        - [**Examples:**](#examples-2)
-      - [4. SIN Validation](#4-sin-validation)
-        - [**Description:**](#description-3)
         - [**Rules:**](#rules-3)
-        - [Error Messages](#error-messages)
+        - [**Examples:**](#examples-3)
+      - [4. SIN/SSN Validation](#4-sinssn-validation)
+        - [SIN](#sin)
+          - [**Description:**](#description-3)
+          - [**Rules:**](#rules-4)
+          - [**Examples:**](#examples-4)
+        - [SSN](#ssn)
+          - [**Format:**](#format)
+          - [**Rules**](#rules-5)
+          - [**Examples:**](#examples-5)
 
 ---
 
@@ -152,13 +162,19 @@ or
 | application_datetime | string | ISO 8601 datetime of application               |
 | credit_state         | string | State of credit (see values below)             |
 
-> **Credit States**:
+> **Credit States**
 
-- `"application"`
-- `"originated"`
-- `"declined"`
-- `"non-compliant"`
-- `"compliant"`
+| State         | Description                              |
+| ------------- | ---------------------------------------- |
+| application   | The consumer has applied for credit      |
+| originated    | Credit has been extended to the consumer |
+| declined      | The credit application has been declined |
+| non-compliant | All, or part, of the credit is past due  |
+| compliant     | The credit has been paid                 |
+
+:::info
+The movement of the credit state to and from non-compliant operates similarly to the concept of "Date of First Delinquency". If account is not compliant, then move the credit state from originated to non-compliant on the date of the first non-compliance that led to the account status of being non-compliant. If the account becomes compliant, then the credit state should move to compliant on the day the account regained compliance.
+:::
 
 **Example**:
 
@@ -535,19 +551,21 @@ This regex validates phone numbers following the **E.164 international standard*
 
 ---
 
-#### 2. CAN/CSA-Z109.1-01 Canadian Address Validation
+#### 2. Address Validation
 
-##### **Regex Pattern:**
+##### CAN/CSA-Z109.1-01
+
+###### **Regex Pattern:**
 
 ```regex
 ^\d+\s[A-Za-z0-9\s.,'-]+,\s[A-Za-z\s-]+,\s(?:AB|BC|MB|NB|NL|NS|NT|NU|ON|PE|QC|SK|YT),\s[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d(?:,\sCanada)?$
 ```
 
-##### **Description:**
+###### **Description:**
 
 This regex validates addresses formatted according to the **CAN/CSA-Z109.1-01** standard, which is commonly used in Canada.
 
-##### **Rules:**
+###### **Rules:**
 
 - The address must start with a **street number**.
 - The **street name** must contain letters, numbers, spaces, and optional characters (`.,'-`).
@@ -556,7 +574,7 @@ This regex validates addresses formatted according to the **CAN/CSA-Z109.1-01** 
 - The **postal code** must follow the format `A1A 1A1` (where `A` is a letter and `1` is a digit) with an optional space.
 - The **country name "Canada"** is optional.
 
-##### **Examples:**
+###### **Examples:**
 
 ✅ Valid:
 
@@ -570,6 +588,44 @@ This regex validates addresses formatted according to the **CAN/CSA-Z109.1-01** 
 - `4567 Elm Ave, Vancouver, BC, 12345` (invalid postal code format)
 - `Main St, Toronto, ON, M5V 3L9` (missing street number)
 - `123 Fake St, Springfield, XX, M1M 1M1` (invalid province code)
+
+##### USPS Publication 28
+
+###### **Rules:**
+
+- **ALL CAPS** – Use uppercase for everything
+- **NO punctuation** – No commas or periods
+- **Standard abbreviations** – Use USPS-approved short forms (e.g. ST, AVE, N, APT)
+- Use official **2-letter state codes** (e.g. NY, CA, TX)
+- Delivery Address Must Be on One Line
+
+###### **Address Components**
+
+```
+Recipient Name
+[Optional Organization Name]
+Delivery Address (Street address, PO Box, etc.)
+Secondary Address Unit (Apt, Suite, etc.)
+City, State ZIP+4
+```
+
+###### **Examples**
+
+✅ Valid:
+
+- `JOHN DOE 123 MAIN ST APT 4B SPRINGFIELD NY 12345-6789`
+- `ACME INC 500 MARKET ST STE 210 SAN FRANCISCO CA 94105`
+- `JANE SMITH 42 BROADWAY FL 10 NEW YORK NY 10004`
+
+❌ Invalid:
+
+| Address Example                                        | Reason                                |
+| ------------------------------------------------------ | ------------------------------------- |
+| `John Doe, 123 Main St, Apt 4B, Springfield, NY 12345` | Contains punctuation and lowercase    |
+| `123 Main Street Apartment 4B`                         | Does not use USPS abbreviations       |
+| `500 Market St., Suite 210`                            | Contains punctuation                  |
+| `42 Broadway, Floor 10`                                | Uses unstandardized unit abbreviation |
+| `JANE SMITH 42 BROADWAY FL 10 NY 10004`                | Missing city name                     |
 
 ---
 
@@ -610,13 +666,15 @@ This regex validates email addresses according to the **RFC 5322/822** standard,
 
 ---
 
-#### 4. SIN Validation
+#### 4. SIN/SSN Validation
 
-##### **Description:**
+##### SIN
+
+###### **Description:**
 
 This validator ensures compliance with CRA standards for SIN numbers
 
-##### **Rules:**
+###### **Rules:**
 
 - If None → Accept it (SIN is optional).
 - If provided:
@@ -624,11 +682,74 @@ This validator ensures compliance with CRA standards for SIN numbers
   - Must start with 1-9 (no leading zero).
   - Must pass Luhn checksum validation.
 
-##### Error Messages
+###### **Examples:**
 
-- "Invalid SIN: XXX. Must be exactly 9 digits."
-- "Invalid SIN: XXX. Cannot start with 0."
-- "Invalid SIN: XXX. Failed Luhn checksum validation."
+✅ Valid:
+
+- `123456782` – Valid format and passes Luhn check
+- `987654321` – Valid format and passes Luhn check
+
+❌ Invalid:
+
+| SIN          | Reason                        |
+| ------------ | ----------------------------- |
+| `012345678`  | Starts with `0`               |
+| `123456789`  | Fails Luhn checksum           |
+| `12345`      | Too short                     |
+| `1234567890` | Too long                      |
+| `abc123456`  | Contains non-digit characters |
+
+##### SSN
+
+###### **Format:**
+
+```
+AAA-GG-SSSS
+```
+
+- **AAA**: Area Number (first 3 digits)
+- **GG**: Group Number (middle 2 digits)
+- **SSSS**: Serial Number (last 4 digits)
+
+###### **Rules**
+
+**General Rules**
+
+- Must be **9 digits** total
+- Must follow the pattern: `XXX-XX-XXXX`
+- Can’t contain any **letters or symbols**
+
+**Area Number (AAA)**
+
+- Cannot be `000`
+- Cannot be `666`
+- Must not start with `9` (reserved for ITINs and other non-SSN uses)
+- As of 2011, numbers are **randomized**, but the above still holds
+
+**Group Number (GG)**
+
+- Cannot be `00`
+
+**Serial Number (SSSS)**
+
+- Cannot be `0000`
+
+###### **Examples:**
+
+✅ Valid:
+
+- `123-45-6789`
+
+❌ Invalid:
+
+| SSN           | Reason                                 |
+| ------------- | -------------------------------------- |
+| `000-12-3456` | Area is `000`                          |
+| `666-45-6789` | Area is `666`                          |
+| `900-12-3456` | Area starts with `9`                   |
+| `123-00-6789` | Group is `00`                          |
+| `123-45-0000` | Serial is `0000`                       |
+| `123456789`   | No dashes; may still be invalid format |
 
 ---
 
