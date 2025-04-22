@@ -1,4 +1,6 @@
-use crate::consumer_credit::dto::{ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto};
+use crate::consumer_credit::dto::{
+    ConsumerCreditDto, ConsumerCreditEventsDto, ConsumerMatchDto, ConsumerMatchesDto,
+};
 use crate::consumer_credit::models::{ConsumerCreditEventModel, ConsumerCreditModel};
 use crate::core::auth::AuthResponse;
 use crate::core::execute_db_operation::{execute_db_operation, execute_db_operation_rest};
@@ -124,23 +126,32 @@ impl ConsumerCreditService {
                         use crate::schema::consumer_credit::dsl::*;
 
                         consumer_credit
-                            .or_filter(first_name.eq(&target.first_name))
-                            .or_filter(last_name.eq(&target.last_name))
-                            .or_filter(email.eq(&target.email))
-                            .or_filter(date_of_birth.eq(&target.date_of_birth))
-                            .or_filter(address.eq(&target.address))
-                            .or_filter(phone_number.eq(&target.phone_number))
+                            .filter(
+                                first_name
+                                    .eq(&target.first_name)
+                                    .or(last_name.eq(&target.last_name))
+                                    .or(email.eq(&target.email))
+                                    .or(date_of_birth.eq(&target.date_of_birth))
+                                    .or(address.eq(&target.address))
+                                    .or(phone_number.eq(&target.phone_number)),
+                            )
                             .filter(user_id.ne(&auth_result.id))
                             .load::<ConsumerCreditModel>(c)
+                            .map(|records| {
+                                records
+                                    .into_iter()
+                                    .filter(|record| record.has_minimum_matches(&target, 3))
+                                    .collect()
+                            })
                     },
                     |matched_records: Vec<ConsumerCreditModel>| {
+                        let matches: Vec<ConsumerMatchesDto> = matched_records
+                            .iter()
+                            .map(|r| r.to_consumer_matches_dto(&_target))
+                            .collect();
+
                         Ok(Json(
-                            _target.to_consumer_match_dto(
-                                matched_records
-                                    .into_iter()
-                                    .map(|r| r.to_consumer_matches_dto(&_target))
-                                    .collect(),
-                            ),
+                            _target.to_consumer_match_dto(matches, &matched_records),
                         ))
                     },
                 )

@@ -1,8 +1,11 @@
 use crate::core::dto_validators::Validator;
 
-use super::models::{
-    ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
-    UpdateConsumerCreditModel,
+use super::{
+    models::{
+        ConsumerCreditModel, InsertConsumerCreditEventModel, InsertConsumerCreditModel,
+        UpdateConsumerCreditModel,
+    },
+    statistics::ConsumerMatchStatistics,
 };
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -117,6 +120,27 @@ pub struct ConsumerCreditDto {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConsumerMatchStatisticsDto {
+    pub days_since_last_application: i64,
+    pub days_since_last_origination: Option<i64>,
+    pub average_credit_age: Option<f64>,
+    pub number_of_active_loans: usize,
+    pub application_frequency_last_12_months: usize,
+    pub origination_frequency_last_12_months: usize,
+    pub credit_stacking_indicator: usize,
+    pub missed_payment_count: usize,
+    pub days_in_non_compliance: i64,
+    pub percentage_of_non_compliant_payments: f64,
+    pub current_delinquency_status: bool,
+    pub historical_delinquency_rate: f64,
+    pub multi_account_phone_usage: usize,
+    pub multi_account_email_usage: usize,
+    pub insolvency_status_indicator: bool,
+    pub repeated_insolvency_flag: bool,
+    pub high_frequency_applicant: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchDto {
     pub consumer_facts: ConsumerFactsDto,
     pub credit_facts: CreditFactsDto,
@@ -124,12 +148,14 @@ pub struct ConsumerMatchDto {
     pub updated_at: NaiveDateTime,
     pub processed: bool,
     pub consumer_match: Option<Vec<ConsumerMatchesDto>>,
+    pub statistics: Option<ConsumerMatchStatisticsDto>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ConsumerMatchesDto {
-    pub matched_on: MatchedOnDto,
+    pub is_match: bool,
     pub credit_facts: MatchedCreditFactsDto,
+    pub consumer_facts: MatchedConsumerFactsDto,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -144,6 +170,10 @@ pub struct MatchedCreditFactsDto {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payment_due_amount: Option<f64>,
     pub credit_state: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+pub struct MatchedConsumerFactsDto {
     pub institution_names: Vec<Option<String>>,
     pub consumer_information_indicator: Option<String>,
 }
@@ -257,7 +287,13 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
 }
 
 impl ConsumerCreditModel {
-    pub fn to_consumer_match_dto(&self, matches: Vec<ConsumerMatchesDto>) -> ConsumerMatchDto {
+    pub fn to_consumer_match_dto(
+        &self,
+        matches: Vec<ConsumerMatchesDto>,
+        records: &[ConsumerCreditModel],
+    ) -> ConsumerMatchDto {
+        let statistics = ConsumerMatchStatistics::new(records).to_dto();
+
         ConsumerMatchDto {
             consumer_facts: ConsumerFactsDto {
                 first_name: self.first_name.clone(),
@@ -282,20 +318,18 @@ impl ConsumerCreditModel {
             created_at: self.created_at,
             updated_at: self.updated_at,
             processed: true,
-            consumer_match: Some(matches),
+            consumer_match: if matches.is_empty() {
+                None
+            } else {
+                Some(matches)
+            },
+            statistics: Some(statistics),
         }
     }
 
     pub fn to_consumer_matches_dto(&self, _target: &ConsumerCreditModel) -> ConsumerMatchesDto {
         ConsumerMatchesDto {
-            matched_on: MatchedOnDto {
-                first_name: self.first_name == _target.first_name,
-                last_name: self.last_name == _target.last_name,
-                email: self.email == _target.email,
-                date_of_birth: self.date_of_birth == _target.date_of_birth,
-                address: self.address == _target.address,
-                phone_number: self.phone_number == _target.phone_number,
-            },
+            is_match: true,
             credit_facts: MatchedCreditFactsDto {
                 amount: self.amount,
                 credit_type: self.credit_type.clone(),
@@ -304,10 +338,30 @@ impl ConsumerCreditModel {
                 payment_due_date: self.payment_due_date,
                 payment_due_amount: self.payment_due_amount,
                 credit_state: self.credit_state.clone(),
+            },
+            consumer_facts: MatchedConsumerFactsDto {
                 institution_names: self.institution_names.clone(),
                 consumer_information_indicator: self.consumer_information_indicator.clone(),
             },
         }
+    }
+
+    pub fn count_matching_fields(&self, other: &Self) -> usize {
+        [
+            self.first_name == other.first_name,
+            self.last_name == other.last_name,
+            self.email == other.email,
+            self.date_of_birth == other.date_of_birth,
+            self.address == other.address,
+            self.phone_number == other.phone_number,
+        ]
+        .iter()
+        .filter(|&&matches| matches)
+        .count()
+    }
+
+    pub fn has_minimum_matches(&self, other: &Self, min_matches: usize) -> bool {
+        self.count_matching_fields(other) >= min_matches
     }
 }
 

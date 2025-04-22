@@ -10,7 +10,7 @@
   - [2. Update a consumer credit record](#2-update-a-consumer-credit-record)
   - [3. View a submitted consumer credit record](#3-view-a-submitted-consumer-credit-record)
   - [4. View Consumer Match](#4-view-consumer-match)
-    - [matched\_on](#matched_on)
+    - [Statistics](#statistics)
   - [Security](#security)
     - [Authentication](#authentication)
     - [Monitoring and Logging](#monitoring-and-logging)
@@ -358,19 +358,7 @@ Includes all fields from consumer_facts and credit_facts, plus:
 
 **Response Body**:
 
-Includes consumer_facts and credit_facts from original record, plus:
-
-### matched_on
-
-| Field             | Type    | Description                              |
-| ----------------- | ------- | ---------------------------------------- |
-| first_name        | boolean | Whether first name matched               |
-| last_name         | boolean | Whether last name matched                |
-| email             | boolean | Whether email matched                    |
-| date_of_birth     | boolean | Whether date of birth matched            |
-| address           | boolean | Whether address matched                  |
-| phone_number      | boolean | Whether phone number matched             |
-| institution_names | array   | List of institutions from matched record |
+Includes consumer_facts and credit_facts from original record, plus a `consumer_match` node with the credit_facts, a minimal set of consumer_facts of all matched records, and statistics.
 
 **Example**:
 
@@ -399,15 +387,6 @@ Includes consumer_facts and credit_facts from original record, plus:
   "processed": true,
   "consumer_match": [
     {
-      "matched_on": {
-        "first_name": true,
-        "last_name": true,
-        "email": true,
-        "date_of_birth": true,
-        "address": true,
-        "phone_number": false,
-        "institution_names": ["CIBC"]
-      },
       "credit_facts": {
         "amount": 1200.0,
         "credit_type": "PDL",
@@ -416,9 +395,32 @@ Includes consumer_facts and credit_facts from original record, plus:
         "payment_due_date": "2024-09-30 07:43:12.023476",
         "payment_amount_due": 1200.0,
         "credit_state": "non-compliant"
+      },
+      "consumer_facts":{
+          "consumer_information_indicator": null,
+          "institution_names":["TD"]
       }
     }
-  ]
+  ],
+  "statistics": {
+    "days_since_last_application": 1,
+    "days_since_last_origination": 1,
+    "average_credit_age": 1.0,
+    "number_of_active_loans": 1,
+    "application_frequency_last_12_months": 1,
+    "origination_frequency_last_12_months": 1,
+    "credit_stacking_indicator": 1,
+    "missed_payment_count": 1,
+    "days_in_non_compliance": 1,
+    "percentage_of_non_compliant_payments": 25.0,
+    "current_delinquency_status": true,
+    "historical_delinquency_rate": 0.25,
+    "multi_account_phone_usage": 1,
+    "multi_account_email_usage": 1,
+    "insolvency_status_indicator": true,
+    "repeated_insolvency_flag": false,
+    "high_frequency_applicant": false
+  }
 }
 ```
 
@@ -426,8 +428,28 @@ Includes consumer_facts and credit_facts from original record, plus:
 Here, we see an inter-organizational match indicating that your applicant is non-compliant on a loan originated by another organization.
 
 You do not see what organization the non-compliant loan originated from, nor do you obtain any additional information on the organization, nor do you see any consumer_facts or credit_facts that you do not already have.
-
 :::
+
+### Statistics
+
+The statistics field provides aggregated information about the matched records:
+- `days_since_last_application`: Number of days since the most recent application
+- `days_since_last_origination`: Number of days since the most recent origination (if any)
+- `average_credit_age`: Average age in days of active credit lines
+- `number_of_active_loans`: Count of currently outstanding credit lines (originated, compliant, or non-compliant)
+- `application_frequency_last_12_months`: Number of credit applications made in the past 12 months
+- `origination_frequency_last_12_months`: Number of credit approvals in the past 12 months
+- `credit_stacking_indicator`: Number of active loans originated within the last 30 days
+- `missed_payment_count`: Total number of non-compliant loans
+- `days_in_non_compliance`: Total number of days the borrower has been in a non-compliant state
+- `percentage_of_non_compliant_payments`: Percentage of payments that are non-compliant (non-compliant payments / total payments) * 100
+- `current_delinquency_status`: Boolean indicating if the borrower is currently in a non-compliant state
+- `historical_delinquency_rate`: Ratio of non-compliant periods to total periods (non-compliant periods / total periods)
+- `multi_account_phone_usage`: Number of matched records with a different phone number than the first record
+- `multi_account_email_usage`: Number of matched records with a different email address than the first record
+- `insolvency_status_indicator`: Boolean indicating if the borrower is currently insolvent (has any insolvency-related consumer information indicator)
+- `repeated_insolvency_flag`: Boolean indicating if the borrower has been insolvent multiple times (has multiple insolvency-related consumer information indicators)
+- `high_frequency_applicant`: Boolean indicating if the borrower has made multiple applications within a 24-hour period
 
 :::info
 For real-time updates on consumer matches, use the KlearWatch interface.
