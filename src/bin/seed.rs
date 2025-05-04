@@ -25,6 +25,13 @@ use klearlink_api::user::models::{InsertUserModel, UserModel};
 
 use indicatif::{ProgressBar, ProgressStyle};
 
+fn generate_reproducible_uuid(seed: u128) -> Uuid {
+    // Use a fixed seed to generate a reproducible UUID
+    let mut rng = rand::rngs::StdRng::seed_from_u64(seed as u64);
+    let bytes: [u8; 16] = rng.gen();
+    Uuid::from_bytes(bytes)
+}
+
 fn establish_connection() -> PgConnection {
     dotenv().ok();
 
@@ -199,6 +206,132 @@ fn generate_credit_facts(state: &str, now: NaiveDateTime, amount: f64) -> Credit
     }
 }
 
+fn seed_fraud_use_case(conn: &mut PgConnection) {
+    let now = Local::now().naive_local();
+
+    let bnpl_1_user_id = 13;
+    let bnpl_2_user_id = 14;
+
+    // Create the base consumer profile that will be used for both legitimate and fraudulent accounts
+    let base_profile = ConsumerFactsProfile {
+        first_name: "Sam".to_string(),
+        last_name: "Jones".to_string(),
+        address: "123 Main St, Toronto, ON, M5V 3L9".to_string(),
+        date_of_birth: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+        email: "sam.jones@example.com".to_string(),
+        phone_number: "+14155551234".to_string(),
+    };
+
+    // First transaction - Small ticket item with BNPL 1, repaid in full
+    let first_transaction = InsertConsumerCreditModel {
+        consumer_credit_id: Uuid::new_v4().to_string(),
+        first_name: base_profile.first_name.clone(),
+        last_name: base_profile.last_name.clone(),
+        email: base_profile.email.clone(),
+        date_of_birth: base_profile.date_of_birth,
+        address: base_profile.address.clone(),
+        phone_number: base_profile.phone_number.clone(),
+        sin_ssn: None,
+        institution_names: vec![Some("BNPL1".to_string())],
+        amount: 250.0,
+        credit_type: "BNPL".to_string(),
+        application_datetime: now - Duration::days(30),
+        originated_datetime: Some(now - Duration::days(29)),
+        payment_due_date: Some(now - Duration::days(15)),
+        payment_due_amount: Some(250.0),
+        credit_state: "compliant".to_string(),
+        consumer_information_indicator: None,
+        user_id: bnpl_1_user_id,
+    };
+
+    // Second transaction - Couch with BNPL 1, partial payment
+    let second_transaction = InsertConsumerCreditModel {
+        consumer_credit_id: Uuid::new_v4().to_string(),
+        first_name: base_profile.first_name.clone(),
+        last_name: base_profile.last_name.clone(),
+        email: base_profile.email.clone(),
+        date_of_birth: base_profile.date_of_birth,
+        address: base_profile.address.clone(),
+        phone_number: base_profile.phone_number.clone(),
+        sin_ssn: None,
+        institution_names: vec![Some("BNPL1".to_string())],
+        amount: 1500.0,
+        credit_type: "BNPL".to_string(),
+        application_datetime: now - Duration::days(20),
+        originated_datetime: Some(now - Duration::days(19)),
+        payment_due_date: Some(now - Duration::days(5)),
+        payment_due_amount: Some(1075.0),
+        credit_state: "non-compliant".to_string(),
+        consumer_information_indicator: None,
+        user_id: bnpl_1_user_id,
+    };
+
+    // Third transaction - Duplicate account with BNPL 1
+    let third_transaction = InsertConsumerCreditModel {
+        consumer_credit_id: Uuid::new_v4().to_string(),
+        first_name: base_profile.first_name.clone(),
+        last_name: base_profile.last_name.clone(),
+        email: base_profile.email.clone(),
+        date_of_birth: base_profile.date_of_birth,
+        address: base_profile.address.clone(),
+        phone_number: base_profile.phone_number.clone(),
+        sin_ssn: None,
+        institution_names: vec![Some("BNPL1".to_string())],
+        amount: 1200.0,
+        credit_type: "BNPL".to_string(),
+        application_datetime: now - Duration::days(15),
+        originated_datetime: Some(now - Duration::days(14)),
+        payment_due_date: Some(now),
+        payment_due_amount: Some(900.0),
+        credit_state: "non-compliant".to_string(),
+        consumer_information_indicator: None,
+        user_id: bnpl_1_user_id,
+    };
+
+    // Fourth transaction - Attempt with BNPL 2 using same credentials
+    let fourth_transaction = InsertConsumerCreditModel {
+        consumer_credit_id: Uuid::new_v4().to_string(),
+        first_name: base_profile.first_name.clone(),
+        last_name: base_profile.last_name.clone(),
+        email: base_profile.email.clone(),
+        date_of_birth: base_profile.date_of_birth,
+        address: base_profile.address.clone(),
+        phone_number: base_profile.phone_number.clone(),
+        sin_ssn: None,
+        institution_names: vec![Some("BNPL2".to_string())],
+        amount: 250.0,
+        credit_type: "BNPL".to_string(),
+        application_datetime: now - Duration::days(10),
+        originated_datetime: None,
+        payment_due_date: None,
+        payment_due_amount: None,
+        credit_state: "declined".to_string(),
+        consumer_information_indicator: None,
+        user_id: bnpl_2_user_id,
+    };
+
+    // Insert all transactions
+    insert_into(consumer_credit::table)
+        .values(&first_transaction)
+        .execute(conn)
+        .expect("Error inserting first fraud transaction");
+
+    insert_into(consumer_credit::table)
+        .values(&second_transaction)
+        .execute(conn)
+        .expect("Error inserting second fraud transaction");
+
+    insert_into(consumer_credit::table)
+        .values(&third_transaction)
+        .execute(conn)
+        .expect("Error inserting third fraud transaction");
+
+    insert_into(consumer_credit::table)
+        .values(&fourth_transaction)
+        .execute(conn)
+        .expect("Error inserting fourth fraud transaction");
+}
+
 fn seed_database() {
     let mut conn = establish_connection();
 
@@ -276,7 +409,7 @@ fn seed_database() {
     for i in 0..lenders {
         let lending_user = InsertUserModel {
             username: format!("lender_{}", i),
-            api_key: Uuid::new_v4(),
+            api_key: generate_reproducible_uuid(i as u128),
             role: "lender".to_string(),
         };
 
@@ -326,6 +459,10 @@ fn seed_database() {
                 .expect("Error inserting consumer credit record");
         }
     }
+
+    // Seed the fraud use case
+    seed_fraud_use_case(&mut conn);
+
     pb.finish_with_message("Database seeded");
 }
 
