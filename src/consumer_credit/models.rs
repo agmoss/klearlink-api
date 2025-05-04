@@ -33,6 +33,9 @@ pub struct ConsumerCreditModel {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
+    pub total_installments: Option<i32>,
+    pub paid_installments: Option<i32>,
+    pub installment_amount: Option<f64>,
 }
 
 #[derive(Insertable)]
@@ -56,6 +59,9 @@ pub struct InsertConsumerCreditModel {
     pub payment_due_amount: Option<f64>,
     pub credit_state: String,
     pub user_id: i32,
+    pub total_installments: Option<i32>,
+    pub paid_installments: Option<i32>,
+    pub installment_amount: Option<f64>,
 }
 
 #[derive(Insertable, AsChangeset)]
@@ -78,6 +84,9 @@ pub struct UpdateConsumerCreditModel {
     pub payment_due_amount: Option<f64>,
     pub credit_state: Option<String>,
     pub consumer_information_indicator: Option<String>,
+    pub total_installments: Option<i32>,
+    pub paid_installments: Option<i32>,
+    pub installment_amount: Option<f64>,
 }
 
 #[derive(Deserialize, Serialize, Queryable, Insertable, Debug)]

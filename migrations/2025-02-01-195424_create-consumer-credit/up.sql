@@ -48,6 +48,10 @@ CREATE TABLE consumer_credit (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP,
+    -- BNPL specific fields
+    total_installments INTEGER CHECK (total_installments > 0),
+    paid_installments INTEGER CHECK (paid_installments >= 0 AND paid_installments <= total_installments),
+    installment_amount FLOAT CHECK (installment_amount >= 0),
     UNIQUE (consumer_credit_id, user_id)
 );
 

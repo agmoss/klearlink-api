@@ -76,6 +76,13 @@ pub struct CreditFactsDto {
     pub payment_due_amount: Option<f64>,
     #[validate(custom = Validator::credit_state_validation)]
     pub credit_state: String,
+    // BNPL specific fields
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_installments: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub paid_installments: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub installment_amount: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, Default)]
@@ -92,6 +99,10 @@ pub struct UpdateCreditFactsDto {
     pub payment_due_amount: Option<f64>,
     #[validate(custom = Validator::optional_credit_state_validation)]
     pub credit_state: Option<String>,
+    // BNPL specific fields
+    pub total_installments: Option<i32>,
+    pub paid_installments: Option<i32>,
+    pub installment_amount: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -220,6 +231,9 @@ impl UpdateConsumerCreditDto {
             payment_due_date: credit.and_then(|c| c.payment_due_date),
             payment_due_amount: credit.and_then(|c| c.payment_due_amount),
             credit_state: Self::extract(&credit.and_then(|c| c.credit_state.clone())),
+            total_installments: credit.and_then(|c| c.total_installments),
+            paid_installments: credit.and_then(|c| c.paid_installments),
+            installment_amount: credit.and_then(|c| c.installment_amount),
         }
     }
 }
@@ -251,6 +265,9 @@ impl InsertConsumerCreditDto {
             payment_due_date: self.credit_facts.payment_due_date,
             payment_due_amount: self.credit_facts.payment_due_amount,
             credit_state: self.credit_facts.credit_state.clone(),
+            total_installments: self.credit_facts.total_installments,
+            paid_installments: self.credit_facts.paid_installments,
+            installment_amount: self.credit_facts.installment_amount,
             user_id: *user_id,
         }
     }
@@ -278,6 +295,9 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 payment_due_date: consumer_credit.payment_due_date,
                 payment_due_amount: consumer_credit.payment_due_amount,
                 credit_state: consumer_credit.credit_state,
+                total_installments: consumer_credit.total_installments,
+                paid_installments: consumer_credit.paid_installments,
+                installment_amount: consumer_credit.installment_amount,
             },
             processed: true,
             created_at: consumer_credit.created_at,
@@ -314,6 +334,9 @@ impl ConsumerCreditModel {
                 payment_due_date: self.payment_due_date,
                 payment_due_amount: self.payment_due_amount,
                 credit_state: self.credit_state.clone(),
+                total_installments: self.total_installments,
+                paid_installments: self.paid_installments,
+                installment_amount: self.installment_amount,
             },
             created_at: self.created_at,
             updated_at: self.updated_at,

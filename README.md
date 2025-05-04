@@ -153,14 +153,29 @@ or
 | institution_names              | array             | List of associated institutions. Each name must be between 2 and 50 characters.                                               |
 | consumer_information_indicator | string (optional) | Used to report a special condition of the account. See [B. Consumer Information Indicator](#b-consumer-information-indicator) |
 
-> **credit_facts**
+> **credit_facts** (PDL)
 
 | Field                | Type   | Description                                    |
 | -------------------- | ------ | ---------------------------------------------- |
 | amount               | float  | Amount requested by borrower, in dollars/cents |
-| credit_type          | string | Type of credit (`"PDL"` or `"BNPL"`)           |
+| credit_type          | string | Type of credit (`"PDL"`)                       |
 | application_datetime | string | ISO 8601 datetime of application               |
 | credit_state         | string | State of credit (see values below)             |
+
+> **credit_facts** (BNPL)
+
+| Field                | Type              | Description                                    |
+| -------------------- | ----------------- | ---------------------------------------------- |
+| amount               | float             | Amount requested by borrower, in dollars/cents |
+| credit_type          | string            | Type of credit (`"BNPL"`)                      |
+| application_datetime | string            | ISO 8601 datetime of application               |
+| credit_state         | string            | State of credit (see values below)             |
+| total_installments   | integer           | Total number of installments for the BNPL loan |
+| paid_installments    | integer           | Number of installments that have been paid     |
+| installment_amount   | float             | Amount per installment in dollars/cents        |
+| originated_datetime  | string (optional) | ISO 8601 datetime when credit was originated   |
+| payment_due_date     | string (optional) | ISO 8601 datetime when next payment is due     |
+| payment_due_amount   | float (optional)  | Amount of next payment due in dollars/cents    |
 
 > **Credit States**
 
@@ -178,6 +193,8 @@ The movement of the credit state to and from non-compliant operates similarly to
 
 **Example**:
 
+> PDL
+
 ```json
 {
   "consumer_facts": {
@@ -194,6 +211,31 @@ The movement of the credit state to and from non-compliant operates similarly to
     "credit_type": "PDL",
     "application_datetime": "2024-09-23 21:47:12.023476",
     "credit_state": "applied"
+  }
+}
+```
+
+> BNPL
+
+```json
+{
+  "consumer_facts": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "date_of_birth": "2010-10-10",
+    "address": "101 1ST. S.W. Calgary AB T2P 2V6",
+    "phone_number": "+11234567890",
+    "institution_names": ["TD", "RBC"]
+  },
+  "credit_facts": {
+    "amount": 1000.0,
+    "credit_type": "BNPL",
+    "application_datetime": "2024-09-23 21:47:12.023476",
+    "credit_state": "applied",
+    "total_installments": 4,
+    "paid_installments": 0,
+    "installment_amount": 250.0
   }
 }
 ```
@@ -396,9 +438,9 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
         "payment_amount_due": 1200.0,
         "credit_state": "non-compliant"
       },
-      "consumer_facts":{
-          "consumer_information_indicator": null,
-          "institution_names":["TD"]
+      "consumer_facts": {
+        "consumer_information_indicator": null,
+        "institution_names": ["TD"]
       }
     }
   ],
@@ -433,6 +475,7 @@ You do not see what organization the non-compliant loan originated from, nor do 
 ### Statistics
 
 The statistics field provides aggregated information about the matched records:
+
 - `days_since_last_application`: Number of days since the most recent application
 - `days_since_last_origination`: Number of days since the most recent origination (if any)
 - `average_credit_age`: Average age in days of active credit lines
@@ -442,7 +485,7 @@ The statistics field provides aggregated information about the matched records:
 - `credit_stacking_indicator`: Number of active loans originated within the last 30 days
 - `missed_payment_count`: Total number of non-compliant loans
 - `days_in_non_compliance`: Total number of days the borrower has been in a non-compliant state
-- `percentage_of_non_compliant_payments`: Percentage of payments that are non-compliant (non-compliant payments / total payments) * 100
+- `percentage_of_non_compliant_payments`: Percentage of payments that are non-compliant (non-compliant payments / total payments) \* 100
 - `current_delinquency_status`: Boolean indicating if the borrower is currently in a non-compliant state
 - `historical_delinquency_rate`: Ratio of non-compliant periods to total periods (non-compliant periods / total periods)
 - `multi_account_phone_usage`: Number of matched records with a different phone number than the first record
@@ -739,7 +782,7 @@ AAA-GG-SSSS
 
 - Must be **9 digits** total
 - Must follow the pattern: `XXX-XX-XXXX`
-- Can’t contain any **letters or symbols**
+- Can't contain any **letters or symbols**
 
 **Area Number (AAA)**
 

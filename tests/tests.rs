@@ -25,11 +25,6 @@ mod tests {
         let client = test_client().lock().unwrap();
 
         let users = vec![
-            //json!({
-            //    "username": "test_admin_user",
-            //    "api_key": API_KEY_ADMIN,
-            //    "role": "admin"
-            // }),
             json!({
                 "username": "test_user_1",
                 "api_key": API_KEY_1,

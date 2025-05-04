@@ -27,13 +27,61 @@ impl Validator {
             + dto.payment_due_date.is_some() as u8
             + dto.payment_due_amount.is_some() as u8;
 
-        if count == 0 || count == 3 {
-            Ok(())
-        } else {
-            Err(Error::Custom(
+        if count != 0 && count != 3 {
+            return Err(Error::Custom(
                 "All or none of originated_datetime, payment_due_date, and payment_due_amount must be supplied.".to_string(),
-            ))
+            ));
         }
+
+        // Validate BNPL specific fields
+        if dto.credit_type == "BNPL" {
+            let bnpl_count = dto.total_installments.is_some() as u8
+                + dto.paid_installments.is_some() as u8
+                + dto.installment_amount.is_some() as u8;
+
+            if bnpl_count > 0 && bnpl_count < 3 {
+                return Err(Error::Custom(
+                    "For BNPL loans, all or none of total_installments, paid_installments, and installment_amount must be supplied.".to_string(),
+                ));
+            }
+
+            if let (Some(total), Some(paid), Some(amount)) = (
+                dto.total_installments,
+                dto.paid_installments,
+                dto.installment_amount,
+            ) {
+                if total <= 0 {
+                    return Err(Error::Custom(
+                        "total_installments must be greater than 0".to_string(),
+                    ));
+                }
+                if paid < 0 || paid > total {
+                    return Err(Error::Custom(
+                        "paid_installments must be between 0 and total_installments".to_string(),
+                    ));
+                }
+                if amount <= 0.0 {
+                    return Err(Error::Custom(
+                        "installment_amount must be greater than 0".to_string(),
+                    ));
+                }
+                if (amount * total as f64).round() != dto.amount.round() {
+                    return Err(Error::Custom(
+                        "installment_amount * total_installments must equal the total amount"
+                            .to_string(),
+                    ));
+                }
+            }
+        } else if dto.total_installments.is_some()
+            || dto.paid_installments.is_some()
+            || dto.installment_amount.is_some()
+        {
+            return Err(Error::Custom(
+                "Installment fields can only be specified for BNPL loans.".to_string(),
+            ));
+        }
+
+        Ok(())
     }
 
     pub fn validate_credit_state(dto: &CreditFactsDto) -> ValidatorError {

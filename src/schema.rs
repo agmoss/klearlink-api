@@ -33,6 +33,9 @@ diesel::table! {
         created_at -> Timestamp,
         updated_at -> Timestamp,
         deleted_at -> Nullable<Timestamp>,
+        total_installments -> Nullable<Int4>,
+        paid_installments -> Nullable<Int4>,
+        installment_amount -> Nullable<Float8>,
     }
 }
 
