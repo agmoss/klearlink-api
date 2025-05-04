@@ -20,7 +20,7 @@ impl Fairing for Cors {
 
         // Define allowed origins based on environment
         let allowed_origins = if env == "staging" {
-            vec!["https://api.klearlink.io", "http://localhost:3000"]
+            vec!["https://api.klearlink.io", "http://localhost:3000", "https://klearlink-demo.vercel.app"]
         } else {
             vec!["https://api.klearlink.io"]
         };
