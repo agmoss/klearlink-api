@@ -2,22 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0] - 2025-04-06
+## [0.2.0] - 2025-05-04
 
 ### 🚀 Features
 
 - Adding in consumer_information_indicator
+- Adding staging cors settings
+- Adding in use case seeding
+- Adding in better cli options
+- Adding in openapi yaml file
+- Adding in the concept of installments
+- Moving out seeder utls
 
 ### 📚 Documentation
 
 - Add security section detailing API security features and compliance
 - Update API docs
+- Adding in documentation on US data standards
+- Adding in better readme
 
 ### ⚙️ Miscellaneous Tasks
 
 - Better markdown
 - Fix action
 - Adding in .idea integration
+- Release 0.2.0
+- Adjust seed
 
 ## [0.1.0] - 2025-03-06
 
