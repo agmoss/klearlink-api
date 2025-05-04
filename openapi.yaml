@@ -1,0 +1,343 @@
+openapi: 3.0.0
+info:
+  title: KlearLink API
+  description: API for managing consumer credit records and fraud detection
+  version: 0.2.0
+  contact:
+    name: KlearLink Support
+    email: support@klearlink.io
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: API key authentication in format 'Apikey <UUID>'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          oneOf:
+            - type: string
+            - type: object
+              additionalProperties: true
+      required:
+        - error
+
+    ConsumerFacts:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 2
+          description: First name of the consumer
+        last_name:
+          type: string
+          minLength: 2
+          description: Last name of the consumer
+        email:
+          type: string
+          format: email
+          description: RFC 5322/822 format email address
+        date_of_birth:
+          type: string
+          format: date
+          description: ISO 8601 date format
+        address:
+          type: string
+          description: CAN/CSA-Z109.1-01 or USPS Publication 28 address format
+        phone_number:
+          type: string
+          description: E.164 international format phone number
+        sin_ssn:
+          type: string
+          description: SIN(NNN-NNN-NNN) or SSN(NNN-NN-NNNN)
+        institution_names:
+          type: array
+          items:
+            type: string
+          description: List of associated institutions
+        consumer_information_indicator:
+          type: string
+          enum: [A, B, C, D, E, F, G, T, Z, ZA, ZB, ZC, ZD, Q]
+          description: Special condition of the account
+      required:
+        - first_name
+        - last_name
+        - email
+        - date_of_birth
+        - address
+        - phone_number
+        - institution_names
+
+    CreditFacts:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          minimum: 0
+          description: Amount in dollars/cents
+        credit_type:
+          type: string
+          enum: [PDL, BNPL]
+          description: Type of credit
+        application_datetime:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime of application
+        originated_datetime:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime of origination
+        payment_due_date:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime of payment due date
+        payment_due_amount:
+          type: number
+          format: float
+          minimum: 0
+          description: Amount due for payment
+        credit_state:
+          type: string
+          enum: [application, originated, declined, non-compliant, compliant]
+          description: Current state of the credit
+      required:
+        - amount
+        - credit_type
+        - application_datetime
+        - credit_state
+
+    ConsumerCredit:
+      type: object
+      properties:
+        consumer_facts:
+          $ref: '#/components/schemas/ConsumerFacts'
+        credit_facts:
+          $ref: '#/components/schemas/CreditFacts'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        processed:
+          type: boolean
+
+    ConsumerMatch:
+      type: object
+      properties:
+        consumer_facts:
+          $ref: '#/components/schemas/ConsumerFacts'
+        credit_facts:
+          $ref: '#/components/schemas/CreditFacts'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        processed:
+          type: boolean
+        consumer_match:
+          type: array
+          items:
+            type: object
+            properties:
+              is_match:
+                type: boolean
+              credit_facts:
+                $ref: '#/components/schemas/CreditFacts'
+              consumer_facts:
+                type: object
+                properties:
+                  institution_names:
+                    type: array
+                    items:
+                      type: string
+                  consumer_information_indicator:
+                    type: string
+                    enum: [A, B, C, D, E, F, G, T, Z, ZA, ZB, ZC, ZD, Q]
+        statistics:
+          type: object
+          properties:
+            days_since_last_application:
+              type: integer
+            days_since_last_origination:
+              type: integer
+            average_credit_age:
+              type: number
+              format: float
+            number_of_active_loans:
+              type: integer
+            application_frequency_last_12_months:
+              type: integer
+            origination_frequency_last_12_months:
+              type: integer
+            credit_stacking_indicator:
+              type: integer
+            missed_payment_count:
+              type: integer
+            days_in_non_compliance:
+              type: integer
+            percentage_of_non_compliant_payments:
+              type: number
+              format: float
+            current_delinquency_status:
+              type: boolean
+            historical_delinquency_rate:
+              type: number
+              format: float
+            multi_account_phone_usage:
+              type: integer
+            multi_account_email_usage:
+              type: integer
+            insolvency_status_indicator:
+              type: boolean
+            repeated_insolvency_flag:
+              type: boolean
+            high_frequency_applicant:
+              type: boolean
+
+paths:
+  /consumer-credit/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Unique identifier for the consumer credit record
+
+    put:
+      summary: Submit a consumer credit record
+      description: Create a new consumer credit record in the system
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumer_facts:
+                  $ref: '#/components/schemas/ConsumerFacts'
+                credit_facts:
+                  $ref: '#/components/schemas/CreditFacts'
+      responses:
+        '201':
+          description: Consumer credit record successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerCredit'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Record already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Update a consumer credit record
+      description: Update the consumer_facts and/or credit_facts of a previously submitted record
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumer_facts:
+                  $ref: '#/components/schemas/ConsumerFacts'
+                credit_facts:
+                  $ref: '#/components/schemas/CreditFacts'
+      responses:
+        '200':
+          description: Consumer credit record successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerCredit'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: View a consumer credit record
+      description: View the data associated with a submitted consumer credit record
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Request successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerCredit'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /consumer-credit/{id}/consumer-match:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID of the consumer credit record
+
+    get:
+      summary: View Consumer Match
+      description: View the results of inter-organizational consumer match results
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Consumer match identified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerMatch'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 

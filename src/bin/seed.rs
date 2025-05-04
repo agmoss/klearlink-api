@@ -321,7 +321,7 @@ fn seed_fraud_use_case(conn: &mut PgConnection) {
         originated_datetime: None,
         payment_due_date: None,
         payment_due_amount: None,
-        credit_state: "declined".to_string(),
+        credit_state: "application".to_string(),
         consumer_information_indicator: None,
         user_id: bnpl_2_user_id,
     };
@@ -346,6 +346,7 @@ fn seed_fraud_use_case(conn: &mut PgConnection) {
         .values(&fourth_transaction)
         .execute(conn)
         .expect("Error inserting fourth fraud transaction");
+
 }
 
 fn main() {
