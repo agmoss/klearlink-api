@@ -13,6 +13,7 @@ mod base;
 pub mod consumer_credit;
 mod core;
 pub mod error;
+pub mod seed_utils;
 pub mod user;
 
 pub fn create_rocket() -> Rocket<Build> {

@@ -62,7 +62,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
             .map(|dt| (self.now - dt).num_days())
             .sum();
 
-        Some(total_age as f64 / active_loans.len() as f64)
+        let average = total_age as f64 / active_loans.len() as f64;
+        Some((average * 100.0).round() / 100.0)
     }
 
     fn calculate_application_frequency_last_12_months(&self) -> usize {
@@ -136,7 +137,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
             .filter(|r| r.credit_state == "non-compliant" && r.payment_due_date.is_some())
             .count();
 
-        (non_compliant_payments as f64 / total_payments as f64) * 100.0
+        let percentage = (non_compliant_payments as f64 / total_payments as f64) * 100.0;
+        (percentage * 100.0).round() / 100.0
     }
 
     fn calculate_current_delinquency_status(&self) -> bool {
@@ -157,7 +159,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
             .filter(|r| r.credit_state == "non-compliant")
             .count();
 
-        non_compliant_periods as f64 / total_periods as f64
+        let rate = non_compliant_periods as f64 / total_periods as f64;
+        (rate * 100.0).round() / 100.0
     }
 
     fn calculate_multi_account_phone_usage(&self) -> usize {
