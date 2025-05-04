@@ -161,6 +161,9 @@ or
 | credit_type          | string | Type of credit (`"PDL"`)                       |
 | application_datetime | string | ISO 8601 datetime of application               |
 | credit_state         | string | State of credit (see values below)             |
+| originated_datetime  | string (optional) | ISO 8601 datetime when credit was originated   |
+| payment_due_date     | string (optional) | ISO 8601 datetime when next payment is due     |
+| payment_due_amount   | float (optional)  | Amount of next payment due in dollars/cents    |
 
 > **credit_facts** (BNPL)
 
@@ -507,7 +510,7 @@ The KlearLink API is designed with robust security features to ensure the protec
 
 ### Authentication
 
-- The API uses API key-based authentication, requiring both an `X-API-Key` and `X-Username` in the request headers to authenticate requests.
+- The API uses API key-based authentication, requiring an `Authorization` header with the format `Apikey <UUID>` to authenticate requests.
 
 ### Monitoring and Logging
 
