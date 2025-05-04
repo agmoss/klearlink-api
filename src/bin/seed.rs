@@ -24,11 +24,27 @@ use klearlink_api::schema::{consumer_credit, users};
 use klearlink_api::user::models::{InsertUserModel, UserModel};
 
 use indicatif::{ProgressBar, ProgressStyle};
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Seed the database with random data
+    Random,
+    /// Seed the database with the fraud use case
+    UseCase,
+}
 
 fn generate_reproducible_uuid(seed: u128) -> Uuid {
     // Use a fixed seed to generate a reproducible UUID
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed as u64);
-    let bytes: [u8; 16] = rng.gen();
+    let bytes: [u8; 16] = rng.random();
     Uuid::from_bytes(bytes)
 }
 
@@ -332,7 +348,22 @@ fn seed_fraud_use_case(conn: &mut PgConnection) {
         .expect("Error inserting fourth fraud transaction");
 }
 
-fn seed_database() {
+fn main() {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Random => {
+            println!("Seeding database with random data...");
+            seed_random_data();
+        }
+        Commands::UseCase => {
+            println!("Seeding database with fraud use case...");
+            seed_fraud_use_case(&mut establish_connection());
+        }
+    }
+}
+
+fn seed_random_data() {
     let mut conn = establish_connection();
 
     let names = [
@@ -459,13 +490,5 @@ fn seed_database() {
                 .expect("Error inserting consumer credit record");
         }
     }
-
-    // Seed the fraud use case
-    seed_fraud_use_case(&mut conn);
-
-    pb.finish_with_message("Database seeded");
-}
-
-fn main() {
-    seed_database();
+    pb.finish_with_message("Database seeded with random data");
 }
