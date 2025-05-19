@@ -288,6 +288,32 @@ impl Validator {
         Ok(())
     }
 
+    pub fn ip_validation(val: &Option<String>) -> ValidatorError {
+        if let Some(ip) = val {
+            // Check for IPv4 format (e.g., 192.168.1.1)
+            let ipv4_regex = Regex::new(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$").unwrap();
+            if ipv4_regex.is_match(ip) {
+                // Validate each octet is between 0-255
+                let octets: Vec<u8> = ip.split('.').filter_map(|o| o.parse().ok()).collect();
+                if octets.len() == 4 && octets.iter().all(|&o| o <= 255) {
+                    return Ok(());
+                }
+            }
+
+            // Check for IPv6 format (e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334)
+            let ipv6_regex = Regex::new(r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$").unwrap();
+            if ipv6_regex.is_match(ip) {
+                return Ok(());
+            }
+
+            return Err(Error::Custom(format!(
+                "Invalid IP address: {}. Must be a valid IPv4 or IPv6 address.",
+                ip
+            )));
+        }
+        Ok(())
+    }
+
     fn luhn_check(sin: &str) -> bool {
         let digits: Vec<u32> = sin.chars().filter_map(|c| c.to_digit(10)).collect();
         if digits.len() != 9 {

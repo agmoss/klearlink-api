@@ -152,6 +152,7 @@ or
 | SIN/SSN                        | string (optional) | SIN(`NNN-NNN-NNN`) or SSN(`NNN-NN-NNNN`) of the consumer                                                                      |
 | institution_names              | array             | List of associated institutions. Each name must be between 2 and 50 characters.                                               |
 | consumer_information_indicator | string (optional) | Used to report a special condition of the account. See [B. Consumer Information Indicator](#b-consumer-information-indicator) |
+| ip_address                     | string (optional) | IPv4 or IPv6 address of the consumer. Must be a valid internet IP address when present.                                       |
 
 > **credit_facts** (PDL)
 
