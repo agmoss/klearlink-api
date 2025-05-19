@@ -52,7 +52,8 @@ CREATE TABLE consumer_credit (
     total_installments INTEGER CHECK (total_installments > 0),
     paid_installments INTEGER CHECK (paid_installments >= 0 AND paid_installments <= total_installments),
     installment_amount FLOAT CHECK (installment_amount >= 0),
-    UNIQUE (consumer_credit_id, user_id)
+    UNIQUE (consumer_credit_id, user_id),
+    ip_address VARCHAR(45) 
 );
 
 CREATE INDEX idx_users_username ON users (username);

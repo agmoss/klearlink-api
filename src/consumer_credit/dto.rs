@@ -34,6 +34,9 @@ pub struct ConsumerFactsDto {
     #[validate(max_length = 2)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub consumer_information_indicator: Option<String>,
+    #[validate(custom = Validator::ip_validation)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ip_address: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -56,6 +59,8 @@ pub struct UpdateConsumerFactsDto {
     pub institution_names: Option<Vec<Option<String>>>,
     #[validate(max_length = 2)]
     pub consumer_information_indicator: Option<String>,
+    #[validate(custom = Validator::ip_validation)]
+    pub ip_address: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
@@ -149,6 +154,7 @@ pub struct ConsumerMatchStatisticsDto {
     pub insolvency_status_indicator: bool,
     pub repeated_insolvency_flag: bool,
     pub high_frequency_applicant: bool,
+    pub duplicate_ip_indicator: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -224,6 +230,7 @@ impl UpdateConsumerCreditDto {
             consumer_information_indicator: Self::extract(
                 &facts.and_then(|f| f.consumer_information_indicator.clone()),
             ),
+            ip_address: Self::extract(&facts.and_then(|f| f.ip_address.clone())),
             amount: Self::extract(&credit.and_then(|c| c.amount)),
             credit_type: Self::extract(&credit.and_then(|c| c.credit_type.clone())),
             application_datetime: credit.and_then(|c| c.application_datetime),
@@ -258,6 +265,7 @@ impl InsertConsumerCreditDto {
                 .consumer_facts
                 .consumer_information_indicator
                 .clone(),
+            ip_address: self.consumer_facts.ip_address.clone(),
             amount: self.credit_facts.amount,
             credit_type: self.credit_facts.credit_type.clone(),
             application_datetime: self.credit_facts.application_datetime,
@@ -286,6 +294,7 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 sin_ssn: consumer_credit.sin_ssn,
                 institution_names: consumer_credit.institution_names,
                 consumer_information_indicator: consumer_credit.consumer_information_indicator,
+                ip_address: consumer_credit.ip_address,
             },
             credit_facts: CreditFactsDto {
                 amount: consumer_credit.amount,
@@ -299,9 +308,9 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 paid_installments: consumer_credit.paid_installments,
                 installment_amount: consumer_credit.installment_amount,
             },
-            processed: true,
             created_at: consumer_credit.created_at,
             updated_at: consumer_credit.updated_at,
+            processed: false,
         }
     }
 }
@@ -325,6 +334,7 @@ impl ConsumerCreditModel {
                 sin_ssn: self.sin_ssn.clone(),
                 institution_names: self.institution_names.clone(),
                 consumer_information_indicator: self.consumer_information_indicator.clone(),
+                ip_address: self.ip_address.clone(),
             },
             credit_facts: CreditFactsDto {
                 amount: self.amount,

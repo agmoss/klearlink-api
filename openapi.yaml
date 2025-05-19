@@ -45,29 +45,33 @@ components:
         email:
           type: string
           format: email
-          description: RFC 5322/822 format email address
+          description: Email address of the consumer
         date_of_birth:
           type: string
           format: date
-          description: ISO 8601 date format
+          description: Date of birth of the consumer
         address:
           type: string
-          description: CAN/CSA-Z109.1-01 or USPS Publication 28 address format
+          description: Address of the consumer
         phone_number:
           type: string
-          description: E.164 international format phone number
+          description: Phone number of the consumer
         sin_ssn:
           type: string
-          description: SIN(NNN-NNN-NNN) or SSN(NNN-NN-NNNN)
+          description: SIN or SSN of the consumer
         institution_names:
           type: array
           items:
             type: string
-          description: List of associated institutions
+          description: List of institution names
         consumer_information_indicator:
           type: string
-          enum: [A, B, C, D, E, F, G, T, Z, ZA, ZB, ZC, ZD, Q]
-          description: Special condition of the account
+          maxLength: 2
+          description: Consumer information indicator
+        ip_address:
+          type: string
+          maxLength: 45
+          description: IP address of the consumer (IPv4 or IPv6)
       required:
         - first_name
         - last_name

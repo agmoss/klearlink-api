@@ -36,6 +36,8 @@ diesel::table! {
         total_installments -> Nullable<Int4>,
         paid_installments -> Nullable<Int4>,
         installment_amount -> Nullable<Float8>,
+        #[max_length = 45]
+        ip_address -> Nullable<Varchar>,
     }
 }
 
