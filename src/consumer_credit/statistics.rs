@@ -38,11 +38,7 @@ impl<'a> ConsumerMatchStatistics<'a> {
     fn calculate_active_loans(&self) -> Vec<&ConsumerCreditModel> {
         self.records
             .iter()
-            .filter(|r| {
-                r.credit_state == "originated"
-                    || r.credit_state == "compliant"
-                    || r.credit_state == "non-compliant"
-            })
+            .filter(|r| r.credit_state == "originated" || r.credit_state == "non-compliant")
             .collect()
     }
 
@@ -79,7 +75,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
         self.records
             .iter()
             .filter(|r| {
-                r.credit_state == "originated"
+                r.credit_state != "application"
+                    && r.credit_state != "declined"
                     && r.originated_datetime.is_some()
                     && r.originated_datetime.unwrap() >= one_year_ago
             })
@@ -91,7 +88,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
         self.records
             .iter()
             .filter(|r| {
-                r.credit_state == "originated"
+                r.credit_state != "application"
+                    && r.credit_state != "declined"
                     && r.originated_datetime.is_some()
                     && r.originated_datetime.unwrap() >= thirty_days_ago
             })
@@ -235,6 +233,15 @@ impl<'a> ConsumerMatchStatistics<'a> {
         false
     }
 
+    fn calculate_duplicate_ip_indicator(&self) -> bool {
+        if self.records.is_empty() {
+            return false;
+        }
+
+        let first_ip = &self.records[0].ip_address;
+        self.records.iter().any(|r| r.ip_address != *first_ip)
+    }
+
     pub fn to_dto(&self) -> ConsumerMatchStatisticsDto {
         ConsumerMatchStatisticsDto {
             days_since_last_application: self.calculate_days_since_last_application(),
@@ -257,6 +264,7 @@ impl<'a> ConsumerMatchStatistics<'a> {
             insolvency_status_indicator: self.calculate_insolvency_status_indicator(),
             repeated_insolvency_flag: self.calculate_repeated_insolvency_flag(),
             high_frequency_applicant: self.calculate_high_frequency_applicant(),
+            duplicate_ip_indicator: self.calculate_duplicate_ip_indicator(),
         }
     }
 }

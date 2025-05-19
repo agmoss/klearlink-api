@@ -15,6 +15,11 @@
     - [Authentication](#authentication)
     - [Monitoring and Logging](#monitoring-and-logging)
     - [Compliance and Protection](#compliance-and-protection)
+  - [Performance and Scalability](#performance-and-scalability)
+    - [Rust Implementation](#rust-implementation)
+    - [Edge Network Distribution](#edge-network-distribution)
+    - [Distributed Database Architecture](#distributed-database-architecture)
+    - [Kubernetes Orchestration](#kubernetes-orchestration)
   - [Appendix](#appendix)
     - [A. Definitions](#a-definitions)
     - [B. Consumer Information Indicator](#b-consumer-information-indicator)
@@ -465,7 +470,8 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "multi_account_email_usage": 1,
     "insolvency_status_indicator": true,
     "repeated_insolvency_flag": false,
-    "high_frequency_applicant": false
+    "high_frequency_applicant": false,
+    "duplicate_ip_indicator": false
   }
 }
 ```
@@ -497,6 +503,7 @@ The statistics field provides aggregated information about the matched records:
 - `insolvency_status_indicator`: Boolean indicating if the borrower is currently insolvent (has any insolvency-related consumer information indicator)
 - `repeated_insolvency_flag`: Boolean indicating if the borrower has been insolvent multiple times (has multiple insolvency-related consumer information indicators)
 - `high_frequency_applicant`: Boolean indicating if the borrower has made multiple applications within a 24-hour period
+- `duplicate_ip_indicator`: Boolean indicating if the borrower has used different IP addresses across their applications
 
 :::info
 For real-time updates on consumer matches, use the KlearWatch interface.
@@ -521,6 +528,43 @@ The KlearLink API is designed with robust security features to ensure the protec
 
 - The API is developed in adherence to the [FAPI 2.0 Security Profile](https://openid.net/specs/fapi-2_0-security-profile-ID2.html), ensuring high standards of financial-grade API security.
 - It is also protected against the [OWASP Top Ten](https://owasp.org/www-project-top-ten/) vulnerabilities, providing a secure environment against common security threats.
+
+## Performance and Scalability
+
+The KlearLink API is built for high performance and infinite scalability, leveraging modern technologies and architectural patterns:
+
+### Rust Implementation
+
+- Written in Rust, providing near-native performance and memory safety
+- Zero-cost abstractions and compile-time guarantees
+- Efficient resource utilization and minimal latency
+- Thread-safe by default with no runtime overhead
+
+### Edge Network Distribution
+
+- Globally distributed edge network deployment
+- Reduced latency through geographic proximity to users
+- Automatic failover and high availability
+- Intelligent request routing and load balancing
+
+### Distributed Database Architecture
+
+- Horizontally scalable database design
+- Sharded data storage for optimal performance
+- Asynchronous replication for data consistency
+- Efficient query optimization and caching strategies
+
+### Kubernetes Orchestration
+
+- Containerized deployment for consistent environments
+- Automatic scaling based on demand
+- Self-healing infrastructure
+- Zero-downtime updates and rollbacks
+- Resource optimization and efficient utilization
+
+:::info
+The combination of Rust's performance characteristics, edge network distribution, distributed database architecture, and Kubernetes orchestration enables the KlearLink API to handle millions of requests per second with sub-millisecond latency while maintaining data consistency and security.
+:::
 
 ## Appendix
 

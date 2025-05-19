@@ -29,7 +29,6 @@ pub struct ConsumerCreditModel {
     pub payment_due_amount: Option<f64>,
     pub credit_state: String,
     pub consumer_information_indicator: Option<String>,
-    pub ip_address: Option<String>,
     pub user_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -37,6 +36,7 @@ pub struct ConsumerCreditModel {
     pub total_installments: Option<i32>,
     pub paid_installments: Option<i32>,
     pub installment_amount: Option<f64>,
+    pub ip_address: Option<String>,
 }
 
 #[derive(Insertable)]

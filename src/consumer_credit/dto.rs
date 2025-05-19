@@ -154,6 +154,7 @@ pub struct ConsumerMatchStatisticsDto {
     pub insolvency_status_indicator: bool,
     pub repeated_insolvency_flag: bool,
     pub high_frequency_applicant: bool,
+    pub duplicate_ip_indicator: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
