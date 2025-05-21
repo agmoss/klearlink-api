@@ -458,8 +458,12 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "days_since_last_origination": 1,
     "average_credit_age": 1.0,
     "number_of_active_loans": 1,
-    "application_frequency_last_12_months": 1,
-    "origination_frequency_last_12_months": 1,
+    "application_frequency_last_7_days": 1,
+    "application_frequency_last_15_days": 1,
+    "application_frequency_last_30_days": 1,
+    "origination_frequency_last_7_days": 1,
+    "origination_frequency_last_15_days": 1,
+    "origination_frequency_last_30_days": 1,
     "credit_stacking_indicator": 1,
     "missed_payment_count": 1,
     "days_in_non_compliance": 1,
@@ -471,7 +475,8 @@ Includes consumer_facts and credit_facts from original record, plus a `consumer_
     "insolvency_status_indicator": true,
     "repeated_insolvency_flag": false,
     "high_frequency_applicant": false,
-    "duplicate_ip_indicator": false
+    "distinct_ip_count": 1,
+    "distinct_institution_count": 1
   }
 }
 ```
@@ -490,8 +495,12 @@ The statistics field provides aggregated information about the matched records:
 - `days_since_last_origination`: Number of days since the most recent origination (if any)
 - `average_credit_age`: Average age in days of active credit lines
 - `number_of_active_loans`: Count of currently outstanding credit lines (originated, compliant, or non-compliant)
-- `application_frequency_last_12_months`: Number of credit applications made in the past 12 months
-- `origination_frequency_last_12_months`: Number of credit approvals in the past 12 months
+- `application_frequency_last_7_days`: Number of credit applications made in the past 7 days
+- `application_frequency_last_15_days`: Number of credit applications made in the past 15 days
+- `application_frequency_last_30_days`: Number of credit applications made in the past 30 days
+- `origination_frequency_last_7_days`: Number of credit approvals in the past 7 days
+- `origination_frequency_last_15_days`: Number of credit approvals in the past 15 days
+- `origination_frequency_last_30_days`: Number of credit approvals in the past 30 days
 - `credit_stacking_indicator`: Number of active loans originated within the last 30 days
 - `missed_payment_count`: Total number of non-compliant loans
 - `days_in_non_compliance`: Total number of days the borrower has been in a non-compliant state
@@ -503,7 +512,8 @@ The statistics field provides aggregated information about the matched records:
 - `insolvency_status_indicator`: Boolean indicating if the borrower is currently insolvent (has any insolvency-related consumer information indicator)
 - `repeated_insolvency_flag`: Boolean indicating if the borrower has been insolvent multiple times (has multiple insolvency-related consumer information indicators)
 - `high_frequency_applicant`: Boolean indicating if the borrower has made multiple applications within a 24-hour period
-- `duplicate_ip_indicator`: Boolean indicating if the borrower has used different IP addresses across their applications
+- `distinct_ip_count`: Number of unique IP addresses used across the consumer's applications
+- `distinct_institution_count`: Number of unique financial institutions the consumer has credit records with
 
 :::info
 For real-time updates on consumer matches, use the KlearWatch interface.

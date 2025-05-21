@@ -62,23 +62,65 @@ impl<'a> ConsumerMatchStatistics<'a> {
         Some((average * 100.0).round() / 100.0)
     }
 
-    fn calculate_application_frequency_last_12_months(&self) -> usize {
-        let one_year_ago = self.now - Duration::days(365);
+    fn calculate_application_frequency_last_7_days(&self) -> usize {
+        let seven_days_ago = self.now - Duration::days(7);
         self.records
             .iter()
-            .filter(|r| r.application_datetime >= one_year_ago)
+            .filter(|r| r.application_datetime >= seven_days_ago)
             .count()
     }
 
-    fn calculate_origination_frequency_last_12_months(&self) -> usize {
-        let one_year_ago = self.now - Duration::days(365);
+    fn calculate_application_frequency_last_15_days(&self) -> usize {
+        let fifteen_days_ago = self.now - Duration::days(15);
+        self.records
+            .iter()
+            .filter(|r| r.application_datetime >= fifteen_days_ago)
+            .count()
+    }
+
+    fn calculate_application_frequency_last_30_days(&self) -> usize {
+        let thirty_days_ago = self.now - Duration::days(30);
+        self.records
+            .iter()
+            .filter(|r| r.application_datetime >= thirty_days_ago)
+            .count()
+    }
+
+    fn calculate_origination_frequency_last_7_days(&self) -> usize {
+        let seven_days_ago = self.now - Duration::days(7);
         self.records
             .iter()
             .filter(|r| {
                 r.credit_state != "application"
                     && r.credit_state != "declined"
                     && r.originated_datetime.is_some()
-                    && r.originated_datetime.unwrap() >= one_year_ago
+                    && r.originated_datetime.unwrap() >= seven_days_ago
+            })
+            .count()
+    }
+
+    fn calculate_origination_frequency_last_15_days(&self) -> usize {
+        let fifteen_days_ago = self.now - Duration::days(15);
+        self.records
+            .iter()
+            .filter(|r| {
+                r.credit_state != "application"
+                    && r.credit_state != "declined"
+                    && r.originated_datetime.is_some()
+                    && r.originated_datetime.unwrap() >= fifteen_days_ago
+            })
+            .count()
+    }
+
+    fn calculate_origination_frequency_last_30_days(&self) -> usize {
+        let thirty_days_ago = self.now - Duration::days(30);
+        self.records
+            .iter()
+            .filter(|r| {
+                r.credit_state != "application"
+                    && r.credit_state != "declined"
+                    && r.originated_datetime.is_some()
+                    && r.originated_datetime.unwrap() >= thirty_days_ago
             })
             .count()
     }
@@ -242,16 +284,34 @@ impl<'a> ConsumerMatchStatistics<'a> {
         self.records.iter().any(|r| r.ip_address != *first_ip)
     }
 
+    fn calculate_distinct_institution_count(&self) -> usize {
+        self.records
+            .iter()
+            .filter_map(|r| r.institution_name.as_ref())
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    }
+
+    fn calculate_distinct_ip_count(&self) -> usize {
+        self.records
+            .iter()
+            .filter_map(|r| r.ip_address.as_ref())
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+    }
+
     pub fn to_dto(&self) -> ConsumerMatchStatisticsDto {
         ConsumerMatchStatisticsDto {
             days_since_last_application: self.calculate_days_since_last_application(),
             days_since_last_origination: self.calculate_days_since_last_origination(),
             average_credit_age: self.calculate_average_credit_age(),
             number_of_active_loans: self.calculate_number_of_active_loans(),
-            application_frequency_last_12_months: self
-                .calculate_application_frequency_last_12_months(),
-            origination_frequency_last_12_months: self
-                .calculate_origination_frequency_last_12_months(),
+            application_frequency_last_7_days: self.calculate_application_frequency_last_7_days(),
+            application_frequency_last_15_days: self.calculate_application_frequency_last_15_days(),
+            application_frequency_last_30_days: self.calculate_application_frequency_last_30_days(),
+            origination_frequency_last_7_days: self.calculate_origination_frequency_last_7_days(),
+            origination_frequency_last_15_days: self.calculate_origination_frequency_last_15_days(),
+            origination_frequency_last_30_days: self.calculate_origination_frequency_last_30_days(),
             credit_stacking_indicator: self.calculate_credit_stacking_indicator(),
             missed_payment_count: self.calculate_missed_payment_count(),
             days_in_non_compliance: self.calculate_days_in_non_compliance(),
@@ -264,7 +324,8 @@ impl<'a> ConsumerMatchStatistics<'a> {
             insolvency_status_indicator: self.calculate_insolvency_status_indicator(),
             repeated_insolvency_flag: self.calculate_repeated_insolvency_flag(),
             high_frequency_applicant: self.calculate_high_frequency_applicant(),
-            duplicate_ip_indicator: self.calculate_duplicate_ip_indicator(),
+            distinct_ip_count: self.calculate_distinct_ip_count(),
+            distinct_institution_count: self.calculate_distinct_institution_count(),
         }
     }
 }

@@ -72,13 +72,20 @@ pub struct NamePair {
     pub last: &'static str,
 }
 
-pub fn generate_random_institution_names(rng: &mut ThreadRng) -> Vec<Option<String>> {
-    let available_banks = ["TD", "RBC", "Scotiabank", "BMO", "CIBC"];
-    let subset_size = rng.random_range(1..=available_banks.len());
-    available_banks
-        .choose_multiple(rng, subset_size)
-        .map(|&bank| Some(bank.to_string()))
-        .collect()
+pub fn generate_random_institution_names(rng: &mut impl Rng) -> Option<String> {
+    let institutions = [
+        "CIBC",
+        "RBC",
+        "TD",
+        "Scotiabank",
+        "BMO",
+        "National Bank",
+        "HSBC",
+        "Desjardins",
+        "ATB Financial",
+        "Manulife Bank",
+    ];
+    institutions.choose(rng).map(|s| s.to_string())
 }
 
 pub fn generate_address(rng: &mut impl rand::Rng) -> String {

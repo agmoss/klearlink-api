@@ -18,8 +18,7 @@ pub struct ConsumerCreditModel {
     pub address: String,
     pub phone_number: String,
     pub sin_ssn: Option<String>,
-    #[diesel(sql_type = Nullable<Array<Nullable<Text>>>)]
-    pub institution_names: Vec<Option<String>>,
+    pub institution_name: Option<String>,
     pub amount: f64,
     pub credit_type: String,
     #[diesel(sql_type = Timestamp)]
@@ -50,7 +49,7 @@ pub struct InsertConsumerCreditModel {
     pub address: String,
     pub phone_number: String,
     pub sin_ssn: Option<String>,
-    pub institution_names: Vec<Option<String>>,
+    pub institution_name: Option<String>,
     pub consumer_information_indicator: Option<String>,
     pub ip_address: Option<String>,
     pub amount: f64,
@@ -77,7 +76,7 @@ pub struct UpdateConsumerCreditModel {
     pub address: Option<String>,
     pub phone_number: Option<String>,
     pub sin_ssn: Option<String>,
-    pub institution_names: Option<Vec<Option<String>>>,
+    pub institution_name: Option<String>,
     pub amount: Option<f64>,
     pub credit_type: Option<String>,
     pub application_datetime: Option<NaiveDateTime>,

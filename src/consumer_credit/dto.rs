@@ -29,8 +29,7 @@ pub struct ConsumerFactsDto {
     #[validate(custom = Validator::sin_validation)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sin_ssn: Option<String>,
-    #[validate(unique_items)]
-    pub institution_names: Vec<Option<String>>,
+    pub institution_name: Option<String>,
     #[validate(max_length = 2)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub consumer_information_indicator: Option<String>,
@@ -55,8 +54,7 @@ pub struct UpdateConsumerFactsDto {
     pub phone_number: Option<String>,
     #[validate(custom = Validator::sin_validation)]
     pub sin_ssn: Option<String>,
-    #[validate(unique_items)]
-    pub institution_names: Option<Vec<Option<String>>>,
+    pub institution_name: Option<String>,
     #[validate(max_length = 2)]
     pub consumer_information_indicator: Option<String>,
     #[validate(custom = Validator::ip_validation)]
@@ -141,8 +139,12 @@ pub struct ConsumerMatchStatisticsDto {
     pub days_since_last_origination: Option<i64>,
     pub average_credit_age: Option<f64>,
     pub number_of_active_loans: usize,
-    pub application_frequency_last_12_months: usize,
-    pub origination_frequency_last_12_months: usize,
+    pub application_frequency_last_7_days: usize,
+    pub application_frequency_last_15_days: usize,
+    pub application_frequency_last_30_days: usize,
+    pub origination_frequency_last_7_days: usize,
+    pub origination_frequency_last_15_days: usize,
+    pub origination_frequency_last_30_days: usize,
     pub credit_stacking_indicator: usize,
     pub missed_payment_count: usize,
     pub days_in_non_compliance: i64,
@@ -154,7 +156,8 @@ pub struct ConsumerMatchStatisticsDto {
     pub insolvency_status_indicator: bool,
     pub repeated_insolvency_flag: bool,
     pub high_frequency_applicant: bool,
-    pub duplicate_ip_indicator: bool,
+    pub distinct_ip_count: usize,
+    pub distinct_institution_count: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -191,7 +194,7 @@ pub struct MatchedCreditFactsDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate)]
 pub struct MatchedConsumerFactsDto {
-    pub institution_names: Vec<Option<String>>,
+    pub institution_name: Option<String>,
     pub consumer_information_indicator: Option<String>,
 }
 
@@ -226,7 +229,7 @@ impl UpdateConsumerCreditDto {
             address: Self::extract(&facts.and_then(|f| f.address.clone())),
             phone_number: Self::extract(&facts.and_then(|f| f.phone_number.clone())),
             sin_ssn: Self::extract(&facts.and_then(|f| f.sin_ssn.clone())),
-            institution_names: Self::extract(&facts.and_then(|f| f.institution_names.clone())),
+            institution_name: Self::extract(&facts.and_then(|f| f.institution_name.clone())),
             consumer_information_indicator: Self::extract(
                 &facts.and_then(|f| f.consumer_information_indicator.clone()),
             ),
@@ -260,7 +263,7 @@ impl InsertConsumerCreditDto {
             address: self.consumer_facts.address.clone(),
             phone_number: self.consumer_facts.phone_number.clone(),
             sin_ssn: self.consumer_facts.sin_ssn.clone(),
-            institution_names: self.consumer_facts.institution_names.clone(),
+            institution_name: self.consumer_facts.institution_name.clone(),
             consumer_information_indicator: self
                 .consumer_facts
                 .consumer_information_indicator
@@ -292,7 +295,7 @@ impl From<ConsumerCreditModel> for ConsumerCreditDto {
                 address: consumer_credit.address,
                 phone_number: consumer_credit.phone_number,
                 sin_ssn: consumer_credit.sin_ssn,
-                institution_names: consumer_credit.institution_names,
+                institution_name: consumer_credit.institution_name,
                 consumer_information_indicator: consumer_credit.consumer_information_indicator,
                 ip_address: consumer_credit.ip_address,
             },
@@ -332,7 +335,7 @@ impl ConsumerCreditModel {
                 address: self.address.clone(),
                 phone_number: self.phone_number.clone(),
                 sin_ssn: self.sin_ssn.clone(),
-                institution_names: self.institution_names.clone(),
+                institution_name: self.institution_name.clone(),
                 consumer_information_indicator: self.consumer_information_indicator.clone(),
                 ip_address: self.ip_address.clone(),
             },
@@ -373,7 +376,7 @@ impl ConsumerCreditModel {
                 credit_state: self.credit_state.clone(),
             },
             consumer_facts: MatchedConsumerFactsDto {
-                institution_names: self.institution_names.clone(),
+                institution_name: self.institution_name.clone(),
                 consumer_information_indicator: self.consumer_information_indicator.clone(),
             },
         }
