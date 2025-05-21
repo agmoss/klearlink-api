@@ -29,19 +29,19 @@ enum Commands {
     Random,
     /// Seed the database with the new consumer use case
     /// Use Case 1: New Customer TTV Optimization
+    /// User: sarah.johnson@example.com
     NewConsumer,
-    /// sarah.johnson@example.com
     /// Seed the database with the bust out fraud use case
     /// Use Case 2: Bust Out Fraud
+    /// User: michael.anderson@example.com
     BustOutFraud,
-    /// michael.anderson@example.com
     /// Seed the database with the chargeoff risk use case
     /// Use Case 3: Reduce Chargeoff Risk with Real-Time Decisioning Data
+    /// User: david.wilson@example.com
     ChargeoffRisk,
-    /// david.wilson@example.com
     /// Seed the database with the existing customer chargeoff risk use case
     /// Use Case 4: Chargeoff Risk Mitigation with Existing Customers
-    /// /// james.miller@example.com
+    /// User: james.miller@example.com
     ExistingCustomerRisk,
 }
 

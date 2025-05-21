@@ -85,21 +85,32 @@ impl Validator {
     }
 
     pub fn validate_credit_state(dto: &CreditFactsDto) -> ValidatorError {
-        if dto.credit_state == "applied" {
+        if dto.credit_state == "application" {
+            // For any credit type in application state, these fields should be null
             let count = dto.originated_datetime.is_some() as u8
                 + dto.payment_due_date.is_some() as u8
                 + dto.payment_due_amount.is_some() as u8;
 
-            if count == 0 {
-                Ok(())
-            } else {
-                Err(Error::Custom(
-                    "If credit_state is 'applied', originated_datetime, payment_due_date, and payment_due_amount cannot be present.".to_string(),
-                ))
+            if count > 0 {
+                return Err(Error::Custom(
+                    "If credit_state is 'application', originated_datetime, payment_due_date, and payment_due_amount cannot be present.".to_string(),
+                ));
             }
-        } else {
-            Ok(())
+
+            // For BNPL loans in application state, these fields should also be null
+            if dto.credit_type == "BNPL" {
+                let bnpl_count = dto.total_installments.is_some() as u8
+                    + dto.paid_installments.is_some() as u8
+                    + dto.installment_amount.is_some() as u8;
+
+                if bnpl_count > 0 {
+                    return Err(Error::Custom(
+                        "For BNPL loans in 'application' state, total_installments, paid_installments, and installment_amount cannot be present.".to_string(),
+                    ));
+                }
+            }
         }
+        Ok(())
     }
 
     pub fn optional_email_validation(val: &Option<String>) -> ValidatorError {
