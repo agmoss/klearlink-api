@@ -26,7 +26,7 @@ impl Fairing for Cors {
                 "https://klearlink-demo.vercel.app",
             ]
         } else {
-            vec!["https://api.klearlink.io"]
+            vec!["https://api.klearlink.io","http://localhost:3000"]
         };
 
         // Get the origin from the request

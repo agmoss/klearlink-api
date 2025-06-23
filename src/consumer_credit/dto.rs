@@ -8,7 +8,7 @@ use super::{
     statistics::ConsumerMatchStatistics,
 };
 use chrono::{NaiveDate, NaiveDateTime};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use serde_json::Value;
 use serde_valid::Validate;
 
@@ -61,7 +61,7 @@ pub struct UpdateConsumerFactsDto {
     pub ip_address: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, Clone, Validate)]
 #[validate(custom = Validator::validate_credit_facts)]
 #[validate(custom = Validator::validate_credit_state)]
 pub struct CreditFactsDto {
@@ -86,6 +86,43 @@ pub struct CreditFactsDto {
     pub paid_installments: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub installment_amount: Option<f64>,
+}
+
+impl Serialize for CreditFactsDto {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("CreditFactsDto", 7)?;
+
+        state.serialize_field("amount", &self.amount)?;
+        state.serialize_field("credit_type", &self.credit_type)?;
+        state.serialize_field("application_datetime", &self.application_datetime)?;
+        if let Some(ref v) = self.originated_datetime {
+            state.serialize_field("originated_datetime", v)?;
+        }
+        if let Some(ref v) = self.payment_due_date {
+            state.serialize_field("payment_due_date", v)?;
+        }
+        if let Some(ref v) = self.payment_due_amount {
+            state.serialize_field("payment_due_amount", v)?;
+        }
+        state.serialize_field("credit_state", &self.credit_state)?;
+
+        if self.credit_state != "application" {
+            if let Some(ref v) = self.total_installments {
+                state.serialize_field("total_installments", v)?;
+            }
+            if let Some(ref v) = self.paid_installments {
+                state.serialize_field("paid_installments", v)?;
+            }
+            if let Some(ref v) = self.installment_amount {
+                state.serialize_field("installment_amount", v)?;
+            }
+        }
+
+        state.end()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Validate, Default)]

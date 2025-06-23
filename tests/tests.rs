@@ -320,4 +320,67 @@ mod tests {
 
         assert_eq!(last_name, Some("Randy"));
     }
+
+    #[test]
+    #[serial]
+    fn test_bnpl_application_state_validation() {
+        let client = test_client().lock().unwrap();
+
+        // Test that BNPL loans in application state cannot have installment fields
+        let invalid_bnpl_payload = json!({
+            "consumer_facts": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john.doe@example.com",
+                "date_of_birth": "1990-01-01",
+                "address": "123 Main St, Toronto ON M5V 2H1",
+                "phone_number": "+11234567890"
+            },
+            "credit_facts": {
+                "amount": 1000.0,
+                "credit_type": "BNPL",
+                "application_datetime": "2024-01-01T12:00:00",
+                "credit_state": "application",
+                "total_installments": 4,
+                "paid_installments": 0,
+                "installment_amount": 250.0
+            }
+        });
+
+        let response = create_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            &invalid_bnpl_payload,
+        );
+
+        assert_eq!(response.status(), Status::UnprocessableEntity);
+
+        // Test that BNPL loans in application state with null installment fields are valid
+        let valid_bnpl_payload = json!({
+            "consumer_facts": {
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "email": "jane.smith@example.com",
+                "date_of_birth": "1990-01-01",
+                "address": "456 Oak St, Vancouver BC V6B 1A1",
+                "phone_number": "+11234567891"
+            },
+            "credit_facts": {
+                "amount": 1000.0,
+                "credit_type": "BNPL",
+                "application_datetime": "2024-01-01T12:00:00",
+                "credit_state": "application"
+            }
+        });
+
+        let response = create_consumer_credit(
+            &client,
+            &*TEST_UUID,
+            API_KEY_1.to_string(),
+            &valid_bnpl_payload,
+        );
+
+        assert_eq!(response.status(), Status::Created);
+    }
 }
